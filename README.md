@@ -1,14 +1,14 @@
 # genlayer-policy-eco
 
-`genlayer-policy-eco` is a contract-first GenLayer repository centered on a reusable `Intelligent Contract` primitive: a `PolicyOracle` that evaluates actions against natural-language rules and evidence, then stores a consensus-backed verdict onchain.
+`genlayer-policy-eco` is a GenLayer project centered on a reusable `Intelligent Contract` primitive: a `PolicyOracle` that evaluates actions against natural-language rules and evidence, then stores a consensus-backed verdict onchain.
 
-This repository is designed to be submitted first under `Intelligent Contracts`. After that, the same primitive can be expanded into a full `Project` with dashboards, admin tooling, review queues, and policy-gated product flows.
+This repository started as an `Intelligent Contract` submission and is now expanded into a full `Project` with a live policy review console, app-to-contract workflow, and policy-gated execution path.
 
 ## Submission Category
 
-Current target: `Intelligent Contracts`
+Current target: `Projects`
 
-Recommended future upgrade path: `Projects`
+Original submission base: `Intelligent Contracts`
 
 ## TL;DR
 
@@ -25,33 +25,34 @@ Primary builder benefit:
 
 ## What This Submission Is
 
-This submission is a standalone reusable `Intelligent Contract`, not just a demo UI and not a generic example contract.
+This submission is now a complete GenLayer app workflow built on top of the original reusable `PolicyOracle` contract.
 
-The contract lets any builder:
+The project lets any builder or reviewer:
 
 - create a reusable policy with human-readable rules
 - submit a subject plus supporting evidence
 - trigger GenLayer-native AI evaluation
 - receive a consensus-backed `allow`, `deny`, or `undetermined` result
-- read the stored verdict later from other apps or contracts
+- read the stored verdict later from the app or other downstream consumers
+- bind the verdict to a real execution status of `unlock_submission` or `hold_submission`
 
-## Why This Belongs Under Intelligent Contracts
+## Why This Belongs Under Projects
 
-This repository is being submitted as an `Intelligent Contract` because the main value is the reusable primitive itself, not a frontend experience.
+This repository now qualifies as a `Project` because it includes a real app workflow around the submitted contract.
 
 It provides:
 
-- a reusable policy evaluation pattern
-- structured consensus-backed outputs
-- real onchain storage of decisions
-- a clean interface other builders can integrate
+- a policy review console at `app/index.html`
+- a Node app server in `server.mjs`
+- real contract writes for `create_policy` and `evaluate`
+- real contract reads for `get_result` and `is_allowed`
+- an execution binding flow in `src/project/policy-submission-workflow.mjs`
 
-It is not:
+It is still not:
 
 - a learning-only exercise
-- a thin wrapper around a single prompt
 - a static UI without execution
-- the same work as a full app submission
+- a fake integration that never reads or writes the submitted contract
 
 ## GenLayer-Native Logic
 
@@ -84,7 +85,7 @@ Without GenLayer, the stored allow / deny result becomes a centralized policy op
 ```text
 Caller -> PolicyOracle.create_policy() -> Policy stored onchain
 Caller -> PolicyOracle.evaluate() -> GenLayer AI consensus -> Result stored onchain
-Consumer app / contract -> read verdict -> allow, deny, or hold execution
+Policy review console -> read verdict -> unlock submission or hold execution
 ```
 
 ## Repository Structure
@@ -93,9 +94,14 @@ Consumer app / contract -> read verdict -> allow, deny, or hold execution
 .
 |-- contracts/
 |   `-- PolicyOracle.py
+|-- app/
+|   |-- app.js
+|   |-- index.html
+|   `-- styles.css
 |-- docs/
 |   |-- BLUEPRINT.md
 |   |-- CONTRACT_DESIGN_SPEC.md
+|   |-- PROJECT_SUBMISSION.md
 |   `-- SUBMISSION.md
 |-- sdk/
 |   `-- policy-client.mjs
@@ -103,7 +109,8 @@ Consumer app / contract -> read verdict -> allow, deny, or hold execution
 |   |-- lib/
 |   |   `-- policy-client.mjs
 |   `-- project/
-|       `-- policy-gated-flow.mjs
+|       |-- policy-gated-flow.mjs
+|       `-- policy-submission-workflow.mjs
 |-- scripts/
 |   |-- demo_policy_flow.mjs
 |   |-- deploy_policy_oracle.mjs
@@ -115,6 +122,7 @@ Consumer app / contract -> read verdict -> allow, deny, or hold execution
 |-- .gitignore
 |-- package.json
 |-- pyproject.toml
+|-- server.mjs
 `-- README.md
 ```
 
@@ -161,6 +169,17 @@ An example project-side gate is included in:
 
 That flow reads the stored verdict and sets `blockedByPolicy` / `policyBoundToExecution` before allowing the next action.
 
+## Frontend / App Integration
+
+The project app is intentionally small but real:
+
+- `server.mjs` exposes JSON routes that call the submitted GenLayer contract
+- `app/index.html` provides the policy creation and submission review UI
+- `app/app.js` sends user actions into real API requests
+- `src/project/policy-submission-workflow.mjs` binds the contract verdict to `unlock_submission` or `hold_submission`
+
+This is a genuine application-to-contract workflow rather than a contract address display.
+
 ## Reusability
 
 Other builders can reuse this contract as:
@@ -174,7 +193,7 @@ Other builders can reuse this contract as:
 
 ## Running Locally
 
-This repo is intentionally contract-first. The main artifact is the contract and its documentation.
+This repo preserves the original contract-first artifact and now adds a project layer on top.
 
 ### Prerequisites
 
@@ -196,23 +215,24 @@ npm install
 pytest
 ```
 
-### Deploy / manual review
-
-Environment:
+### Run the project app
 
 ```bash
 cp .env.example .env
+npm install
+npm run app
 ```
 
-Deployment:
+Then open:
+
+```text
+http://127.0.0.1:3000
+```
+
+### Deploy / manual review
 
 ```bash
 npm run deploy:local
-```
-
-Demo flow:
-
-```bash
 npm run demo:local
 ```
 
@@ -227,7 +247,7 @@ See also:
 
 This repository is submission-ready at the code and design level and now includes a real `studionet` deployment.
 
-- Live app: `not included in this contract-first submission`
+- Live app: `run locally with npm run app`
 - Demo video: `add after deployment`
 - Network: `studionet`
 - Studio explorer base: `https://explorer-studio.genlayer.com`
@@ -250,7 +270,7 @@ Its core originality is:
 
 - reusable policy evaluation as a primitive
 - structured allow / deny decision storage
-- a clear upgrade path from `Intelligent Contract` to `Project`
+- a completed upgrade path from `Intelligent Contract` to `Project`
 - direct relevance to real GenLayer submission, payout, moderation, and agent workflows
 
 ## What Reviewers Should Verify
@@ -262,6 +282,7 @@ Its core originality is:
 - policy and result storage are explicit
 - outputs are structured and reusable
 - the repository explains why this belongs on GenLayer
+- the project layer really binds the result to execution
 
 ### Verify in execution
 
@@ -272,7 +293,7 @@ Its core originality is:
 
 ## Known Limitations
 
-- This first submission is contract-first and does not include a full end-user app.
+- This project uses a lightweight local Node server rather than a hosted production frontend.
 - Evidence fetching from URLs is intentionally bounded and conservative to keep the primitive simple.
 - The first version stores results for clarity; future versions can add richer indexing and downstream messaging.
 
@@ -281,22 +302,22 @@ Its core originality is:
 Review this repo in this order:
 
 1. `README.md`
-2. `docs/SUBMISSION.md`
-3. `docs/CONTRACT_DESIGN_SPEC.md`
-4. `contracts/PolicyOracle.py`
-5. `sdk/policy-client.mjs`
-6. `scripts/demo_policy_flow.mjs`
-7. `tests/test_policy_oracle_contract.py`
-8. `docs/BLUEPRINT.md`
+2. `docs/PROJECT_SUBMISSION.md`
+3. `app/index.html`
+4. `server.mjs`
+5. `src/project/policy-submission-workflow.mjs`
+6. `contracts/PolicyOracle.py`
+7. `sdk/policy-client.mjs`
+8. `scripts/demo_policy_flow.mjs`
 
 Fastest verification path:
 
 1. read the contract interface
 2. inspect the nondeterministic evaluation flow
-3. inspect the JS client wrapper used by future projects
-4. inspect the demo flow that performs create -> evaluate -> read
+3. inspect the JS client wrapper used by the live project server
+4. inspect the workflow that performs create -> evaluate -> read -> execution gate
 5. confirm that results are stored in persistent state
-6. confirm that the primitive is reusable beyond a single demo
+6. confirm that the project uses the contract as a core workflow dependency
 
 Studionet proof bundle:
 
@@ -312,8 +333,8 @@ Studionet proof bundle:
 - The contract stores a meaningful verdict, not just free-form text.
 - The primitive is reusable by other builders.
 - The repo explains why a normal app is not enough.
-- The result can gate real downstream execution.
-- This is not the same work as a full frontend app submission.
+- The result gates real downstream execution in the project layer.
+- This repo now includes a full project workflow and preserves the original intelligent contract.
 
 ## Anti-Reject Reminders
 

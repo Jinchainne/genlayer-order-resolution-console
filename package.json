@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Contract-first GenLayer policy oracle that can grow into a full project.",
   "scripts": {
+    "app": "node server.mjs",
     "deploy:local": "node scripts/deploy_policy_oracle.mjs",
     "demo:local": "node scripts/demo_policy_flow.mjs",
     "test": "pytest"
