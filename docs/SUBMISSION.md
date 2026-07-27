@@ -61,7 +61,7 @@ The repository includes a future-project client wrapper and a demo script that p
 This repository now has real `studionet` execution evidence:
 
 - Network: `studionet`
-- Explorer base: `https://genlayer-explorer.vercel.app`
+- Studio explorer base: `https://explorer-studio.genlayer.com`
 - Contract link: `https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108`
 - Contract address: `0x378986E3Af625f1873c46Ab96E919E7886eFf108`
 - Deploy tx: `0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111`

@@ -113,7 +113,6 @@ Consumer app / contract -> read verdict -> allow, deny, or hold execution
 |   `-- test_policy_oracle_contract.py
 |-- .env.example
 |-- .gitignore
-|-- gltest.config.yaml
 |-- package.json
 |-- pyproject.toml
 `-- README.md
@@ -231,8 +230,8 @@ This repository is submission-ready at the code and design level and now include
 - Live app: `not included in this contract-first submission`
 - Demo video: `add after deployment`
 - Network: `studionet`
-- Explorer base: `https://genlayer-explorer.vercel.app`
-- Studio explorer contract link: `https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108`
+- Studio explorer base: `https://explorer-studio.genlayer.com`
+- Contract link: `https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108`
 - Contract address: `0x378986E3Af625f1873c46Ab96E919E7886eFf108`
 - Deploy tx: `0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111`
 - create_policy tx: `0xe22a6be500cf62c57ce947f4cba16452f8d18f8115d3c041df7f10d6f4825a32`
