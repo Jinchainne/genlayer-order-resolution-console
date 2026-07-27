@@ -30,14 +30,25 @@ class PolicyOracle(gl.Contract):
         next_id = int(self.evaluation_count) + 1
         return f"evaluation-{next_id}"
 
-    def _clean_urls(self, reference_urls_json: str) -> list[str]:
-        if reference_urls_json.strip() == "":
-            return []
-
+    def _normalize_json_text(self, value) -> str:
+        if isinstance(value, str):
+            return value.strip()
         try:
-            urls = json.loads(reference_urls_json)
+            return json.dumps(value)
         except Exception as exc:
-            raise gl.UserError(f"reference_urls_json must be valid JSON: {exc}")
+            raise gl.UserError(f"Value is not JSON serializable: {exc}")
+
+    def _clean_urls(self, reference_urls_json) -> list[str]:
+        if isinstance(reference_urls_json, list):
+            urls = reference_urls_json
+        else:
+            text = self._normalize_json_text(reference_urls_json)
+            if text == "":
+                return []
+            try:
+                urls = json.loads(text)
+            except Exception as exc:
+                raise gl.UserError(f"reference_urls_json must be valid JSON: {exc}")
 
         if not isinstance(urls, list):
             raise gl.UserError("reference_urls_json must decode to a JSON array")
@@ -51,6 +62,18 @@ class PolicyOracle(gl.Contract):
                 cleaned.append(item)
 
         return cleaned[:3]
+
+    def _normalize_evidence_text(self, evidence_json) -> str:
+        if isinstance(evidence_json, str):
+            clean = evidence_json.strip()
+            if clean == "":
+                raise gl.UserError("Evidence JSON cannot be empty")
+            return clean
+
+        if isinstance(evidence_json, dict) or isinstance(evidence_json, list):
+            return json.dumps(evidence_json)
+
+        raise gl.UserError("Evidence must be a JSON string, object, or array")
 
     def _normalize_result(self, response: dict) -> dict:
         if not isinstance(response, dict):
@@ -158,12 +181,10 @@ class PolicyOracle(gl.Contract):
             raise gl.UserError("Policy is inactive")
 
         clean_subject = subject.strip()
-        clean_evidence = evidence_json.strip()
+        clean_evidence = self._normalize_evidence_text(evidence_json)
 
         if clean_subject == "":
             raise gl.UserError("Subject cannot be empty")
-        if clean_evidence == "":
-            raise gl.UserError("Evidence JSON cannot be empty")
 
         reference_urls = self._clean_urls(reference_urls_json)
 
@@ -260,7 +281,8 @@ Rules:
             "reason": normalized["reason"],
             "evidence_used": normalized["evidence_used"],
             "evaluator": str(gl.message.sender_address),
-            "created_at": str(gl.message.datetime),
+            # Studionet message context does not reliably expose datetime.
+            "created_at": "runtime-unavailable",
         }
 
         self.evaluations[evaluation_id] = json.dumps(payload)

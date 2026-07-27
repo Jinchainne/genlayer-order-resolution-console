@@ -58,10 +58,18 @@ The repository includes a future-project client wrapper and a demo script that p
 
 ## Evidence To Add Before Final Submission
 
-Add these after you run the contract on a real network:
+This repository now has real `studionet` execution evidence:
 
-- deployed contract address
-- explorer link
-- transaction hash for `create_policy`
-- transaction hash for `evaluate`
-- short video or GIF of the demo flow
+- Network: `studionet`
+- Explorer base: `https://genlayer-explorer.vercel.app`
+- Contract address: `0x378986E3Af625f1873c46Ab96E919E7886eFf108`
+- Deploy tx: `0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111`
+- `create_policy` tx: `0xe22a6be500cf62c57ce947f4cba16452f8d18f8115d3c041df7f10d6f4825a32`
+- `evaluate` tx: `0x50c88b16daefd867962206539628ad7b633dda07b47222f619b8c21dcd9eabb1`
+- Returned `policy_id`: `policy-1`
+- Returned `evaluation_id`: `evaluation-1`
+
+Recommended extra evidence before portal submission:
+
+- short video or GIF of the deploy + evaluate flow
+- screenshot of the explorer or receipt output
