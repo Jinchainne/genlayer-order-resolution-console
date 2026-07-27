@@ -31,6 +31,7 @@ Future project layer:
 - decision explorer
 - API or SDK wrapper
 - policy-gated app flows
+- `src/project/policy-gated-flow.mjs` as the first executable project-side guard
 
 Examples of project extensions:
 
@@ -72,4 +73,3 @@ Use `PolicyOracle` to evaluate:
 - The future project can reuse the same storage and decision API.
 - It avoids the trap of shipping a big UI with a weak contract.
 - It fits GenLayer's current submission bar better than toy demos.
-

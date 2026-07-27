@@ -60,9 +60,30 @@ class FakeGl:
     eq_principle = FakeEqPrinciple()
     nondet = FakeNondet()
     message = FakeMessage()
+    vm = None
 
     class UserError(Exception):
         pass
+
+
+class FakeReturn:
+    def __init__(self, calldata):
+        self.calldata = calldata
+
+
+class FakeVm:
+    Return = FakeReturn
+
+    @staticmethod
+    def run_nondet_unsafe(leader_fn, validator_fn):
+        result = leader_fn()
+        ok = validator_fn(FakeReturn(result))
+        if not ok:
+            raise AssertionError("Validator rejected leader result in test stub")
+        return result
+
+
+FakeGl.vm = FakeVm
 
 
 def load_contract_module():
@@ -149,4 +170,3 @@ def test_inactive_policy_cannot_be_evaluated():
         assert "inactive" in str(exc)
     else:
         raise AssertionError("Expected inactive policy evaluation to fail")
-

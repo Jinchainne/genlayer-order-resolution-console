@@ -113,19 +113,20 @@ Allowed confidence values:
 
 ## Consensus Strategy
 
-Use `gl.eq_principle.prompt_non_comparative(...)`.
+Use `gl.vm.run_nondet_unsafe(...)` with a validator function that compares stable execution fields.
 
 Why:
 
 - the reasoning text can vary naturally
-- the stable output should be the decision quality
-- validators should assess whether the output is a valid policy judgment, not whether every sentence matches exactly
+- the stable output should be the decision, confidence band, and score range
+- validators should compare the fields that control execution rather than the exact wording of the explanation
 
 Consensus focuses on:
 
 - whether the result follows the stated policy
 - whether the decision is justified by the evidence
 - whether the output schema is valid
+- whether the stable execution fields are close enough to be treated as equivalent
 
 ## Web / Evidence Handling
 
@@ -156,4 +157,3 @@ This same contract can later power a full `Project`:
 - dashboards
 - project submission review systems
 - agent policy controls
-

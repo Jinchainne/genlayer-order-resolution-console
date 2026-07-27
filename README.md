@@ -95,13 +95,26 @@ Consumer app / contract -> read verdict -> allow, deny, or hold execution
 |   `-- PolicyOracle.py
 |-- docs/
 |   |-- BLUEPRINT.md
-|   `-- CONTRACT_DESIGN_SPEC.md
+|   |-- CONTRACT_DESIGN_SPEC.md
+|   `-- SUBMISSION.md
+|-- sdk/
+|   `-- policy-client.mjs
+|-- src/
+|   |-- lib/
+|   |   `-- policy-client.mjs
+|   `-- project/
+|       `-- policy-gated-flow.mjs
 |-- scripts/
+|   |-- demo_policy_flow.mjs
+|   |-- deploy_policy_oracle.mjs
 |   |-- create_github_repo.ps1
 |   `-- LOCAL_SETUP.md
 |-- tests/
 |   `-- test_policy_oracle_contract.py
+|-- .env.example
 |-- .gitignore
+|-- gltest.config.yaml
+|-- package.json
 |-- pyproject.toml
 `-- README.md
 ```
@@ -119,7 +132,7 @@ Consumer app / contract -> read verdict -> allow, deny, or hold execution
 The contract uses:
 
 - `gl.nondet.exec_prompt(..., response_format="json")` to produce structured decisions
-- `gl.eq_principle.prompt_non_comparative(...)` so validators assess whether the decision satisfies the policy evaluation task, rather than requiring identical wording
+- `gl.vm.run_nondet_unsafe(...)` so validators independently re-run the evaluation and compare the stable fields that matter to execution
 
 The stable fields are:
 
@@ -127,7 +140,7 @@ The stable fields are:
 - `confidence`
 - `score`
 
-Reasoning can vary slightly across validators, but the equivalence principle centers the outcome on whether the decision is justified and policy-aligned.
+Reasoning can vary slightly across validators, but execution is bound to stable fields that the validator checks directly.
 
 ## Real State Change or Real Impact
 
@@ -142,6 +155,12 @@ Each evaluation is persisted onchain with:
 - evaluator address
 
 This is not local-only state. The intent is for downstream apps or contracts to read and enforce the result.
+
+An example project-side gate is included in:
+
+- `src/project/policy-gated-flow.mjs`
+
+That flow reads the stored verdict and sets `blockedByPolicy` / `policyBoundToExecution` before allowing the next action.
 
 ## Reusability
 
@@ -162,12 +181,14 @@ This repo is intentionally contract-first. The main artifact is the contract and
 
 - Python 3.10+
 - pytest
+- Node.js 18+
 - a GenLayer-compatible local or studio environment for real deployment
 
 ### Install
 
 ```bash
 pip install pytest
+npm install
 ```
 
 ### Run tests
@@ -178,15 +199,34 @@ pytest
 
 ### Deploy / manual review
 
-See:
+Environment:
+
+```bash
+cp .env.example .env
+```
+
+Deployment:
+
+```bash
+npm run deploy:local
+```
+
+Demo flow:
+
+```bash
+npm run demo:local
+```
+
+See also:
 
 - `contracts/PolicyOracle.py`
 - `docs/CONTRACT_DESIGN_SPEC.md`
+- `docs/SUBMISSION.md`
 - `scripts/LOCAL_SETUP.md`
 
 ## Deployment / Explorer / Live Links
 
-This repository is submission-ready at the code and design level. Deployment address, explorer URL, and video can be added after deployment.
+This repository is submission-ready at the code and design level. Deployment address, explorer URL, and video should be added after deployment.
 
 - Live app: `not included in this contract-first submission`
 - Demo video: `add after deployment`
@@ -232,17 +272,22 @@ Its core originality is:
 Review this repo in this order:
 
 1. `README.md`
-2. `docs/CONTRACT_DESIGN_SPEC.md`
-3. `contracts/PolicyOracle.py`
-4. `tests/test_policy_oracle_contract.py`
-5. `docs/BLUEPRINT.md`
+2. `docs/SUBMISSION.md`
+3. `docs/CONTRACT_DESIGN_SPEC.md`
+4. `contracts/PolicyOracle.py`
+5. `sdk/policy-client.mjs`
+6. `scripts/demo_policy_flow.mjs`
+7. `tests/test_policy_oracle_contract.py`
+8. `docs/BLUEPRINT.md`
 
 Fastest verification path:
 
 1. read the contract interface
 2. inspect the nondeterministic evaluation flow
-3. confirm that results are stored in persistent state
-4. confirm that the primitive is reusable beyond a single demo
+3. inspect the JS client wrapper used by future projects
+4. inspect the demo flow that performs create -> evaluate -> read
+5. confirm that results are stored in persistent state
+6. confirm that the primitive is reusable beyond a single demo
 
 ## Pre-Submission Self-Check
 
@@ -278,4 +323,3 @@ This implementation and documentation align with the official GenLayer docs:
   https://docs.genlayer.com/developers/intelligent-contracts/storage
 - Python SDK reference:
   https://sdk.genlayer.com/main/python-sdk/reference/index.html
-

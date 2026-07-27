@@ -95,6 +95,13 @@ class PolicyOracle(gl.Contract):
             "evidence_used": compact_evidence,
         }
 
+    def _confidence_rank(self, confidence: str) -> int:
+        if confidence == "low":
+            return 1
+        if confidence == "medium":
+            return 2
+        return 3
+
     @gl.public.write
     def create_policy(
         self,
@@ -160,7 +167,7 @@ class PolicyOracle(gl.Contract):
 
         reference_urls = self._clean_urls(reference_urls_json)
 
-        def nondet() -> dict:
+        def leader_fn() -> dict:
             fetched_sources: list[dict] = []
             for url in reference_urls:
                 page_text = gl.nondet.web.render(url, mode="text")
@@ -210,17 +217,33 @@ Rules:
 - Do not invent evidence not present in the provided material.
 - Keep reason concise and practical.
 """
-            return gl.nondet.exec_prompt(prompt, response_format="json")
+            response = gl.nondet.exec_prompt(prompt, response_format="json")
+            return self._normalize_result(response)
 
-        result = gl.eq_principle.prompt_non_comparative(
-            nondet,
-            task="Evaluate whether a subject complies with a natural-language policy and return a structured policy verdict",
-            criteria=(
-                "The output is equivalent if it follows the policy text, uses the supplied evidence, "
-                "returns a valid decision among allow/deny/undetermined, and provides a valid score and confidence. "
-                "Minor wording differences in the reason are acceptable."
-            ),
-        )
+        def validator_fn(leader_result) -> bool:
+            if not isinstance(leader_result, gl.vm.Return):
+                return False
+
+            my_result = leader_fn()
+            other = leader_result.calldata
+            if not isinstance(other, dict):
+                return False
+
+            if my_result["decision"] != other.get("decision"):
+                return False
+
+            other_confidence = str(other.get("confidence", "medium")).strip().lower()
+            if abs(self._confidence_rank(my_result["confidence"]) - self._confidence_rank(other_confidence)) > 1:
+                return False
+
+            try:
+                other_score = int(other.get("score", 0))
+            except Exception:
+                return False
+
+            return abs(my_result["score"] - other_score) <= 20
+
+        result = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
 
         normalized = self._normalize_result(result)
         evaluation_id = self._next_evaluation_id()
@@ -268,4 +291,3 @@ Rules:
                 "evaluation_count": int(self.evaluation_count),
             }
         )
-

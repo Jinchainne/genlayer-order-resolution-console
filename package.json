@@ -1,0 +1,16 @@
+{
+  "name": "genlayer-policy-eco",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Contract-first GenLayer policy oracle that can grow into a full project.",
+  "scripts": {
+    "deploy:local": "node scripts/deploy_policy_oracle.mjs",
+    "demo:local": "node scripts/demo_policy_flow.mjs",
+    "test": "pytest"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "genlayer-js": "^0.28.2"
+  }
+}

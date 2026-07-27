@@ -4,6 +4,7 @@
 
 ```bash
 pip install pytest
+npm install
 pytest
 ```
 
@@ -11,12 +12,13 @@ pytest
 
 After this contract-first submission, the next practical steps are:
 
-1. import `contracts/PolicyOracle.py` into your preferred GenLayer environment
-2. deploy the contract
-3. create one or two sample policies
-4. run `evaluate()` with realistic evidence payloads
-5. record the transaction hashes and explorer links
-6. attach those links back into the README before final submission
+1. copy `.env.example` to `.env`
+2. set your RPC and private key
+3. run `npm run deploy:local`
+4. copy the deployed address into `.env` as `POLICY_ORACLE_ADDRESS`
+5. run `npm run demo:local`
+6. record the transaction hashes and explorer links
+7. attach those links back into the README and `docs/SUBMISSION.md` before final submission
 
 ## Suggested first demo policies
 
@@ -24,4 +26,3 @@ After this contract-first submission, the next practical steps are:
 - payout approval gate
 - moderation review gate
 - refund pre-check gate
-
