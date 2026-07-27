@@ -1,4 +1,5 @@
 import { createClient, createAccount } from "genlayer-js";
+import { Wallet } from "ethers";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -22,10 +23,27 @@ export function requireEnv(name) {
   return value;
 }
 
+function buildAccountFromEnv() {
+  const privateKey = process.env.GENLAYER_PRIVATE_KEY;
+  if (privateKey) {
+    return createAccount(privateKey);
+  }
+
+  const keystoreJson = process.env.GENLAYER_KEYSTORE_JSON;
+  const keystorePassword = process.env.GENLAYER_KEYSTORE_PASSWORD;
+  if (keystoreJson && keystorePassword) {
+    const wallet = Wallet.fromEncryptedJsonSync(keystoreJson, keystorePassword);
+    return createAccount(wallet.privateKey);
+  }
+
+  throw new Error(
+    "Missing GENLAYER_PRIVATE_KEY or GENLAYER_KEYSTORE_JSON + GENLAYER_KEYSTORE_PASSWORD",
+  );
+}
+
 export function buildClient() {
-  const rpcUrl = process.env.GENLAYER_RPC_URL || "http://127.0.0.1:4000/api";
-  const privateKey = requireEnv("GENLAYER_PRIVATE_KEY");
-  const account = createAccount(privateKey);
+  const rpcUrl = process.env.GENLAYER_RPC_URL || "https://studio.genlayer.com/api";
+  const account = buildAccountFromEnv();
   return createClient({
     rpcUrl,
     account,

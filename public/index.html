@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PolicyOracle Project Console</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">GenLayer Project Upgrade</p>
+        <h1>PolicyOracle Review Console</h1>
+        <p class="lede">
+          A real policy-gated workflow for reviewing submissions, writing policy decisions
+          onchain, and binding the result to execution.
+        </p>
+        <div class="hero-meta">
+          <span id="contractAddressPill" class="pill">Loading contract...</span>
+          <span class="pill">Project path: submission gating</span>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Create Policy</h2>
+            <p>Store a reusable review policy on GenLayer.</p>
+          </div>
+
+          <form id="policyForm" class="stack">
+            <label>
+              Policy name
+              <input name="name" value="Project Submission Gate" required />
+            </label>
+            <label>
+              Category
+              <input name="category" value="project-gating" required />
+            </label>
+            <label>
+              Policy text
+              <textarea name="policyText" rows="5" required>Allow only if the submission shows original work, clear evidence, and meaningful execution.</textarea>
+            </label>
+            <label>
+              Criteria text
+              <textarea name="criteriaText" rows="5" required>Deny copied or weak submissions. Return undetermined if the evidence is partial or ambiguous.</textarea>
+            </label>
+            <button type="submit">Create Policy Onchain</button>
+          </form>
+
+          <pre id="policyOutput" class="output muted">No policy created yet.</pre>
+        </article>
+
+        <article class="panel accent">
+          <div class="panel-head">
+            <h2>Run Submission Gate</h2>
+            <p>Evaluate a real submission request and bind the verdict to an execution path.</p>
+          </div>
+
+          <form id="workflowForm" class="stack">
+            <label>
+              Existing policy id
+              <input name="policyId" placeholder="policy-1" />
+            </label>
+            <label>
+              Submission subject
+              <textarea name="subject" rows="4" required>A builder requests unlock for a project submission after providing docs, code, and live evidence.</textarea>
+            </label>
+            <label>
+              Evidence JSON
+              <textarea name="evidence" rows="8" required>{
+  "repoUrl": "https://github.com/Jinchainne/genlayer-policy-eco",
+  "artifacts": ["README", "deploy tx", "evaluation tx", "workflow code"],
+  "claims": ["original work", "real GenLayer integration", "execution gating"],
+  "reviewNotes": "The submission includes real contract source and a project-side binding flow."
+}</textarea>
+            </label>
+            <label>
+              Reference URLs JSON
+              <textarea name="referenceUrls" rows="4">["https://github.com/Jinchainne/genlayer-policy-eco"]</textarea>
+            </label>
+            <button type="submit">Evaluate And Gate Execution</button>
+          </form>
+
+          <div id="verdictCard" class="verdict verdict-waiting">
+            <strong>Waiting for evaluation</strong>
+            <span>Run the workflow to determine whether execution unlocks.</span>
+          </div>
+
+          <pre id="workflowOutput" class="output muted">No workflow executed yet.</pre>
+        </article>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+  </html>

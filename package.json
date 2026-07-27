@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "dotenv": "^17.2.1",
+    "ethers": "^6.17.0",
     "genlayer-js": "^0.28.2"
   }
 }
