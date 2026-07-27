@@ -9,16 +9,50 @@
   <body>
     <main class="shell">
       <section class="hero">
-        <p class="eyebrow">GenLayer Project Upgrade</p>
-        <h1>PolicyOracle Review Console</h1>
-        <p class="lede">
-          A real policy-gated workflow for reviewing submissions, writing policy decisions
-          onchain, and binding the result to execution.
-        </p>
-        <div class="hero-meta">
-          <span id="contractAddressPill" class="pill">Loading contract...</span>
-          <span class="pill">Project path: submission gating</span>
+        <div class="hero-copy">
+          <p class="eyebrow">GenLayer Project Upgrade</p>
+          <h1>PolicyOracle Review Console</h1>
+          <p class="lede">
+            Review submissions against reusable natural-language policies, send
+            real contract actions to GenLayer, and bind the verdict to
+            execution.
+          </p>
+          <div class="hero-meta">
+            <span id="contractAddressPill" class="pill">Loading contract...</span>
+            <span class="pill">Project path: submission gating</span>
+            <span class="pill">Category: Projects</span>
+          </div>
         </div>
+
+        <aside class="hero-side">
+          <div class="stat">
+            <span class="stat-label">Live app</span>
+            <a href="https://genlayer-policy-eco.vercel.app" target="_blank" rel="noreferrer">genlayer-policy-eco.vercel.app</a>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Explorer</span>
+            <a href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">PolicyOracle contract</a>
+          </div>
+          <div class="stat">
+            <span class="stat-label">GitHub</span>
+            <a href="https://github.com/Jinchainne/genlayer-policy-eco" target="_blank" rel="noreferrer">Repository source</a>
+          </div>
+        </aside>
+      </section>
+
+      <section class="evidence-strip">
+        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" target="_blank" rel="noreferrer">Deploy tx</a>
+        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xe22a6be500cf62c57ce947f4cba16452f8d18f8115d3c041df7f10d6f4825a32" target="_blank" rel="noreferrer">create_policy tx</a>
+        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x50c88b16daefd867962206539628ad7b633dda07b47222f619b8c21dcd9eabb1" target="_blank" rel="noreferrer">evaluate tx</a>
+      </section>
+
+      <section class="notice" id="runtimeNotice">
+        <strong>Runtime status</strong>
+        <span>
+          This console is wired to the real contract. If remote RPC calls fail from
+          serverless infrastructure, use the onchain proof links above and the local
+          workflow in the repo for full end-to-end verification.
+        </span>
       </section>
 
       <section class="grid">

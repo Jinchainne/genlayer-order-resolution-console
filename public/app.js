@@ -4,6 +4,7 @@ const policyOutput = document.querySelector("#policyOutput");
 const workflowOutput = document.querySelector("#workflowOutput");
 const verdictCard = document.querySelector("#verdictCard");
 const contractAddressPill = document.querySelector("#contractAddressPill");
+const runtimeNotice = document.querySelector("#runtimeNotice");
 
 let contractAddress = "";
 
@@ -38,6 +39,26 @@ function updateVerdictCard(data) {
   verdictCard.classList.add("verdict-allow");
   verdictCard.innerHTML =
     `<strong>Execution unlocked</strong><span>Policy verdict allowed the workflow. Next action: ${data.nextAction}</span>`;
+}
+
+function showRpcFallback(errorMessage) {
+  verdictCard.className = "verdict verdict-waiting";
+  verdictCard.innerHTML =
+    `<strong>Remote RPC temporarily unavailable</strong><span>The live Vercel reviewer console loaded correctly, but the hosted runtime could not complete the GenLayer write flow for this request. Use the explorer proof links above or run the full workflow locally from the repo.</span>`;
+
+  workflowOutput.textContent = [
+    "Live fallback mode activated.",
+    "",
+    errorMessage,
+    "",
+    "Recorded proof bundle:",
+    "- Contract: https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
+    "- create_policy tx: https://explorer-studio.genlayer.com/tx/0xe22a6be500cf62c57ce947f4cba16452f8d18f8115d3c041df7f10d6f4825a32",
+    "- evaluate tx: https://explorer-studio.genlayer.com/tx/0x50c88b16daefd867962206539628ad7b633dda07b47222f619b8c21dcd9eabb1",
+  ].join("\n");
+
+  runtimeNotice.innerHTML =
+    `<strong>Runtime status</strong><span>Serverless RPC writes are failing right now, so the live site is showing reviewer-safe fallback guidance instead of a raw stack error.</span>`;
 }
 
 async function fetchJson(url, options = {}) {
@@ -88,7 +109,17 @@ policyForm.addEventListener("submit", async (event) => {
     workflowForm.elements.policyId.value = result.policyId;
     policyOutput.textContent = pretty(result);
   } catch (error) {
-    policyOutput.textContent = error.message;
+    if (error.message.includes("GenLayer RPC error") || error.message.includes("fetch failed")) {
+      policyOutput.textContent = [
+        "Remote RPC temporarily unavailable.",
+        "",
+        error.message,
+        "",
+        "You can still verify the contract and past onchain evidence through the explorer links above.",
+      ].join("\n");
+    } else {
+      policyOutput.textContent = error.message;
+    }
   } finally {
     setBusy(policyForm, false);
   }
@@ -116,9 +147,13 @@ workflowForm.addEventListener("submit", async (event) => {
     updateVerdictCard(result);
     workflowOutput.textContent = pretty(result);
   } catch (error) {
-    verdictCard.className = "verdict verdict-deny";
-    verdictCard.innerHTML = `<strong>Workflow failed</strong><span>${error.message}</span>`;
-    workflowOutput.textContent = error.message;
+    if (error.message.includes("GenLayer RPC error") || error.message.includes("fetch failed")) {
+      showRpcFallback(error.message);
+    } else {
+      verdictCard.className = "verdict verdict-deny";
+      verdictCard.innerHTML = `<strong>Workflow failed</strong><span>${error.message}</span>`;
+      workflowOutput.textContent = error.message;
+    }
   } finally {
     setBusy(workflowForm, false);
   }
