@@ -68,11 +68,82 @@
 
           <div class="queue-toolbar">
             <span class="toolbar-chip">July 28, 2026</span>
-            <span class="toolbar-chip">3 active cases</span>
+            <span class="toolbar-chip" id="activeCaseCount">3 active cases</span>
             <span class="toolbar-chip">studionet ready</span>
           </div>
 
           <div id="caseQueue" class="queue-list"></div>
+
+          <article class="queue-create-card">
+            <div class="panel-head compact-head">
+              <p class="section-label">Custom Intake</p>
+              <h2>Add custom case</h2>
+              <p>Create a new dispute type, merchant, parties, and currency instead of relying on default demo cases.</p>
+            </div>
+
+            <form id="caseCreateForm" class="stack compact-form">
+              <div class="split">
+                <label>
+                  Case ID
+                  <input name="caseId" placeholder="ORD-5001" required />
+                </label>
+                <label>
+                  Dispute type
+                  <input name="claimType" placeholder="late-delivery / chargeback / policy-breach" required />
+                </label>
+              </div>
+
+              <div class="split">
+                <label>
+                  Merchant
+                  <input name="merchant" placeholder="NorthStar Grocery" required />
+                </label>
+                <label>
+                  Buyer
+                  <input name="buyer" placeholder="Olivia Carter" required />
+                </label>
+              </div>
+
+              <div class="split">
+                <label>
+                  Seller team
+                  <input name="seller" placeholder="Merchant Resolution Desk" required />
+                </label>
+                <label>
+                  Currency
+                  <input name="currency" value="USD" required />
+                </label>
+              </div>
+
+              <div class="split">
+                <label>
+                  Order total
+                  <input name="orderAmount" placeholder="142.00" required />
+                </label>
+                <label>
+                  Amount at risk
+                  <input name="riskAmount" placeholder="58.00" required />
+                </label>
+              </div>
+
+              <label>
+                Subject
+                <textarea name="subject" rows="3" placeholder="Buyer says the order arrived late and requests compensation after a failed delivery promise." required></textarea>
+              </label>
+
+              <label>
+                Buyer statement
+                <textarea name="buyerStatement" rows="3" placeholder="Describe the buyer side." required></textarea>
+              </label>
+
+              <label>
+                Seller response
+                <textarea name="sellerStatement" rows="3" placeholder="Describe the seller side." required></textarea>
+              </label>
+
+              <button type="submit">Add Custom Case</button>
+            </form>
+          </article>
         </aside>
 
         <section class="detail-stack">

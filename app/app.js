@@ -16,6 +16,8 @@ const loadDemoButton = document.querySelector("#loadDemoButton");
 const aiPreJudgeButton = document.querySelector("#aiPreJudgeButton");
 const aiPersona = document.querySelector("#aiPersona");
 const caseQueue = document.querySelector("#caseQueue");
+const caseCreateForm = document.querySelector("#caseCreateForm");
+const activeCaseCount = document.querySelector("#activeCaseCount");
 const recommendedAction = document.querySelector("#recommendedAction");
 const recommendedActionReason = document.querySelector("#recommendedActionReason");
 
@@ -48,25 +50,25 @@ const decisionHistory = document.querySelector("#decisionHistory");
 const STORAGE_KEY = "order-resolution-recent-runs-v2";
 const HISTORY_STORAGE_KEY = "order-resolution-decision-history-v1";
 
-const CASES = [
+let CASES = [
   {
-    id: "BXH-2048",
-    merchant: "Bach Hoa Xanh Downtown",
-    buyer: "Nguyen Minh Thu",
-    seller: "Store Operations Team",
+    id: "ORD-2048",
+    merchant: "NorthStar Grocery",
+    buyer: "Olivia Carter",
+    seller: "Merchant Resolution Desk",
     subject:
       "Buyer claims two paid grocery items were missing after delivery and requests a partial refund.",
     type: "missing-item",
     status: "awaiting resolution",
-    amount: "248,000 VND",
-    atRisk: "74,000 VND",
-    paymentStatus: "paid via wallet",
+    amount: "248.00 USD",
+    atRisk: "74.00 USD",
+    paymentStatus: "paid by card",
     fulfillment: "delivered Jul 28, 2026 09:35",
     requestedAction: "partial refund",
     buyerStatement:
-      "I received the order bag and invoice, but the yogurt pack and brown rice package listed on the receipt were not inside. I reported the issue within 20 minutes of delivery.",
+      "I received the delivery bag and invoice, but two paid items listed on the receipt were not inside. I reported the issue within 20 minutes of delivery.",
     sellerStatement:
-      "The store packed the order using the correct SKU list and handed it to the rider. We have a packing note and dispatch scan, but no bag photo after seal.",
+      "The store packed the order using the correct SKU list and handed it to the courier. We have a packing note and dispatch scan, but no bag photo after seal.",
     buyerClaims: [
       "invoice amount matches charged order",
       "missing items were paid and listed on receipt",
@@ -104,16 +106,16 @@ const CASES = [
     ],
   },
   {
-    id: "BXH-2097",
+    id: "ORD-2097",
     merchant: "Fresh Basket Market",
-    buyer: "Tran Hoang Linh",
+    buyer: "Daniel Brooks",
     seller: "Merchant Support Desk",
     subject:
       "Buyer says a refund was promised for spoiled produce but payment has not returned after 5 days.",
     type: "refund-delay",
     status: "evidence ready",
-    amount: "312,000 VND",
-    atRisk: "129,000 VND",
+    amount: "312.00 USD",
+    atRisk: "129.00 USD",
     paymentStatus: "card captured",
     fulfillment: "refund initiated Jul 24, 2026",
     requestedAction: "approve refund",
@@ -158,16 +160,16 @@ const CASES = [
     ],
   },
   {
-    id: "BXH-2114",
+    id: "ORD-2114",
     merchant: "QuickCart Express",
-    buyer: "Pham Gia Han",
+    buyer: "Sofia Martinez",
     seller: "QuickCart Logistics",
     subject:
       "Buyer reports the delivered package contained a different order and contests the charge.",
     type: "wrong-order",
     status: "new",
-    amount: "188,000 VND",
-    atRisk: "188,000 VND",
+    amount: "188.00 USD",
+    atRisk: "188.00 USD",
     paymentStatus: "cashless prepaid",
     fulfillment: "delivered Jul 28, 2026 11:10",
     requestedAction: "full refund",
@@ -267,6 +269,10 @@ const TEMPLATE_PRESETS = {
 let contractAddress = "";
 let latestBundle = null;
 let selectedCaseId = CASES[0].id;
+
+function updateCaseCount() {
+  activeCaseCount.textContent = `${CASES.length} active cases`;
+}
 
 function setBusy(form, busy) {
   const button = form.querySelector("button[type='submit']");
@@ -420,6 +426,7 @@ function queueTag(status) {
 }
 
 function renderCaseQueue() {
+  updateCaseCount();
   caseQueue.innerHTML = CASES.map((item) => {
     const activeClass = item.id === selectedCaseId ? " queue-item-active" : "";
     return `
@@ -444,6 +451,16 @@ function renderCaseQueue() {
       fillCaseDetail(getCaseById(selectedCaseId));
     });
   });
+}
+
+function normalizeMoney(value, currency) {
+  const amount = Number(String(value).replace(/[^0-9.]/g, "")) || 0;
+  return `${amount.toFixed(2)} ${currency.toUpperCase()}`;
+}
+
+function titleFromClaimType(claimType) {
+  const normalized = String(claimType || "custom-dispute").trim();
+  return normalized.includes("-") ? normalized : normalized.toLowerCase().replace(/\s+/g, "-");
 }
 
 function fillCaseDetail(caseItem) {
@@ -588,6 +605,84 @@ function buildEvidenceFromCase(caseItem) {
     claims: caseItem.buyerClaims,
     reviewNotes: caseItem.reviewNotes,
   };
+}
+
+function createCustomCase(form) {
+  const caseId = String(form.get("caseId") || "").trim();
+  const claimType = String(form.get("claimType") || "").trim();
+  const merchant = String(form.get("merchant") || "").trim();
+  const buyer = String(form.get("buyer") || "").trim();
+  const seller = String(form.get("seller") || "").trim();
+  const currency = String(form.get("currency") || "USD").trim().toUpperCase();
+  const orderAmount = String(form.get("orderAmount") || "").trim();
+  const riskAmountRaw = String(form.get("riskAmount") || "").trim();
+  const subject = String(form.get("subject") || "").trim();
+  const buyerSide = String(form.get("buyerStatement") || "").trim();
+  const sellerSide = String(form.get("sellerStatement") || "").trim();
+
+  const customCase = {
+    id: caseId,
+    merchant,
+    buyer,
+    seller,
+    subject,
+    type: titleFromClaimType(claimType),
+    status: "new",
+    amount: normalizeMoney(orderAmount, currency),
+    atRisk: normalizeMoney(riskAmountRaw, currency),
+    paymentStatus: `paid in ${currency}`,
+    fulfillment: "submitted Jul 28, 2026",
+    requestedAction: "custom resolution",
+    buyerStatement: buyerSide,
+    sellerStatement: sellerSide,
+    buyerClaims: [
+      `${claimType} dispute opened`,
+      "buyer submitted statement",
+      "seller response recorded",
+      "case requires qualitative review",
+    ],
+    reviewNotes:
+      "Custom case created by operator. Add buyer, seller, and authority evidence before final policy evaluation.",
+    references: {
+      repoUrl: "https://github.com/Jinchainne/genlayer-policy-eco",
+      liveApp: "https://genlayer-policy-eco.vercel.app/",
+      contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
+      deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",
+      createPolicyTxUrl: "https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083",
+      evaluateTxUrl: "https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121",
+    },
+    timeline: [
+      { time: "Now", title: "Case opened", description: "Operator created a custom dispute intake case." },
+      { time: "Next", title: "Evidence intake", description: "Buyer, seller, and authority records should be attached." },
+      { time: "Next", title: "AI triage", description: "Copilot can review the packet before onchain evaluation." },
+      { time: "Final", title: "Resolution workflow", description: "Run policy evaluation and map the verdict to an action." },
+    ],
+    evidence: [
+      { title: "Buyer statement", side: "buyer", source: "manual intake", status: "submitted", detail: buyerSide },
+      { title: "Seller response", side: "seller", source: "manual intake", status: "submitted", detail: sellerSide },
+      { title: "Authority record placeholder", side: "authority", source: "pending source", status: "needs-review", detail: "Attach invoice, payment proof, delivery logs, policy URL, or another authoritative source." },
+    ],
+    disagreements: [
+      "Buyer and seller positions are both recorded.",
+      "Authority evidence still needs to be attached or expanded.",
+      "Final decision should be delayed if the packet remains incomplete.",
+    ],
+  };
+
+  CASES = [customCase, ...CASES];
+  selectedCaseId = customCase.id;
+  renderCaseQueue();
+  fillCaseDetail(customCase);
+  buildBundle();
+  saveDecisionEvent({
+    caseId: customCase.id,
+    projectName: customCase.id,
+    type: "custom_case_created",
+    outcome: claimType,
+    action: "collect_evidence",
+    notes: "Operator added a new custom dispute case to the queue.",
+    timestamp: new Date().toLocaleString(),
+  });
 }
 
 function buildReferenceUrlsFromCase(caseItem) {
@@ -826,6 +921,14 @@ workflowForm.querySelector("button").dataset.idleText = "Run Resolution Workflow
 builderForm.addEventListener("submit", (event) => {
   event.preventDefault();
   buildBundle();
+});
+
+caseCreateForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const form = new FormData(caseCreateForm);
+  createCustomCase(form);
+  caseCreateForm.reset();
+  caseCreateForm.elements.currency.value = "USD";
 });
 
 applyBundleButton.addEventListener("click", () => {

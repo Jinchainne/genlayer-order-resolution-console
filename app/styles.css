@@ -202,6 +202,16 @@ body {
   gap: 12px;
 }
 
+.queue-create-card {
+  margin-top: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.compact-head h2 {
+  font-size: 24px;
+}
+
 .queue-item {
   width: 100%;
   padding: 16px;
