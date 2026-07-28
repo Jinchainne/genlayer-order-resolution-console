@@ -102,13 +102,14 @@ function resolvePersona(requestedPersona = "") {
       throw new Error(`Unknown AI persona: ${preferred}`);
     }
 
-    const apiKey = requireEnv(persona.envKey);
-    return {
-      ...persona,
-      apiKey,
-      apiUrl: readEnv(persona.apiUrlEnv) || persona.defaultApiUrl,
-      model: readEnv(persona.modelEnv) || persona.defaultModel,
-    };
+    if (hasEnv(persona.envKey)) {
+      return {
+        ...persona,
+        apiKey: requireEnv(persona.envKey),
+        apiUrl: readEnv(persona.apiUrlEnv) || persona.defaultApiUrl,
+        model: readEnv(persona.modelEnv) || persona.defaultModel,
+      };
+    }
   }
 
   if (hasEnv(AI_PERSONAS.lexi.envKey)) {
