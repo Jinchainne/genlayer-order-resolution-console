@@ -53,6 +53,15 @@
         </article>
       </section>
 
+      <section class="signal-strip">
+        <div class="signal-pill">queue-led review</div>
+        <div class="signal-pill">buyer vs seller evidence</div>
+        <div class="signal-pill">authority-source checks</div>
+        <div class="signal-pill">AI-assisted triage</div>
+        <div class="signal-pill">policy-controlled resolution</div>
+        <div class="signal-pill">live GenLayer workflow</div>
+      </section>
+
       <section class="ops-banner" id="runtimeNotice">
         <strong>Operations status</strong>
         <span>The console is configured for live policy creation, AI triage, case review, and GenLayer-backed resolution gating.</span>
@@ -74,12 +83,14 @@
 
           <div id="caseQueue" class="queue-list"></div>
 
-          <article class="queue-create-card">
-            <div class="panel-head compact-head">
-              <p class="section-label">Custom Intake</p>
-              <h2>Add custom case</h2>
-              <p>Create a new dispute type, merchant, parties, and currency instead of relying on default demo cases.</p>
-            </div>
+          <details class="queue-create-card" open>
+            <summary class="queue-create-summary">
+              <span>
+                <span class="section-label">Custom Intake</span>
+                <strong>Add custom case</strong>
+              </span>
+              <span class="toolbar-chip">global-ready</span>
+            </summary>
 
             <form id="caseCreateForm" class="stack compact-form">
               <div class="split">
@@ -143,7 +154,7 @@
 
               <button type="submit">Add Custom Case</button>
             </form>
-          </article>
+          </details>
         </aside>
 
         <section class="detail-stack">
@@ -247,7 +258,7 @@
             </article>
           </article>
 
-          <article class="panel accent">
+          <article class="panel accent compact-builder-panel">
             <div class="panel-head">
               <p class="section-label">Evidence Packet</p>
               <h2>Case packet builder</h2>
@@ -365,79 +376,108 @@ resolution requires qualitative dispute assessment</textarea>
             </div>
           </div>
 
-          <div class="preview-block">
-            <h3>Case subject</h3>
-            <pre id="generatedSubject" class="output compact muted">No case packet generated yet.</pre>
-          </div>
-          <div class="preview-block">
-            <h3>Evidence JSON</h3>
-            <pre id="generatedEvidence" class="output compact muted">No case packet generated yet.</pre>
-          </div>
-          <div class="preview-block">
-            <h3>Reference URLs JSON</h3>
-            <pre id="generatedReferences" class="output compact muted">No case packet generated yet.</pre>
-          </div>
-          <div class="preview-block">
-            <h3>AI triage result</h3>
-            <pre id="aiPreJudgeOutput" class="output compact muted">No AI triage run yet.</pre>
+          <div class="resolution-tabs" id="resolutionTabs">
+            <button type="button" class="tab-button tab-active" data-tab-target="packetTab">Case packet</button>
+            <button type="button" class="tab-button" data-tab-target="triageTab">AI triage</button>
+            <button type="button" class="tab-button" data-tab-target="policyTab">Policy</button>
+            <button type="button" class="tab-button" data-tab-target="workflowTab">Workflow</button>
           </div>
 
-          <form id="policyForm" class="stack compact-form">
-            <label>
-              Policy name
-              <input name="name" value="Retail Order Dispute Policy" required />
-            </label>
-            <label>
-              Category
-              <input name="category" value="order-resolution" required />
-            </label>
-            <label>
-              Policy text
-              <textarea name="policyText" rows="4" required>Allow the resolution only when buyer and seller evidence supports a fair, evidence-backed decision on payment, delivery, or refund responsibility.</textarea>
-            </label>
-            <label>
-              Criteria text
-              <textarea name="criteriaText" rows="4" required>Return deny or undetermined if the evidence is incomplete, the authoritative records conflict, or the seller and buyer claims cannot be reconciled with payment and delivery proof.</textarea>
-            </label>
-            <button type="submit">Create Resolution Policy</button>
-          </form>
+          <section id="packetTab" class="tab-panel tab-panel-active">
+            <div class="preview-grid">
+              <div class="preview-block">
+                <h3>Case subject</h3>
+                <pre id="generatedSubject" class="output compact muted">No case packet generated yet.</pre>
+              </div>
+              <div class="preview-block">
+                <h3>Reference URLs JSON</h3>
+                <pre id="generatedReferences" class="output compact muted">No case packet generated yet.</pre>
+              </div>
+            </div>
+            <div class="preview-block">
+              <h3>Evidence JSON</h3>
+              <pre id="generatedEvidence" class="output compact muted">No case packet generated yet.</pre>
+            </div>
+          </section>
 
-          <pre id="policyOutput" class="output muted">No policy created yet.</pre>
+          <section id="triageTab" class="tab-panel">
+            <div class="triage-toolbar">
+              <div class="inline-control">
+                <label>
+                  AI reviewer
+                  <select id="aiPersona" name="aiPersona">
+                    <option value="mira">Mira Review (MiMo)</option>
+                    <option value="lexi">Lexi Review (Groq)</option>
+                  </select>
+                </label>
+              </div>
+              <button type="button" id="aiPreJudgeButton" class="button-secondary">Run AI Triage</button>
+            </div>
+            <div class="preview-block">
+              <h3>AI triage result</h3>
+              <pre id="aiPreJudgeOutput" class="output compact muted">No AI triage run yet.</pre>
+            </div>
+          </section>
 
-          <form id="workflowForm" class="stack compact-form">
-            <label>
-              Existing policy id
-              <input name="policyId" placeholder="policy-1" />
-            </label>
-            <label>
-              Resolution subject
-              <textarea name="subject" rows="4" required>A buyer reports a missing-item grocery order dispute and requests a refund after seller delivery completion.</textarea>
-            </label>
-            <label>
-              Evidence JSON
-              <textarea name="evidence" rows="8" required>{
+          <section id="policyTab" class="tab-panel">
+            <form id="policyForm" class="stack compact-form">
+              <label>
+                Policy name
+                <input name="name" value="Retail Order Dispute Policy" required />
+              </label>
+              <label>
+                Category
+                <input name="category" value="order-resolution" required />
+              </label>
+              <label>
+                Policy text
+                <textarea name="policyText" rows="4" required>Allow the resolution only when buyer and seller evidence supports a fair, evidence-backed decision on payment, delivery, or refund responsibility.</textarea>
+              </label>
+              <label>
+                Criteria text
+                <textarea name="criteriaText" rows="4" required>Return deny or undetermined if the evidence is incomplete, the authoritative records conflict, or the seller and buyer claims cannot be reconciled with payment and delivery proof.</textarea>
+              </label>
+              <button type="submit">Create Resolution Policy</button>
+            </form>
+            <pre id="policyOutput" class="output muted">No policy created yet.</pre>
+          </section>
+
+          <section id="workflowTab" class="tab-panel">
+            <form id="workflowForm" class="stack compact-form">
+              <label>
+                Existing policy id
+                <input name="policyId" placeholder="policy-1" />
+              </label>
+              <label>
+                Resolution subject
+                <textarea name="subject" rows="4" required>A buyer reports a missing-item grocery order dispute and requests a refund after seller delivery completion.</textarea>
+              </label>
+              <label>
+                Evidence JSON
+                <textarea name="evidence" rows="8" required>{
   "projectName": "order-resolution-console",
-  "orderId": "BXH-2048",
+  "orderId": "ORD-2048",
   "buyerClaim": "Two paid items were missing from the delivered order.",
   "sellerResponse": "The order was packed and scanned as complete before dispatch.",
   "artifacts": ["invoice", "payment proof", "packing note", "delivery timestamp"],
   "claims": ["buyer evidence included", "seller response included", "qualitative resolution required"],
   "reviewNotes": "The case requires a refund or escalation decision based on authoritative order evidence."
 }</textarea>
-            </label>
-            <label>
-              Reference URLs JSON
-              <textarea name="referenceUrls" rows="4">["https://github.com/Jinchainne/genlayer-policy-eco","https://genlayer-policy-eco.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea>
-            </label>
-            <button type="submit">Run Resolution Workflow</button>
-          </form>
+              </label>
+              <label>
+                Reference URLs JSON
+                <textarea name="referenceUrls" rows="4">["https://github.com/Jinchainne/genlayer-policy-eco","https://genlayer-policy-eco.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea>
+              </label>
+              <button type="submit">Run Resolution Workflow</button>
+            </form>
 
-          <div id="verdictCard" class="verdict verdict-waiting">
-            <strong>Awaiting resolution</strong>
-            <span>Run the workflow to map the dispute verdict into an operational action.</span>
-          </div>
+            <div id="verdictCard" class="verdict verdict-waiting">
+              <strong>Awaiting resolution</strong>
+              <span>Run the workflow to map the dispute verdict into an operational action.</span>
+            </div>
 
-          <pre id="workflowOutput" class="output muted">No resolution workflow executed yet.</pre>
+            <pre id="workflowOutput" class="output muted">No resolution workflow executed yet.</pre>
+          </section>
         </aside>
       </section>
 

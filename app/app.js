@@ -20,6 +20,8 @@ const caseCreateForm = document.querySelector("#caseCreateForm");
 const activeCaseCount = document.querySelector("#activeCaseCount");
 const recommendedAction = document.querySelector("#recommendedAction");
 const recommendedActionReason = document.querySelector("#recommendedActionReason");
+const tabButtons = document.querySelectorAll("[data-tab-target]");
+const tabPanels = document.querySelectorAll(".tab-panel");
 
 const caseTitle = document.querySelector("#caseTitle");
 const caseSubtitle = document.querySelector("#caseSubtitle");
@@ -272,6 +274,15 @@ let selectedCaseId = CASES[0].id;
 
 function updateCaseCount() {
   activeCaseCount.textContent = `${CASES.length} active cases`;
+}
+
+function activateTab(tabId) {
+  tabButtons.forEach((button) => {
+    button.classList.toggle("tab-active", button.dataset.tabTarget === tabId);
+  });
+  tabPanels.forEach((panel) => {
+    panel.classList.toggle("tab-panel-active", panel.id === tabId);
+  });
 }
 
 function setBusy(form, busy) {
@@ -934,6 +945,7 @@ caseCreateForm.addEventListener("submit", (event) => {
 applyBundleButton.addEventListener("click", () => {
   try {
     applyBundleToWorkflow();
+    activateTab("workflowTab");
   } catch (error) {
     workflowOutput.textContent = error.message;
   }
@@ -942,10 +954,17 @@ applyBundleButton.addEventListener("click", () => {
 loadDemoButton.addEventListener("click", loadDemoBundle);
 aiPreJudgeButton.addEventListener("click", async () => {
   try {
+    activateTab("triageTab");
     await runAiPreJudgeForBundle();
   } catch (error) {
     aiPreJudgeOutput.textContent = error.message;
   }
+});
+
+tabButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    activateTab(button.dataset.tabTarget);
+  });
 });
 
 builderForm.elements.template.addEventListener("change", () => {
@@ -975,6 +994,7 @@ policyForm.addEventListener("submit", async (event) => {
 
     workflowForm.elements.policyId.value = result.policyId;
     policyOutput.textContent = pretty(result);
+    activateTab("policyTab");
     saveDecisionEvent({
       caseId: getCaseById(selectedCaseId).id,
       projectName: getCaseById(selectedCaseId).id,
@@ -1022,6 +1042,7 @@ workflowForm.addEventListener("submit", async (event) => {
 
     updateVerdictCard(result);
     workflowOutput.textContent = pretty(result);
+    activateTab("workflowTab");
 
     saveRecentRun({
       projectName: payload.evidence.caseId || payload.evidence.projectName || "Resolution run",
