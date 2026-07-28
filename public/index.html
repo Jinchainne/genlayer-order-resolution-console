@@ -4,14 +4,29 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>PolicyOracle Project Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <main class="shell">
+      <section class="masthead">
+        <p class="kicker">Operational Policy Infrastructure</p>
+        <div class="masthead-row">
+          <div>
+            <p class="eyebrow">GenLayer Project Tool</p>
+            <h1>PolicyOracle Workflow Studio</h1>
+          </div>
+          <div class="masthead-note">
+            <span class="note-label">Design direction</span>
+            <p>Editorial, evidence-first, and built for repeated review work instead of one-off contract demos.</p>
+          </div>
+        </div>
+      </section>
+
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">GenLayer Project Tool</p>
-          <h1>PolicyOracle Workflow Studio</h1>
           <p class="lede">
             A live builder tool for creating reusable review policies, assembling real evidence bundles,
             sending policy decisions to GenLayer, and binding the verdict to execution outcomes.
@@ -39,6 +54,21 @@
         </aside>
       </section>
 
+      <section class="overview-grid">
+        <article class="overview-card">
+          <span class="overview-label">What makes this useful</span>
+          <p>Operators can collect proof, let AI shape the review bundle, and run a final onchain decision without rebuilding the process for each project.</p>
+        </article>
+        <article class="overview-card">
+          <span class="overview-label">Core workflow</span>
+          <p>Build evidence bundle → AI pre-judge → create or reuse policy → send to GenLayer → unlock or hold the next action.</p>
+        </article>
+        <article class="overview-card">
+          <span class="overview-label">Why GenLayer</span>
+          <p>The final verdict depends on non-deterministic evidence review and is bound to execution, not just displayed as text.</p>
+        </article>
+      </section>
+
       <section class="evidence-strip">
         <a class="evidence-link" href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">Contract explorer</a>
         <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer">Live create_policy tx</a>
@@ -57,6 +87,7 @@
       <section class="workspace">
         <article class="panel workspace-panel">
           <div class="panel-head">
+            <p class="section-label">Step 1</p>
             <h2>Evidence Workspace</h2>
             <p>Build a structured review bundle from real project links instead of hand-writing raw JSON.</p>
           </div>
@@ -136,6 +167,7 @@ useful builder tool</textarea>
 
         <article class="panel workspace-panel accent">
           <div class="panel-head">
+            <p class="section-label">Step 2</p>
             <h2>Bundle Preview</h2>
             <p>Preview the exact subject, evidence JSON, and reference URLs before sending them to GenLayer.</p>
           </div>
@@ -164,6 +196,7 @@ useful builder tool</textarea>
       <section class="grid">
         <article class="panel">
           <div class="panel-head">
+            <p class="section-label">Step 3</p>
             <h2>Create Policy</h2>
             <p>Store a reusable review policy on GenLayer for repeated use across project workflows.</p>
           </div>
@@ -193,6 +226,7 @@ useful builder tool</textarea>
 
         <article class="panel accent">
           <div class="panel-head">
+            <p class="section-label">Step 4</p>
             <h2>Run Workflow Gate</h2>
             <p>Evaluate a real project bundle and bind the result to an execution path from the live app.</p>
           </div>
@@ -236,6 +270,7 @@ useful builder tool</textarea>
       <section class="workspace">
         <article class="panel recent-panel">
           <div class="panel-head">
+            <p class="section-label">Review Memory</p>
             <h2>Recent Reviews</h2>
             <p>Reuse recent project bundles and show that this tool supports ongoing operational work.</p>
           </div>
