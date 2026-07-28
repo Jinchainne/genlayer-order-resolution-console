@@ -149,6 +149,33 @@ body {
   color: var(--muted);
 }
 
+.ops-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.metric-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(17, 29, 44, 0.95), rgba(12, 20, 31, 0.92));
+  box-shadow: var(--shadow-soft);
+}
+
+.metric-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 24px;
+}
+
+.metric-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 300px minmax(0, 1.45fr) minmax(330px, 0.9fr);
@@ -668,6 +695,20 @@ button:disabled {
   border-color: transparent;
 }
 
+.playbook-card {
+  margin-top: 14px;
+}
+
+.playbook-task-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.task-card {
+  background: rgba(10, 19, 29, 0.92);
+}
+
 .action-row,
 .recent-meta,
 .recent-actions,
@@ -855,6 +896,7 @@ button:disabled {
 }
 
 @media (max-width: 1280px) {
+  .ops-metrics,
   .dashboard-grid {
     grid-template-columns: 1fr;
   }

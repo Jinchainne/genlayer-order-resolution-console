@@ -67,6 +67,29 @@
         <span>The console is configured for live policy creation, AI triage, case review, and GenLayer-backed resolution gating.</span>
       </section>
 
+      <section class="ops-metrics">
+        <article class="metric-card">
+          <span class="meta-label">Queue exposure</span>
+          <strong id="queueExposureMetric">0 USD</strong>
+          <p>Total money currently at risk across active disputes.</p>
+        </article>
+        <article class="metric-card">
+          <span class="meta-label">Authority gaps</span>
+          <strong id="authorityGapMetric">0</strong>
+          <p>Cases still missing decisive ledger, processor, or logistics evidence.</p>
+        </article>
+        <article class="metric-card">
+          <span class="meta-label">Payout holds</span>
+          <strong id="payoutHoldMetric">0</strong>
+          <p>Cases currently mapped to hold or fraud-protection actions.</p>
+        </article>
+        <article class="metric-card">
+          <span class="meta-label">SLA risk</span>
+          <strong id="slaRiskMetric">0</strong>
+          <p>Delivery or subscription cases likely to breach support timing.</p>
+        </article>
+      </section>
+
       <section class="dashboard-grid">
         <aside class="panel queue-panel panel-shell">
           <div class="panel-head">
@@ -424,6 +447,37 @@
                     </div>
                   </form>
                 </article>
+
+                <article class="evidence-card evidence-ingest-card">
+                  <div class="panel-head compact-head">
+                    <p class="section-label">Source Intake</p>
+                    <h2>Ingest structured records</h2>
+                    <p>Simulate merchant, payment, logistics, and CRM systems feeding authoritative evidence into the active dispute.</p>
+                  </div>
+
+                  <div class="action-chip-grid">
+                    <button type="button" class="action-chip source-chip" data-source-template="order_ledger">Order ledger</button>
+                    <button type="button" class="action-chip source-chip" data-source-template="payment_ledger">Payment ledger</button>
+                    <button type="button" class="action-chip source-chip" data-source-template="shipping_events">Shipping events</button>
+                    <button type="button" class="action-chip source-chip" data-source-template="support_crm">Support CRM</button>
+                    <button type="button" class="action-chip source-chip" data-source-template="fraud_signal">Fraud signal</button>
+                  </div>
+
+                  <form id="sourceIngestForm" class="stack compact-form">
+                    <label>
+                      Selected source
+                      <input name="sourceType" placeholder="Select a source template above" required />
+                    </label>
+                    <label>
+                      Structured payload
+                      <textarea name="payload" rows="5" placeholder='{"orderId":"ORD-2048","status":"paid","summary":"Processor settlement confirmed."}' required></textarea>
+                    </label>
+                    <div class="action-row">
+                      <button type="submit">Ingest Source Into Vault</button>
+                      <button type="button" id="resetSourceIngestButton" class="button-ghost">Reset Payload</button>
+                    </div>
+                  </form>
+                </article>
               </article>
               </section>
 
@@ -443,6 +497,11 @@
                       <option value="delivery-damaged">Damaged goods</option>
                       <option value="payment-refund">Refund not received</option>
                       <option value="order-mismatch">Wrong order delivered</option>
+                      <option value="delivery-late">Late delivery compensation</option>
+                      <option value="chargeback-risk">Unauthorized payment / chargeback</option>
+                      <option value="service-cancellation">Subscription cancellation</option>
+                      <option value="counterfeit-quality">Counterfeit or listing mismatch</option>
+                      <option value="warranty-claim">Warranty replacement</option>
                     </select>
                   </label>
                   <label>
@@ -560,6 +619,15 @@ resolution requires qualitative dispute assessment</textarea>
                   <button type="button" id="clearResolutionActionButton" class="button-ghost">Clear Selection</button>
                 </div>
               </form>
+            </article>
+
+            <article class="status-card playbook-card">
+              <span class="meta-label">Execution playbook</span>
+              <strong id="playbookActionTitle">No action playbook selected</strong>
+              <p id="playbookActionSummary">Pick or unlock an operational action to see downstream execution tasks.</p>
+              <div id="playbookTasks" class="playbook-task-list">
+                <p class="empty-state">No action tasks yet.</p>
+              </div>
             </article>
 
             <div class="resolution-tabs" id="resolutionTabs">
@@ -688,6 +756,17 @@ resolution requires qualitative dispute assessment</textarea>
           </div>
           <div id="decisionHistory" class="history-list">
             <p class="empty-state">No decision events yet. Run triage, create a policy, or execute the workflow to build the audit trail.</p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <p class="section-label">Task Board</p>
+            <h2>Operations follow-up queue</h2>
+            <p>Translate policy decisions into merchant tasks such as refund ops, reship fulfillment, payout control, and fraud escalation.</p>
+          </div>
+          <div id="actionQueueBoard" class="history-list">
+            <p class="empty-state">No operational tasks queued yet. Apply a resolution action to generate downstream work.</p>
           </div>
         </article>
 

@@ -22,6 +22,8 @@ const caseDetailForm = document.querySelector("#caseDetailForm");
 const evidenceForm = document.querySelector("#evidenceForm");
 const saveEvidenceButton = document.querySelector("#saveEvidenceButton");
 const resetEvidenceButton = document.querySelector("#resetEvidenceButton");
+const sourceIngestForm = document.querySelector("#sourceIngestForm");
+const resetSourceIngestButton = document.querySelector("#resetSourceIngestButton");
 const activeCaseCount = document.querySelector("#activeCaseCount");
 const recommendedAction = document.querySelector("#recommendedAction");
 const recommendedActionReason = document.querySelector("#recommendedActionReason");
@@ -32,6 +34,7 @@ const detailPanels = document.querySelectorAll(".detail-panel");
 const actionChips = document.querySelectorAll("[data-action-value]");
 const resolutionActionForm = document.querySelector("#resolutionActionForm");
 const clearResolutionActionButton = document.querySelector("#clearResolutionActionButton");
+const sourceChips = document.querySelectorAll("[data-source-template]");
 
 const caseTitle = document.querySelector("#caseTitle");
 const caseSubtitle = document.querySelector("#caseSubtitle");
@@ -60,6 +63,14 @@ const vaultStatus = document.querySelector("#vaultStatus");
 const decisionHistory = document.querySelector("#decisionHistory");
 const createPresetSelect = document.querySelector("#caseCreateForm select[name='presetType']");
 const detailPresetSelect = document.querySelector("#detailPreset");
+const queueExposureMetric = document.querySelector("#queueExposureMetric");
+const authorityGapMetric = document.querySelector("#authorityGapMetric");
+const payoutHoldMetric = document.querySelector("#payoutHoldMetric");
+const slaRiskMetric = document.querySelector("#slaRiskMetric");
+const playbookActionTitle = document.querySelector("#playbookActionTitle");
+const playbookActionSummary = document.querySelector("#playbookActionSummary");
+const playbookTasks = document.querySelector("#playbookTasks");
+const actionQueueBoard = document.querySelector("#actionQueueBoard");
 
 const STORAGE_KEY = "order-resolution-recent-runs-v2";
 const HISTORY_STORAGE_KEY = "order-resolution-decision-history-v1";
@@ -906,6 +917,8 @@ function getSelectedCase() {
 function syncSelectedCase(caseItem) {
   renderCaseQueue();
   fillCaseDetail(caseItem);
+  renderOpsMetrics();
+  renderActionQueueBoard();
 }
 
 function actionLabel(value) {
@@ -936,6 +949,108 @@ function resolutionStatusForAction(action) {
   return map[action] || "resolution updated";
 }
 
+function actionTaskTemplates(action, caseItem) {
+  const templates = {
+    approve_refund: [
+      { lane: "payments", title: "Issue refund through processor", owner: "Payments Ops" },
+      { lane: "support", title: "Notify buyer of refund confirmation", owner: "Support Desk" },
+      { lane: "audit", title: "Store refund proof in audit trail", owner: "Risk Audit" },
+    ],
+    partial_refund: [
+      { lane: "payments", title: "Approve partial reimbursement amount", owner: "Payments Ops" },
+      { lane: "merchant", title: "Document which SKUs or services were compensated", owner: "Merchant Desk" },
+      { lane: "support", title: "Send split-resolution notice to buyer", owner: "Support Desk" },
+    ],
+    reship_order: [
+      { lane: "fulfillment", title: "Create replacement order or reship ticket", owner: "Fulfillment Team" },
+      { lane: "logistics", title: "Prioritize replacement routing", owner: "Logistics Control" },
+      { lane: "support", title: "Confirm new ETA to buyer", owner: "Support Desk" },
+    ],
+    store_credit: [
+      { lane: "wallet", title: "Issue store credit to buyer account", owner: "Customer Wallet Ops" },
+      { lane: "support", title: "Explain credit validity and scope", owner: "Support Desk" },
+      { lane: "analytics", title: "Tag case for retention follow-up", owner: "CRM Ops" },
+    ],
+    hold_payout: [
+      { lane: "risk", title: "Freeze merchant payout on dispute order", owner: "Risk Control" },
+      { lane: "finance", title: "Flag settlement for manual approval", owner: "Finance Ops" },
+      { lane: "audit", title: "Request additional seller or fraud evidence", owner: "Risk Audit" },
+    ],
+    fraud_review: [
+      { lane: "fraud", title: "Escalate case into fraud review queue", owner: "Fraud Desk" },
+      { lane: "identity", title: "Compare auth, device, and payment events", owner: "Identity Risk" },
+      { lane: "support", title: "Hold merchant/buyer final notice pending outcome", owner: "Support Desk" },
+    ],
+    deny_claim: [
+      { lane: "support", title: "Send denial rationale to buyer", owner: "Support Desk" },
+      { lane: "merchant", title: "Close merchant dispute case", owner: "Merchant Desk" },
+      { lane: "audit", title: "Archive denial evidence for compliance", owner: "Risk Audit" },
+    ],
+  };
+
+  return (templates[action] || []).map((task, index) => ({
+    id: `${caseItem.id}-${action}-${index + 1}`,
+    caseId: caseItem.id,
+    action,
+    status: index === 0 ? "ready" : "pending",
+    lane: task.lane,
+    owner: task.owner,
+    title: task.title,
+  }));
+}
+
+function normalizeMoneyNumber(value) {
+  return Number(String(value || "").replace(/[^0-9.]/g, "")) || 0;
+}
+
+function formatMetricMoney(amount) {
+  return `${amount.toFixed(2)} USD`;
+}
+
+function caseNeedsAuthority(caseItem) {
+  return caseItem.evidence.some((item) => item.side === "authority" && ["missing", "needs-review", "pending-proof"].includes(item.status));
+}
+
+function caseSlaRisk(caseItem) {
+  return ["late-delivery", "service-cancellation", "refund-delay"].includes(caseItem.type);
+}
+
+function sourceTemplatePayload(sourceType, caseItem) {
+  const payloads = {
+    order_ledger: {
+      orderId: caseItem.id,
+      merchant: caseItem.merchant,
+      status: "confirmed",
+      totalAmount: caseItem.amount,
+      summary: "Order ledger confirms the purchased items, settlement state, and merchant of record.",
+    },
+    payment_ledger: {
+      orderId: caseItem.id,
+      paymentStatus: caseItem.paymentStatus,
+      amountAtRisk: caseItem.atRisk,
+      summary: "Payment ledger confirms capture, settlement, refund, or payout status for the case.",
+    },
+    shipping_events: {
+      orderId: caseItem.id,
+      fulfillment: caseItem.fulfillment,
+      latestEvent: "delivery_completed",
+      summary: "Logistics event feed confirms route, delivery timing, and dispatch milestones.",
+    },
+    support_crm: {
+      orderId: caseItem.id,
+      buyer: caseItem.buyer,
+      seller: caseItem.seller,
+      summary: "Support CRM records buyer complaint timing, merchant replies, and promised remedies.",
+    },
+    fraud_signal: {
+      orderId: caseItem.id,
+      signal: "manual_review",
+      summary: "Risk engine or auth service surfaced an anomaly requiring fraud-sensitive handling.",
+    },
+  };
+  return payloads[sourceType] || { orderId: caseItem.id, summary: "Structured source payload." };
+}
+
 function actionReasonForValue(action, note = "") {
   const map = {
     approve_refund: "The dispute record supports reversing payment to the buyer.",
@@ -955,6 +1070,12 @@ function resetEvidenceEditor() {
   evidenceForm.elements.side.value = "buyer";
   evidenceForm.elements.status.value = "submitted";
   saveEvidenceButton.textContent = "Add Evidence Record";
+}
+
+function resetSourceIngest() {
+  sourceIngestForm.reset();
+  sourceIngestForm.elements.sourceType.value = "";
+  sourceChips.forEach((chip) => chip.classList.remove("action-chip-active"));
 }
 
 function clearActionSelection() {
@@ -1074,6 +1195,100 @@ function renderDecisionHistory() {
             </div>
           </div>
           <p>${escapeHtml(event.notes)}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderOpsMetrics() {
+  const totalRisk = CASES.reduce((sum, item) => sum + normalizeMoneyNumber(item.atRisk), 0);
+  const authorityGaps = CASES.filter(caseNeedsAuthority).length;
+  const payoutHolds = CASES.filter((item) => ["hold_payout", "fraud_review"].includes(item.opsAction || item.requestedAction)).length;
+  const slaRisk = CASES.filter(caseSlaRisk).length;
+
+  queueExposureMetric.textContent = formatMetricMoney(totalRisk);
+  authorityGapMetric.textContent = String(authorityGaps);
+  payoutHoldMetric.textContent = String(payoutHolds);
+  slaRiskMetric.textContent = String(slaRisk);
+}
+
+function renderPlaybook(caseItem) {
+  const activeAction = caseItem.opsAction || normalizeActionValue(caseItem.requestedAction);
+  const tasks = caseItem.playbookTasks || actionTaskTemplates(activeAction, caseItem);
+
+  if (!activeAction || !tasks.length) {
+    playbookActionTitle.textContent = "No action playbook selected";
+    playbookActionSummary.textContent = "Pick or unlock an operational action to see downstream execution tasks.";
+    playbookTasks.innerHTML = `<p class="empty-state">No action tasks yet.</p>`;
+    return;
+  }
+
+  playbookActionTitle.textContent = actionLabel(activeAction);
+  playbookActionSummary.textContent = actionReasonForValue(activeAction, caseItem.actionNote || "");
+  playbookTasks.innerHTML = tasks
+    .map(
+      (task) => `
+        <article class="history-card task-card">
+          <div class="history-head">
+            <strong>${escapeHtml(task.title)}</strong>
+            <span class="pill">${escapeHtml(task.status)}</span>
+          </div>
+          <div class="history-body">
+            <div class="history-line">
+              <span class="history-label">Lane</span>
+              <span>${escapeHtml(task.lane)}</span>
+            </div>
+            <div class="history-line">
+              <span class="history-label">Owner</span>
+              <span>${escapeHtml(task.owner)}</span>
+            </div>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderActionQueueBoard() {
+  const queued = CASES.flatMap((item) =>
+    (item.playbookTasks || []).map((task) => ({
+      ...task,
+      merchant: item.merchant,
+    })),
+  );
+
+  if (!queued.length) {
+    actionQueueBoard.innerHTML = `<p class="empty-state">No operational tasks queued yet. Apply a resolution action to generate downstream work.</p>`;
+    return;
+  }
+
+  actionQueueBoard.innerHTML = queued
+    .map(
+      (task) => `
+        <article class="history-card task-card">
+          <div class="history-head">
+            <strong>${escapeHtml(task.caseId)}</strong>
+            <span>${escapeHtml(task.owner)}</span>
+          </div>
+          <div class="history-body">
+            <div class="history-line">
+              <span class="history-label">Task</span>
+              <span>${escapeHtml(task.title)}</span>
+            </div>
+            <div class="history-line">
+              <span class="history-label">Lane</span>
+              <span>${escapeHtml(task.lane)}</span>
+            </div>
+            <div class="history-line">
+              <span class="history-label">Status</span>
+              <span>${escapeHtml(task.status)}</span>
+            </div>
+            <div class="history-line">
+              <span class="history-label">Merchant</span>
+              <span>${escapeHtml(task.merchant)}</span>
+            </div>
+          </div>
         </article>
       `,
     )
@@ -1280,7 +1495,9 @@ function hydrateFormsFromCase(caseItem) {
     `Current case pattern: ${caseItem.type}. Build the packet, run AI triage, then send the dispute through the reusable policy workflow.`;
   hydrateCaseEditor(caseItem);
   resetEvidenceEditor();
+  resetSourceIngest();
   clearActionSelection();
+  renderPlaybook(caseItem);
 }
 
 function buildEvidenceFromCase(caseItem) {
@@ -1422,6 +1639,9 @@ function updateCurrentCase(form) {
     timeline: preset ? cloneData(preset.timeline) : current.timeline,
     evidence: preset ? cloneData(preset.evidence) : current.evidence,
     disagreements: preset ? cloneData(preset.disagreements) : current.disagreements,
+    opsAction: current.opsAction,
+    playbookTasks: current.playbookTasks || [],
+    actionNote: current.actionNote || "",
   };
 
   CASES = CASES.map((item) => (item.id === selectedCaseId ? updated : item));
@@ -1506,10 +1726,14 @@ function applyResolutionAction(action, note = "") {
   const normalizedAction = normalizeActionValue(action);
   const selectedCase = getSelectedCase();
   const caseIndex = getSelectedCaseIndex();
+  const generatedTasks = actionTaskTemplates(normalizedAction, selectedCase);
   const updated = {
     ...selectedCase,
     requestedAction: normalizedAction,
+    opsAction: normalizedAction,
     status: resolutionStatusForAction(normalizedAction),
+    playbookTasks: generatedTasks,
+    actionNote: note,
     reviewNotes: note
       ? `${selectedCase.reviewNotes}\nAction note: ${note}`.trim()
       : selectedCase.reviewNotes,
@@ -1526,6 +1750,47 @@ function applyResolutionAction(action, note = "") {
     outcome: normalizedAction,
     action: normalizedAction,
     notes: actionReasonForValue(normalizedAction, note),
+    timestamp: new Date().toLocaleString(),
+  });
+}
+
+function ingestStructuredSource(form) {
+  const selectedCase = getSelectedCase();
+  const caseIndex = getSelectedCaseIndex();
+  const sourceType = String(form.get("sourceType") || "").trim();
+  const payload = parseJsonField(String(form.get("payload") || "{}"), "structured payload");
+  const sourceMap = {
+    order_ledger: { side: "authority", status: "authoritative", source: "order ledger" },
+    payment_ledger: { side: "authority", status: "authoritative", source: "payment ledger" },
+    shipping_events: { side: "authority", status: "time-verified", source: "shipping events" },
+    support_crm: { side: "seller", status: "submitted", source: "support CRM" },
+    fraud_signal: { side: "authority", status: "needs-review", source: "fraud signal" },
+  };
+  const preset = sourceMap[sourceType] || { side: "authority", status: "submitted", source: sourceType || "structured source" };
+  const title = `${actionLabel(sourceType)} import`;
+  const detail = payload.summary || pretty(payload);
+  const nextEvidence = {
+    title,
+    side: preset.side,
+    status: preset.status,
+    source: preset.source,
+    detail,
+  };
+
+  const updated = {
+    ...selectedCase,
+    evidence: [...selectedCase.evidence, nextEvidence],
+  };
+
+  CASES[caseIndex] = updated;
+  syncSelectedCase(updated);
+  saveDecisionEvent({
+    caseId: updated.id,
+    projectName: updated.id,
+    type: "source_ingested",
+    outcome: sourceType,
+    action: preset.status,
+    notes: `Imported ${title} into the evidence vault.`,
     timestamp: new Date().toLocaleString(),
   });
 }
@@ -1796,6 +2061,16 @@ resetEvidenceButton.addEventListener("click", () => {
   resetEvidenceEditor();
 });
 
+sourceIngestForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const form = new FormData(sourceIngestForm);
+  ingestStructuredSource(form);
+});
+
+resetSourceIngestButton.addEventListener("click", () => {
+  resetSourceIngest();
+});
+
 createPresetSelect.addEventListener("change", () => {
   applyPresetValuesToForm(caseCreateForm, createPresetSelect.value);
 });
@@ -1861,6 +2136,16 @@ resolutionActionForm.addEventListener("submit", (event) => {
 
 clearResolutionActionButton.addEventListener("click", () => {
   clearActionSelection();
+});
+
+sourceChips.forEach((chip) => {
+  chip.addEventListener("click", () => {
+    sourceChips.forEach((item) => item.classList.remove("action-chip-active"));
+    chip.classList.add("action-chip-active");
+    const sourceType = chip.dataset.sourceTemplate;
+    sourceIngestForm.elements.sourceType.value = sourceType;
+    sourceIngestForm.elements.payload.value = pretty(sourceTemplatePayload(sourceType, getSelectedCase()));
+  });
 });
 
 loadDemoButton.addEventListener("click", loadDemoBundle);
@@ -2012,6 +2297,8 @@ renderDecisionHistory();
 renderCaseQueue();
 fillCaseDetail(getCaseById(selectedCaseId));
 buildBundle();
+renderOpsMetrics();
+renderActionQueueBoard();
 loadConfig().catch((error) => {
   contractAddressPill.textContent = `Config error: ${error.message}`;
   runtimeNotice.innerHTML = `<strong>Operations status</strong><span>${error.message}</span>`;
