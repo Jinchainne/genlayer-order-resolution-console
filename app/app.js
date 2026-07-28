@@ -114,7 +114,7 @@ let CASES = [
     reviewNotes:
       "The case is suitable for partial refund analysis because payment is confirmed, delivery happened, and the disagreement centers on whether the missing items left the store.",
     references: {
-      repoUrl: "https://github.com/Jinchainne/genlayer-policy-eco",
+      repoUrl: "https://github.com/Jinchainne/genlayer-order-resolution-console",
       liveApp: "https://genlayer-policy-eco.vercel.app/",
       contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
       deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",
@@ -168,7 +168,7 @@ let CASES = [
     reviewNotes:
       "This is a strong refund verification case because the dispute depends on authoritative refund state rather than only narrative claims.",
     references: {
-      repoUrl: "https://github.com/Jinchainne/genlayer-policy-eco",
+      repoUrl: "https://github.com/Jinchainne/genlayer-order-resolution-console",
       liveApp: "https://genlayer-policy-eco.vercel.app/",
       contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
       deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",
@@ -222,7 +222,7 @@ let CASES = [
     reviewNotes:
       "This case tests whether the workflow can distinguish a wrong-order delivery from a non-delivery claim and recommend a full refund or escalation.",
     references: {
-      repoUrl: "https://github.com/Jinchainne/genlayer-policy-eco",
+      repoUrl: "https://github.com/Jinchainne/genlayer-order-resolution-console",
       liveApp: "https://genlayer-policy-eco.vercel.app/",
       contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
       deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",
@@ -740,7 +740,7 @@ function cloneData(value) {
 
 function baseReferences() {
   return {
-    repoUrl: "https://github.com/Jinchainne/genlayer-policy-eco",
+    repoUrl: "https://github.com/Jinchainne/genlayer-order-resolution-console",
     liveApp: "https://genlayer-policy-eco.vercel.app/",
     contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
     deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",

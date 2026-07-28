@@ -6,7 +6,7 @@
 
 ## Project Name
 
-`genlayer-policy-eco`
+`genlayer-order-resolution-console`
 
 ## Date
 
@@ -14,7 +14,7 @@
 
 ## What The Project Is
 
-`genlayer-policy-eco` is now a full GenLayer project built around the `PolicyOracle` Intelligent Contract. It provides a policy review console where a builder or reviewer can create reusable policies, submit evidence-backed requests for evaluation, and bind the onchain verdict directly to execution gating.
+`genlayer-order-resolution-console` is now a full GenLayer project built around the `PolicyOracle` Intelligent Contract. It provides a policy review console where a builder or reviewer can create reusable policies, submit evidence-backed requests for evaluation, and bind the onchain verdict directly to execution gating.
 
 ## Real Workflow
 
@@ -41,7 +41,7 @@ App reads get_result + is_allowed -> execution becomes unlock_submission or hold
 
 ## Evidence Links
 
-- Repo: `https://github.com/Jinchainne/genlayer-policy-eco`
+- Repo: `https://github.com/Jinchainne/genlayer-order-resolution-console`
 - Contract: `https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108`
 - Deploy tx: `https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111`
 - create_policy tx: `https://explorer-studio.genlayer.com/tx/0xe22a6be500cf62c57ce947f4cba16452f8d18f8115d3c041df7f10d6f4825a32`

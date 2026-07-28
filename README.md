@@ -1,6 +1,6 @@
-# genlayer-policy-eco
+# genlayer-order-resolution-console
 
-`genlayer-policy-eco` is a submission-ready GenLayer `Project` built as a merchant-facing `Order Resolution Console`.
+`genlayer-order-resolution-console` is a submission-ready GenLayer `Project` built as a merchant-facing `Order Resolution Console`.
 
 It is not a generic AI page and not a contract-only demo. It is a dispute operations product that lets a team:
 
@@ -15,7 +15,7 @@ It is not a generic AI page and not a contract-only demo. It is a dispute operat
 ## Live Links
 
 - Live app: `https://genlayer-policy-eco.vercel.app`
-- Repository: `https://github.com/Jinchainne/genlayer-policy-eco`
+- Repository: `https://github.com/Jinchainne/genlayer-order-resolution-console`
 - Contract explorer: `https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108`
 - Deploy tx: `https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111`
 - `create_policy` tx: `https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083`
@@ -213,7 +213,7 @@ Merchant ops receives dispute
 ## Repository Tree
 
 ```text
-genlayer-policy-eco/
+genlayer-order-resolution-console/
 ├─ api/
 │  ├─ ai/
 │  │  └─ prejudge.js
@@ -319,4 +319,4 @@ It now behaves like a real merchant operations product with:
 
 ## Submission Summary
 
-`genlayer-policy-eco` is a live merchant dispute operations console built on GenLayer. It helps retail, grocery, delivery, marketplace, payment, and subscription teams turn messy buyer-seller disputes into structured evidence packets, evaluate them through a reusable GenLayer policy contract, and bind the resulting verdict to real business actions like refund, reship, store credit, payout hold, or fraud review.
+`genlayer-order-resolution-console` is a live merchant dispute operations console built on GenLayer. It helps retail, grocery, delivery, marketplace, payment, and subscription teams turn messy buyer-seller disputes into structured evidence packets, evaluate them through a reusable GenLayer policy contract, and bind the resulting verdict to real business actions like refund, reship, store credit, payout hold, or fraud review.

@@ -1,6 +1,6 @@
 param(
     [string]$Owner = "Jinchainne",
-    [string]$Repo = "genlayer-policy-eco",
+    [string]$Repo = "genlayer-order-resolution-console",
     [switch]$Private
 )
 

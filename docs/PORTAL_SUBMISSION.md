@@ -27,7 +27,7 @@ This repo also includes a project-ready client flow and a policy-gated execution
 Use these as evidence entries in the portal:
 
 1. Repository
-`https://github.com/Jinchainne/genlayer-policy-eco`
+`https://github.com/Jinchainne/genlayer-order-resolution-console`
 
 Suggested type:
 `GitHub Repository`

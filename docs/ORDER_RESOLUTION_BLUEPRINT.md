@@ -2,7 +2,7 @@
 
 ## Product Direction
 
-Pivot `genlayer-policy-eco` from a general policy review console into a vertical product for commerce and retail operations:
+Pivot `genlayer-order-resolution-console` from a general policy review console into a vertical product for commerce and retail operations:
 
 - product name: `Order Resolution Console`
 - category: `Projects`
