@@ -47,6 +47,21 @@ body::before {
   opacity: 0.9;
 }
 
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(6, 12, 8, 0.84);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(106, 255, 31, 0.46), rgba(0, 228, 255, 0.3));
+  border-radius: 999px;
+  border: 2px solid rgba(6, 12, 8, 0.9);
+}
+
 .shell {
   max-width: 1580px;
   margin: 0 auto;
@@ -235,17 +250,74 @@ body::before {
   gap: 14px;
 }
 
+.status-matrix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.status-cell {
+  padding: 12px;
+  border: 1px solid rgba(106, 255, 31, 0.14);
+  border-radius: 14px;
+  background: rgba(5, 11, 7, 0.98);
+}
+
+.status-cell span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-family: "Orbitron", "Courier New", monospace;
+}
+
+.status-cell strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 18px;
+  font-family: "Orbitron", "Courier New", monospace;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
 .top-card,
 .summary-card,
 .party-card,
 .timeline-card,
 .evidence-card,
 .status-card {
+  position: relative;
   padding: 16px;
   border: 1px solid var(--line-strong);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(8, 15, 10, 0.98), rgba(6, 12, 8, 0.96));
   box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.top-card::before,
+.summary-card::before,
+.party-card::before,
+.timeline-card::before,
+.evidence-card::before,
+.status-card::before,
+.panel::before,
+.ledger-card::before,
+.metric-card::before,
+.queue-item::before,
+.vault-column::before,
+.vault-item::before,
+.history-card::before,
+.recent-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(106, 255, 31, 0.07), transparent 18%, transparent 82%, rgba(0, 228, 255, 0.05)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 22%);
+  pointer-events: none;
 }
 
 .pill-row {
@@ -296,6 +368,7 @@ body::before {
 }
 
 .metric-card {
+  position: relative;
   padding: 16px;
   border: 1px solid var(--line-strong);
   border-radius: 18px;
@@ -343,6 +416,7 @@ body::before {
 }
 
 .panel {
+  position: relative;
   padding: 18px;
   border: 1px solid var(--line-strong);
   border-radius: 18px;
@@ -439,6 +513,7 @@ body::before {
 }
 
 .queue-item {
+  position: relative;
   width: 100%;
   padding: 14px;
   border: 1px solid rgba(106, 255, 31, 0.12);
@@ -453,6 +528,22 @@ body::before {
   border-color: rgba(106, 255, 31, 0.45);
   background: linear-gradient(180deg, rgba(11, 31, 13, 0.96), rgba(6, 16, 8, 0.98));
   box-shadow: 0 0 0 1px rgba(106, 255, 31, 0.16), var(--shadow-soft);
+}
+
+.queue-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 999px;
+  background: rgba(0, 228, 255, 0.26);
+}
+
+.queue-item-active::after {
+  background: linear-gradient(180deg, var(--brand), var(--accent));
+  box-shadow: 0 0 14px rgba(106, 255, 31, 0.18);
 }
 
 .queue-top,
@@ -948,6 +1039,33 @@ button:disabled {
   background: linear-gradient(180deg, rgba(5, 10, 7, 0.98), rgba(5, 10, 7, 0.86), transparent);
 }
 
+.workspace-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.workspace-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 228, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(3, 11, 9, 0.94);
+  color: var(--accent);
+  font-family: "Orbitron", "Courier New", monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.decision-rail .workspace-tag:first-child {
+  color: var(--brand);
+  border-color: rgba(106, 255, 31, 0.18);
+  background: rgba(7, 14, 9, 0.96);
+}
+
 .tab-button {
   padding: 9px 14px;
   border-radius: 999px;
@@ -1015,6 +1133,7 @@ button:disabled {
 }
 
 .recent-card {
+  position: relative;
   padding: 18px;
   border: 1px solid rgba(106, 255, 31, 0.12);
   border-radius: 14px;
@@ -1139,6 +1258,10 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .status-matrix {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .queue-panel,
   .resolution-panel {
     position: static;
@@ -1170,5 +1293,9 @@ button:disabled {
   .rail-brand {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .status-matrix {
+    grid-template-columns: 1fr;
   }
 }
