@@ -105,6 +105,25 @@
               <span class="toolbar-chip">studionet ready</span>
             </div>
 
+            <div class="queue-filters">
+              <label>
+                Search
+                <input id="queueSearch" placeholder="Search case, merchant, buyer..." />
+              </label>
+              <label>
+                Status filter
+                <select id="queueStatusFilter">
+                  <option value="all">All statuses</option>
+                  <option value="new">new</option>
+                  <option value="evidence ready">evidence ready</option>
+                  <option value="awaiting resolution">awaiting resolution</option>
+                  <option value="refund approved">refund approved</option>
+                  <option value="payout on hold">payout on hold</option>
+                  <option value="fraud review queue">fraud review queue</option>
+                </select>
+              </label>
+            </div>
+
             <div id="caseQueue" class="queue-list"></div>
 
             <details class="queue-create-card" open>

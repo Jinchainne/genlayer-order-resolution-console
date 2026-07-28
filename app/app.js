@@ -25,6 +25,8 @@ const resetEvidenceButton = document.querySelector("#resetEvidenceButton");
 const sourceIngestForm = document.querySelector("#sourceIngestForm");
 const resetSourceIngestButton = document.querySelector("#resetSourceIngestButton");
 const activeCaseCount = document.querySelector("#activeCaseCount");
+const queueSearch = document.querySelector("#queueSearch");
+const queueStatusFilter = document.querySelector("#queueStatusFilter");
 const recommendedAction = document.querySelector("#recommendedAction");
 const recommendedActionReason = document.querySelector("#recommendedActionReason");
 const tabButtons = document.querySelectorAll("[data-tab-target]");
@@ -74,6 +76,8 @@ const actionQueueBoard = document.querySelector("#actionQueueBoard");
 
 const STORAGE_KEY = "order-resolution-recent-runs-v2";
 const HISTORY_STORAGE_KEY = "order-resolution-decision-history-v1";
+let queueFilterText = "";
+let queueFilterStatus = "all";
 
 let CASES = [
   {
@@ -1244,6 +1248,11 @@ function renderPlaybook(caseItem) {
               <span>${escapeHtml(task.owner)}</span>
             </div>
           </div>
+          <div class="vault-actions">
+            <button type="button" class="mini-action" data-task-action="toggle" data-task-id="${task.id}">
+              ${task.status === "done" ? "Reopen" : "Mark done"}
+            </button>
+          </div>
         </article>
       `,
     )
@@ -1289,10 +1298,44 @@ function renderActionQueueBoard() {
               <span>${escapeHtml(task.merchant)}</span>
             </div>
           </div>
+          <div class="vault-actions">
+            <button type="button" class="mini-action" data-task-action="toggle" data-task-id="${task.id}">
+              ${task.status === "done" ? "Reopen" : "Mark done"}
+            </button>
+          </div>
         </article>
       `,
     )
     .join("");
+}
+
+function toggleTaskStatus(taskId) {
+  const caseIndex = CASES.findIndex((item) => (item.playbookTasks || []).some((task) => task.id === taskId));
+  if (caseIndex === -1) return;
+
+  const caseItem = CASES[caseIndex];
+  const tasks = (caseItem.playbookTasks || []).map((task) =>
+    task.id === taskId ? { ...task, status: task.status === "done" ? "pending" : "done" } : task,
+  );
+  const updated = {
+    ...caseItem,
+    playbookTasks: tasks,
+  };
+
+  CASES[caseIndex] = updated;
+  if (updated.id === selectedCaseId) {
+    fillCaseDetail(updated);
+  }
+  renderActionQueueBoard();
+  saveDecisionEvent({
+    caseId: updated.id,
+    projectName: updated.id,
+    type: "task_status_changed",
+    outcome: taskId,
+    action: tasks.find((task) => task.id === taskId)?.status || "updated",
+    notes: `Updated downstream execution task ${taskId}.`,
+    timestamp: new Date().toLocaleString(),
+  });
 }
 
 function getCaseById(caseId) {
@@ -1307,7 +1350,14 @@ function queueTag(status) {
 
 function renderCaseQueue() {
   updateCaseCount();
-  caseQueue.innerHTML = CASES.map((item) => {
+  const filteredCases = CASES.filter((item) => {
+    const matchesStatus = queueFilterStatus === "all" || item.status === queueFilterStatus;
+    const haystack = [item.id, item.merchant, item.buyer, item.subject, item.type].join(" ").toLowerCase();
+    const matchesText = !queueFilterText || haystack.includes(queueFilterText.toLowerCase());
+    return matchesStatus && matchesText;
+  });
+
+  caseQueue.innerHTML = filteredCases.map((item) => {
     const activeClass = item.id === selectedCaseId ? " queue-item-active" : "";
     return `
       <button type="button" class="queue-item${activeClass}" data-case-id="${item.id}">
@@ -1323,6 +1373,10 @@ function renderCaseQueue() {
       </button>
     `;
   }).join("");
+
+  if (!filteredCases.length) {
+    caseQueue.innerHTML = `<p class="empty-state">No cases match the current queue filters.</p>`;
+  }
 
   caseQueue.querySelectorAll("[data-case-id]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -2071,6 +2125,16 @@ resetSourceIngestButton.addEventListener("click", () => {
   resetSourceIngest();
 });
 
+queueSearch.addEventListener("input", () => {
+  queueFilterText = queueSearch.value.trim();
+  renderCaseQueue();
+});
+
+queueStatusFilter.addEventListener("change", () => {
+  queueFilterStatus = queueStatusFilter.value;
+  renderCaseQueue();
+});
+
 createPresetSelect.addEventListener("change", () => {
   applyPresetValuesToForm(caseCreateForm, createPresetSelect.value);
 });
@@ -2145,6 +2209,14 @@ sourceChips.forEach((chip) => {
     const sourceType = chip.dataset.sourceTemplate;
     sourceIngestForm.elements.sourceType.value = sourceType;
     sourceIngestForm.elements.payload.value = pretty(sourceTemplatePayload(sourceType, getSelectedCase()));
+  });
+});
+
+[playbookTasks, actionQueueBoard].forEach((target) => {
+  target.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-task-action='toggle']");
+    if (!button) return;
+    toggleTaskStatus(button.dataset.taskId);
   });
 });
 
