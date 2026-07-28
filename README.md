@@ -210,28 +210,6 @@ Merchant ops receives dispute
       +--> [unclear] ------> manual evidence follow-up
 ```
 
-## Screenshots To Capture
-
-Use these captions when taking screenshots for the README or project form.
-
-### Screenshot 1
-`Main operations dashboard showing queue exposure, authority gaps, payout holds, and SLA risk across active disputes.`
-
-### Screenshot 2
-`Case detail view with buyer statement, seller response, timeline, authority checks, and disagreement handling.`
-
-### Screenshot 3
-`Dynamic Evidence Vault with buyer, seller, and authority records plus live evidence editing controls.`
-
-### Screenshot 4
-`Structured source ingestion panel importing order ledger, payment ledger, shipping events, CRM, and fraud signals into the active dispute.`
-
-### Screenshot 5
-`Resolution panel showing action playbooks for refund, reship, store credit, payout hold, and fraud review.`
-
-### Screenshot 6
-`Task board translating GenLayer-backed verdicts into downstream merchant operations tasks.`
-
 ## Repository Tree
 
 ```text
