@@ -120,16 +120,52 @@ body::before {
 }
 
 .rail-ticker {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 18px;
+  position: relative;
+  overflow: hidden;
   padding: 0 8px;
+}
+
+.rail-ticker::before,
+.rail-ticker::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 44px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.rail-ticker::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(4, 10, 6, 0.98), transparent);
+}
+
+.rail-ticker::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(4, 10, 6, 0.98), transparent);
+}
+
+.rail-ticker-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  min-width: max-content;
+  animation: railTickerScroll 28s linear infinite;
 }
 
 .rail-ticker span {
   color: var(--brand);
   opacity: 0.92;
+  position: relative;
+  padding-right: 18px;
+}
+
+.rail-ticker span::after {
+  content: "•";
+  position: absolute;
+  right: 4px;
+  color: rgba(0, 228, 255, 0.55);
 }
 
 .topbar {
@@ -522,6 +558,106 @@ body::before {
   text-align: left;
   cursor: pointer;
   box-shadow: var(--shadow-soft);
+}
+
+.queue-id-wrap,
+.queue-id-stack,
+.queue-bottomline {
+  display: flex;
+  gap: 10px;
+}
+
+.queue-id-wrap {
+  align-items: center;
+}
+
+.queue-id-stack {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.queue-type-label,
+.queue-brand-caption,
+.queue-bottomline {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.queue-bottomline {
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(106, 255, 31, 0.08);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: "Orbitron", "Courier New", monospace;
+}
+
+.queue-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(106, 255, 31, 0.18);
+  background: rgba(9, 18, 11, 0.96);
+  color: var(--brand);
+  font-family: "Orbitron", "Courier New", monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 18px rgba(106, 255, 31, 0.12);
+}
+
+.brand-default .queue-brand-mark {
+  color: var(--brand);
+}
+
+.brand-missing .queue-brand-mark,
+.brand-missing.queue-item-active::after {
+  color: #6aff1f;
+}
+
+.brand-damage .queue-brand-mark,
+.brand-damage.queue-item-active::after {
+  color: #ffcf5d;
+}
+
+.brand-refund .queue-brand-mark,
+.brand-refund.queue-item-active::after {
+  color: #00e4ff;
+}
+
+.brand-mismatch .queue-brand-mark,
+.brand-mismatch.queue-item-active::after {
+  color: #ff7b7b;
+}
+
+.brand-late .queue-brand-mark,
+.brand-late.queue-item-active::after {
+  color: #ff9f40;
+}
+
+.brand-chargeback .queue-brand-mark,
+.brand-chargeback.queue-item-active::after {
+  color: #58b4ff;
+}
+
+.brand-counterfeit .queue-brand-mark,
+.brand-counterfeit.queue-item-active::after {
+  color: #d67cff;
+}
+
+.brand-service .queue-brand-mark,
+.brand-service.queue-item-active::after {
+  color: #7affd8;
+}
+
+.brand-warranty .queue-brand-mark,
+.brand-warranty.queue-item-active::after {
+  color: #a4ff82;
 }
 
 .queue-item-active {
@@ -1266,6 +1402,11 @@ button:disabled {
   .resolution-panel {
     position: static;
   }
+
+  .panel-shell {
+    min-height: auto;
+    max-height: none;
+  }
 }
 
 @media (max-width: 900px) {
@@ -1284,8 +1425,8 @@ button:disabled {
   }
 
   .shell {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   .triage-toolbar,
@@ -1297,5 +1438,93 @@ button:disabled {
 
   .status-matrix {
     grid-template-columns: 1fr;
+  }
+
+  .network-rail,
+  .topbar,
+  .panel,
+  .ledger-card,
+  .metric-card {
+    border-radius: 14px;
+  }
+
+  .topbar {
+    padding: 18px 16px 16px;
+  }
+
+  .lede {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .topbar h1 {
+    font-size: clamp(30px, 11vw, 52px);
+  }
+
+  .hero-action-row,
+  .signal-strip,
+  .workspace-rail,
+  .queue-toolbar,
+  .action-chip-grid,
+  .pill-row,
+  .rail-stats {
+    gap: 6px;
+  }
+
+  .hero-chip,
+  .signal-pill,
+  .workspace-tag,
+  .pill,
+  .toolbar-chip,
+  .queue-tag,
+  .source-pill {
+    padding: 7px 10px;
+    font-size: 9px;
+  }
+
+  .panel-scroll {
+    margin-top: 12px;
+    gap: 12px;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .queue-item,
+  .summary-card,
+  .party-card,
+  .timeline-card,
+  .evidence-card,
+  .status-card,
+  .top-card,
+  .vault-column,
+  .recent-card,
+  .history-card {
+    padding: 13px;
+  }
+
+  .queue-brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 10px;
+  }
+
+  .queue-bottomline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .rail-ticker-track {
+    animation-duration: 22s;
+  }
+}
+
+@keyframes railTickerScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
   }
 }

@@ -20,15 +20,17 @@
           </div>
         </div>
         <div class="rail-ticker">
-          <span>studionet live</span>
-          <span>policy oracle online</span>
-          <span>merchant ops console</span>
-          <span>genlayer workflow active</span>
+          <div id="railTickerTrack" class="rail-ticker-track">
+            <span>studionet live</span>
+            <span>policy oracle online</span>
+            <span>merchant ops console</span>
+            <span>genlayer workflow active</span>
+          </div>
         </div>
         <div class="rail-stats">
-          <span>ARC STYLE</span>
+          <span id="networkCaseStat">CASES: 0</span>
           <span>CHAIN: STUDIO</span>
-          <span>QUEUE LIVE</span>
+          <span id="networkAiStat">AI: READY</span>
         </div>
       </section>
 
@@ -67,19 +69,19 @@
             <div class="status-matrix">
               <div class="status-cell">
                 <span>resolution window</span>
-                <strong>&lt; 24h</strong>
+                <strong id="resolutionWindowStat">&lt; 24h</strong>
               </div>
               <div class="status-cell">
                 <span>authority sync</span>
-                <strong>82%</strong>
+                <strong id="authoritySyncStat">82%</strong>
               </div>
               <div class="status-cell">
                 <span>AI copilot</span>
-                <strong>2 live</strong>
+                <strong id="aiCopilotStat">2 live</strong>
               </div>
               <div class="status-cell">
                 <span>workflow mode</span>
-                <strong>GenLayer</strong>
+                <strong id="workflowModeStat">GenLayer</strong>
               </div>
             </div>
           </div>

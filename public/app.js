@@ -69,6 +69,13 @@ const queueExposureMetric = document.querySelector("#queueExposureMetric");
 const authorityGapMetric = document.querySelector("#authorityGapMetric");
 const payoutHoldMetric = document.querySelector("#payoutHoldMetric");
 const slaRiskMetric = document.querySelector("#slaRiskMetric");
+const railTickerTrack = document.querySelector("#railTickerTrack");
+const networkCaseStat = document.querySelector("#networkCaseStat");
+const networkAiStat = document.querySelector("#networkAiStat");
+const resolutionWindowStat = document.querySelector("#resolutionWindowStat");
+const authoritySyncStat = document.querySelector("#authoritySyncStat");
+const aiCopilotStat = document.querySelector("#aiCopilotStat");
+const workflowModeStat = document.querySelector("#workflowModeStat");
 const playbookActionTitle = document.querySelector("#playbookActionTitle");
 const playbookActionSummary = document.querySelector("#playbookActionSummary");
 const playbookTasks = document.querySelector("#playbookTasks");
@@ -817,9 +824,103 @@ CASES.push(
 let contractAddress = "";
 let latestBundle = null;
 let selectedCaseId = CASES[0].id;
+const metricAnimationState = new Map();
+
+const DISPUTE_TYPE_BRANDS = {
+  "missing-item": { icon: "BX", mark: "missing item", accent: "brand-missing" },
+  "damaged-goods": { icon: "DG", mark: "damage review", accent: "brand-damage" },
+  "refund-delay": { icon: "RF", mark: "refund lag", accent: "brand-refund" },
+  "wrong-order": { icon: "WO", mark: "order mismatch", accent: "brand-mismatch" },
+  "late-delivery": { icon: "LD", mark: "sla breach", accent: "brand-late" },
+  "chargeback-risk": { icon: "CR", mark: "risk shield", accent: "brand-chargeback" },
+  "counterfeit-quality": { icon: "CQ", mark: "listing mismatch", accent: "brand-counterfeit" },
+  "service-cancellation": { icon: "SC", mark: "renewal billing", accent: "brand-service" },
+  "warranty-claim": { icon: "WC", mark: "warranty ops", accent: "brand-warranty" },
+};
 
 function updateCaseCount() {
   activeCaseCount.textContent = `${CASES.length} active cases`;
+}
+
+function getBrandForCase(caseItem) {
+  return DISPUTE_TYPE_BRANDS[caseItem.type] || {
+    icon: "OP",
+    mark: "ops review",
+    accent: "brand-default",
+  };
+}
+
+function animateValue(target, nextValue, formatter = (value) => String(value)) {
+  if (!target) return;
+  const previous = metricAnimationState.get(target) ?? 0;
+  const duration = 650;
+  const start = performance.now();
+
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - (1 - progress) ** 3;
+    const current = previous + (nextValue - previous) * eased;
+    target.textContent = formatter(current, progress);
+    if (progress < 1) {
+      requestAnimationFrame(step);
+      return;
+    }
+    metricAnimationState.set(target, nextValue);
+    target.textContent = formatter(nextValue, 1);
+  }
+
+  requestAnimationFrame(step);
+}
+
+function animateCurrencyMetric(target, amount, currency = "USD") {
+  animateValue(target, amount, (value, progress) => {
+    if (progress < 1) {
+      return `${value.toFixed(0)} ${currency}`;
+    }
+    return `${amount.toFixed(2)} ${currency}`;
+  });
+}
+
+function animateIntegerMetric(target, amount, suffix = "") {
+  animateValue(target, amount, (value) => `${Math.round(value)}${suffix}`);
+}
+
+function renderNetworkRail() {
+  const uniqueTypes = [...new Set(CASES.map((item) => item.type))];
+  const activeActionCount = CASES.filter((item) => item.opsAction).length;
+  const tickerItems = [
+    `studionet live`,
+    `${CASES.length} disputes loaded`,
+    `${uniqueTypes.length} global dispute types`,
+    `${CASES.filter(caseNeedsAuthority).length} authority gaps open`,
+    `${activeActionCount || 0} downstream actions mapped`,
+    `policy oracle online`,
+    `merchant ops console`,
+    `genlayer workflow active`,
+  ];
+
+  if (railTickerTrack) {
+    const content = [...tickerItems, ...tickerItems]
+      .map((label) => `<span>${escapeHtml(label)}</span>`)
+      .join("");
+    railTickerTrack.innerHTML = content;
+  }
+
+  if (networkCaseStat) {
+    networkCaseStat.textContent = `CASES: ${CASES.length}`;
+  }
+  if (networkAiStat) {
+    networkAiStat.textContent = `AI: ${CASES.some((item) => item.aiVerdict) ? "TRIAGED" : "READY"}`;
+  }
+  if (resolutionWindowStat) {
+    resolutionWindowStat.textContent = activeActionCount ? "< 12h" : "< 24h";
+  }
+  if (aiCopilotStat) {
+    aiCopilotStat.textContent = "2 live";
+  }
+  if (workflowModeStat) {
+    workflowModeStat.textContent = contractAddress ? "GenLayer live" : "GenLayer";
+  }
 }
 
 function activateTab(tabId) {
@@ -1210,11 +1311,16 @@ function renderOpsMetrics() {
   const authorityGaps = CASES.filter(caseNeedsAuthority).length;
   const payoutHolds = CASES.filter((item) => ["hold_payout", "fraud_review"].includes(item.opsAction || item.requestedAction)).length;
   const slaRisk = CASES.filter(caseSlaRisk).length;
+  const authorityResolved = CASES.reduce((sum, item) => sum + item.evidence.filter((evidenceItem) => evidenceItem.side === "authority" && evidenceItem.status === "authoritative").length, 0);
+  const authorityTotal = Math.max(CASES.reduce((sum, item) => sum + item.evidence.filter((evidenceItem) => evidenceItem.side === "authority").length, 0), 1);
+  const authoritySync = Math.round((authorityResolved / authorityTotal) * 100);
 
-  queueExposureMetric.textContent = formatMetricMoney(totalRisk);
-  authorityGapMetric.textContent = String(authorityGaps);
-  payoutHoldMetric.textContent = String(payoutHolds);
-  slaRiskMetric.textContent = String(slaRisk);
+  animateCurrencyMetric(queueExposureMetric, totalRisk, "USD");
+  animateIntegerMetric(authorityGapMetric, authorityGaps);
+  animateIntegerMetric(payoutHoldMetric, payoutHolds);
+  animateIntegerMetric(slaRiskMetric, slaRisk);
+  if (authoritySyncStat) authoritySyncStat.textContent = `${authoritySync}%`;
+  renderNetworkRail();
 }
 
 function renderPlaybook(caseItem) {
@@ -1359,16 +1465,28 @@ function renderCaseQueue() {
 
   caseQueue.innerHTML = filteredCases.map((item) => {
     const activeClass = item.id === selectedCaseId ? " queue-item-active" : "";
+    const brand = getBrandForCase(item);
+    const typeLabel = GLOBAL_DISPUTE_PRESETS[item.type]?.label || titleFromClaimType(item.type);
     return `
-      <button type="button" class="queue-item${activeClass}" data-case-id="${item.id}">
+      <button type="button" class="queue-item ${brand.accent}${activeClass}" data-case-id="${item.id}">
         <div class="queue-top">
-          <strong>${escapeHtml(item.id)}</strong>
+          <div class="queue-id-wrap">
+            <span class="queue-brand-mark ${brand.accent}">${escapeHtml(brand.icon)}</span>
+            <div class="queue-id-stack">
+              <strong>${escapeHtml(item.id)}</strong>
+              <span class="queue-type-label">${escapeHtml(typeLabel)}</span>
+            </div>
+          </div>
           <span class="queue-tag ${queueTag(item.status)}">${escapeHtml(item.status)}</span>
         </div>
         <p class="queue-subject">${escapeHtml(item.subject)}</p>
         <div class="queue-meta">
           <span>${escapeHtml(item.merchant)}</span>
           <span>${escapeHtml(item.atRisk)}</span>
+        </div>
+        <div class="queue-bottomline">
+          <span class="queue-brand-caption">${escapeHtml(brand.mark)}</span>
+          <span>${escapeHtml(item.requestedAction)}</span>
         </div>
       </button>
     `;
@@ -1924,6 +2042,7 @@ async function loadConfig() {
   contractAddressPill.textContent = contractAddress
     ? `Contract: ${contractAddress}`
     : "Contract: missing POLICY_ORACLE_ADDRESS";
+  renderNetworkRail();
 }
 
 function buildBundle() {
@@ -2371,6 +2490,7 @@ fillCaseDetail(getCaseById(selectedCaseId));
 buildBundle();
 renderOpsMetrics();
 renderActionQueueBoard();
+renderNetworkRail();
 loadConfig().catch((error) => {
   contractAddressPill.textContent = `Config error: ${error.message}`;
   runtimeNotice.innerHTML = `<strong>Operations status</strong><span>${error.message}</span>`;
