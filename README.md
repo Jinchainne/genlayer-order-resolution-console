@@ -14,7 +14,7 @@ It is not a generic AI page and not a contract-only demo. It is a dispute operat
 
 ## Live Links
 
-- Live app: `https://genlayer-policy-eco.vercel.app`
+- Live app: `https://order-resolution-console.vercel.app/`
 - Repository: `https://github.com/Jinchainne/genlayer-order-resolution-console`
 - Contract explorer: `https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108`
 - Deploy tx: `https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111`
