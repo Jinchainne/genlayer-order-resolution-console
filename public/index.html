@@ -6,20 +6,47 @@
     <title>Order Resolution Console</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <main class="shell">
+      <section class="network-rail">
+        <div class="rail-brand">
+          <span class="rail-logo"></span>
+          <div>
+            <strong>POLICYECO</strong>
+            <span>order resolution suite</span>
+          </div>
+        </div>
+        <div class="rail-ticker">
+          <span>studionet live</span>
+          <span>policy oracle online</span>
+          <span>merchant ops console</span>
+          <span>genlayer workflow active</span>
+        </div>
+        <div class="rail-stats">
+          <span>ARC STYLE</span>
+          <span>CHAIN: STUDIO</span>
+          <span>QUEUE LIVE</span>
+        </div>
+      </section>
+
       <section class="topbar">
         <div>
-          <p class="kicker">GenLayer Retail Operations</p>
-          <h1>Order Resolution Console</h1>
+          <p class="kicker">GenLayer Merchant Infrastructure</p>
+          <h1><span>Order Resolution</span><span>Console</span></h1>
           <p class="lede">
             A commerce dispute desk for payment, delivery, and refund cases. Review both sides,
             build an authoritative evidence packet, run AI-assisted triage, and bind the final
             decision to a live GenLayer policy workflow.
           </p>
+          <div class="hero-action-row">
+            <span class="hero-chip">refund control</span>
+            <span class="hero-chip">payout protection</span>
+            <span class="hero-chip">fraud escalation</span>
+            <span class="hero-chip">authority evidence</span>
+          </div>
         </div>
 
         <div class="topbar-side">
@@ -38,18 +65,16 @@
         </div>
       </section>
 
-      <section class="impact-strip">
-        <article class="impact-card">
-          <span class="meta-label">Use in production</span>
-          <p>Resolve order disputes for online grocery, retail, delivery, and marketplace teams.</p>
+      <section class="hero-ledger">
+        <article class="ledger-card">
+          <span class="meta-label">Primary use case</span>
+          <strong>Cross-border order disputes with payout-sensitive resolution.</strong>
+          <p>Merchants, delivery operators, and support teams can verify who should receive money, refund, replacement, or escalation based on structured evidence instead of chat-only narratives.</p>
         </article>
-        <article class="impact-card">
+        <article class="ledger-card">
           <span class="meta-label">Why GenLayer</span>
-          <p>Evidence quality and merchant-buyer disagreement handling are qualitative, not simple rule checks.</p>
-        </article>
-        <article class="impact-card">
-          <span class="meta-label">Live proof</span>
-          <p>Real contract writes, real explorer links, and a reusable dispute policy workflow.</p>
+          <strong>Non-deterministic judgment with onchain policy memory.</strong>
+          <p>The workflow combines flexible case evidence, AI-assisted triage, policy evaluation, and reusable verdict logic so every resolution can be inspected, replayed, and extended.</p>
         </article>
       </section>
 
@@ -71,22 +96,22 @@
         <article class="metric-card">
           <span class="meta-label">Queue exposure</span>
           <strong id="queueExposureMetric">0 USD</strong>
-          <p>Total money currently at risk across active disputes.</p>
+          <p>Capital currently exposed across active disputes.</p>
         </article>
         <article class="metric-card">
           <span class="meta-label">Authority gaps</span>
           <strong id="authorityGapMetric">0</strong>
-          <p>Cases still missing decisive ledger, processor, or logistics evidence.</p>
+          <p>Cases still missing decisive ledger or logistics proof.</p>
         </article>
         <article class="metric-card">
           <span class="meta-label">Payout holds</span>
           <strong id="payoutHoldMetric">0</strong>
-          <p>Cases currently mapped to hold or fraud-protection actions.</p>
+          <p>Cases mapped to hold or fraud-protection actions.</p>
         </article>
         <article class="metric-card">
           <span class="meta-label">SLA risk</span>
           <strong id="slaRiskMetric">0</strong>
-          <p>Delivery or subscription cases likely to breach support timing.</p>
+          <p>Delivery or subscription cases close to support breach.</p>
         </article>
       </section>
 
