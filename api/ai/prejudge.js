@@ -12,7 +12,9 @@ export default async function handler(req, res) {
       throw new Error("Missing bundle payload.");
     }
 
-    const result = await runAiPreJudge(body.bundle);
+    const result = await runAiPreJudge(body.bundle, {
+      persona: body.persona,
+    });
     sendJson(res, 200, result);
   } catch (error) {
     sendJson(res, 500, { error: error.message });

@@ -1,14 +1,16 @@
 # genlayer-policy-eco
 
-`genlayer-policy-eco` is a live GenLayer project tool for teams that need to review evidence, apply reusable policies, and turn qualitative decisions into real workflow outcomes.
+`genlayer-policy-eco` is now positioned as an `Order Resolution Console`: a live GenLayer operations project for buyer-seller disputes in retail, grocery, delivery, and marketplace workflows.
 
-Instead of forcing operators to manually inspect links, rewrite JSON, and make one-off judgment calls in chat, this project provides a repeatable review workflow:
+Instead of acting like a generic AI review toy, the project now tells a much clearer business story:
 
-- build an evidence bundle from repo, live app, and explorer links
-- optionally run an AI pre-judge to improve the review bundle
-- create or reuse a policy on GenLayer
-- evaluate the bundle through the `PolicyOracle` contract
-- bind the verdict to downstream execution such as `unlock_submission` or `hold_submission`
+- intake an order dispute from a real operations queue
+- inspect buyer claim and seller response side by side
+- assemble an authoritative evidence packet
+- run AI triage to strengthen the case summary
+- create or reuse a GenLayer resolution policy
+- evaluate the case through the `PolicyOracle` contract
+- map the verdict into an operational action such as refund approval, payout hold, or escalation
 
 Live project:
 
@@ -18,15 +20,15 @@ Live project:
 
 ## What This Tool Is For
 
-This is not just a contract demo. It is a usable review operations tool.
+This is not just a contract demo. It is a usable dispute operations tool.
 
 Practical use cases:
 
-- project submission review
-- grant or payout approval review
-- contribution screening
-- moderation review
-- internal execution gating for builder workflows
+- missing item disputes
+- wrong order delivery claims
+- refund not received cases
+- damaged goods review
+- merchant payout hold or release decisions
 
 Real-world problem it solves:
 
@@ -34,7 +36,11 @@ Real-world problem it solves:
 - teams need a structured way to turn that evidence into a repeatable decision
 - if the decision matters, it should not live only in a centralized backend or a temporary spreadsheet note
 
-`genlayer-policy-eco` solves that by giving teams a front-end workspace, an AI copilot, and a GenLayer-native final decision path.
+`genlayer-policy-eco` solves that by giving teams a front-end dispute desk, AI copilots, and a GenLayer-native final decision path.
+
+Related product blueprint:
+
+- [docs/ORDER_RESOLUTION_BLUEPRINT.md](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/ORDER_RESOLUTION_BLUEPRINT.md)
 
 ## Why GenLayer Matters
 

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PolicyOracle Project Console</title>
+    <title>Order Resolution Console</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -11,271 +11,401 @@
   </head>
   <body>
     <main class="shell">
-      <section class="masthead">
-        <p class="kicker">Operational Policy Infrastructure</p>
-        <div class="masthead-row">
-          <div>
-            <p class="eyebrow">GenLayer Project Tool</p>
-            <h1>PolicyOracle Workflow Studio</h1>
-          </div>
-          <div class="masthead-note">
-            <span class="note-label">Design direction</span>
-            <p>Editorial, evidence-first, and built for repeated review work instead of one-off contract demos.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="hero">
-        <div class="hero-copy">
+      <section class="topbar">
+        <div>
+          <p class="kicker">GenLayer Retail Operations</p>
+          <h1>Order Resolution Console</h1>
           <p class="lede">
-            A live builder tool for creating reusable review policies, assembling real evidence bundles,
-            sending policy decisions to GenLayer, and binding the verdict to execution outcomes.
+            A commerce dispute desk for payment, delivery, and refund cases. Review both sides,
+            build an authoritative evidence packet, run AI-assisted triage, and bind the final
+            decision to a live GenLayer policy workflow.
           </p>
-          <div class="hero-meta">
-            <span id="contractAddressPill" class="pill">Loading contract...</span>
-            <span class="pill">Tool mode: project reviews</span>
-            <span class="pill">Category: Projects</span>
-          </div>
         </div>
 
-        <aside class="hero-side">
-          <div class="stat">
-            <span class="stat-label">Useful for</span>
-            <span>project reviews, approval flows, contribution screening, execution gating</span>
+        <div class="topbar-side">
+          <div class="top-card">
+            <span class="meta-label">Connected contract</span>
+            <span id="contractAddressPill" class="pill">Loading contract...</span>
           </div>
-          <div class="stat">
-            <span class="stat-label">Live app</span>
-            <a href="https://genlayer-policy-eco.vercel.app" target="_blank" rel="noreferrer">genlayer-policy-eco.vercel.app</a>
+          <div class="top-card">
+            <span class="meta-label">Typical actions</span>
+            <div class="pill-row">
+              <span class="pill">approve refund</span>
+              <span class="pill">hold payout</span>
+              <span class="pill">escalate review</span>
+            </div>
           </div>
-          <div class="stat">
-            <span class="stat-label">GitHub</span>
-            <a href="https://github.com/Jinchainne/genlayer-policy-eco" target="_blank" rel="noreferrer">Repository source</a>
+        </div>
+      </section>
+
+      <section class="impact-strip">
+        <article class="impact-card">
+          <span class="meta-label">Use in production</span>
+          <p>Resolve order disputes for online grocery, retail, delivery, and marketplace teams.</p>
+        </article>
+        <article class="impact-card">
+          <span class="meta-label">Why GenLayer</span>
+          <p>Evidence quality and merchant-buyer disagreement handling are qualitative, not simple rule checks.</p>
+        </article>
+        <article class="impact-card">
+          <span class="meta-label">Live proof</span>
+          <p>Real contract writes, real explorer links, and a reusable dispute policy workflow.</p>
+        </article>
+      </section>
+
+      <section class="ops-banner" id="runtimeNotice">
+        <strong>Operations status</strong>
+        <span>The console is configured for live policy creation, AI triage, case review, and GenLayer-backed resolution gating.</span>
+      </section>
+
+      <section class="dashboard-grid">
+        <aside class="panel queue-panel">
+          <div class="panel-head">
+            <p class="section-label">Case Queue</p>
+            <h2>Incoming disputes</h2>
+            <p>Review buyer claims, seller responses, amounts at risk, and readiness before resolution.</p>
           </div>
+
+          <div class="queue-toolbar">
+            <span class="toolbar-chip">July 28, 2026</span>
+            <span class="toolbar-chip">3 active cases</span>
+            <span class="toolbar-chip">studionet ready</span>
+          </div>
+
+          <div id="caseQueue" class="queue-list"></div>
         </aside>
-      </section>
 
-      <section class="overview-grid">
-        <article class="overview-card">
-          <span class="overview-label">What makes this useful</span>
-          <p>Operators can collect proof, let AI shape the review bundle, and run a final onchain decision without rebuilding the process for each project.</p>
-        </article>
-        <article class="overview-card">
-          <span class="overview-label">Core workflow</span>
-          <p>Build evidence bundle → AI pre-judge → create or reuse policy → send to GenLayer → unlock or hold the next action.</p>
-        </article>
-        <article class="overview-card">
-          <span class="overview-label">Why GenLayer</span>
-          <p>The final verdict depends on non-deterministic evidence review and is bound to execution, not just displayed as text.</p>
-        </article>
-      </section>
+        <section class="detail-stack">
+          <article class="panel">
+            <div class="panel-head">
+              <p class="section-label">Order Detail</p>
+              <h2 id="caseTitle">Case detail</h2>
+              <p id="caseSubtitle">Select a case from the queue to inspect the dispute record.</p>
+            </div>
 
-      <section class="evidence-strip">
-        <a class="evidence-link" href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">Contract explorer</a>
-        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer">Live create_policy tx</a>
-        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59" target="_blank" rel="noreferrer">Live evaluate tx</a>
-        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" target="_blank" rel="noreferrer">Workflow tx</a>
-      </section>
+            <div class="order-grid">
+              <div class="summary-card">
+                <span class="meta-label">Order</span>
+                <strong id="orderNumber">-</strong>
+                <p id="orderMeta">-</p>
+              </div>
+              <div class="summary-card">
+                <span class="meta-label">Money at risk</span>
+                <strong id="riskAmount">-</strong>
+                <p id="riskMeta">-</p>
+              </div>
+              <div class="summary-card">
+                <span class="meta-label">Current claim</span>
+                <strong id="claimType">-</strong>
+                <p id="claimStatus">-</p>
+              </div>
+            </div>
 
-      <section class="notice" id="runtimeNotice">
-        <strong>Runtime status</strong>
-        <span>
-          This project tool is wired to the real contract and now supports live policy creation,
-          evidence assembly, evaluation, and workflow gating from the hosted app.
-        </span>
-      </section>
+            <div class="participant-grid">
+              <article class="party-card">
+                <span class="meta-label">Buyer statement</span>
+                <h3 id="buyerName">-</h3>
+                <p id="buyerStatement">-</p>
+              </article>
+              <article class="party-card">
+                <span class="meta-label">Seller response</span>
+                <h3 id="sellerName">-</h3>
+                <p id="sellerStatement">-</p>
+              </article>
+            </div>
 
-      <section class="workspace">
-        <article class="panel workspace-panel">
+            <div class="timeline-card">
+              <div class="timeline-head">
+                <span class="meta-label">Case timeline</span>
+                <span id="resolutionWindow" class="timeline-window">-</span>
+              </div>
+              <div id="caseTimeline" class="timeline-list"></div>
+            </div>
+
+            <div class="evidence-columns">
+              <article class="evidence-card">
+                <div class="evidence-head">
+                  <span class="meta-label">Authoritative evidence</span>
+                  <span class="evidence-count" id="evidenceCount">0 sources</span>
+                </div>
+                <div id="authoritativeEvidence" class="evidence-list"></div>
+              </article>
+
+              <article class="evidence-card">
+                <div class="evidence-head">
+                  <span class="meta-label">Disagreement handling</span>
+                </div>
+                <div id="disagreementList" class="bullet-list"></div>
+              </article>
+            </div>
+
+            <article class="vault-card">
+              <div class="panel-head vault-head">
+                <div>
+                  <p class="section-label">Evidence Vault</p>
+                  <h2>Source-by-source case record</h2>
+                </div>
+                <span id="vaultStatus" class="toolbar-chip">Vault ready</span>
+              </div>
+
+              <div class="vault-grid">
+                <section class="vault-column">
+                  <div class="vault-column-head">
+                    <span class="meta-label">Buyer uploads</span>
+                    <span id="buyerVaultCount" class="evidence-count">0 items</span>
+                  </div>
+                  <div id="buyerVault" class="vault-list"></div>
+                </section>
+
+                <section class="vault-column">
+                  <div class="vault-column-head">
+                    <span class="meta-label">Seller records</span>
+                    <span id="sellerVaultCount" class="evidence-count">0 items</span>
+                  </div>
+                  <div id="sellerVault" class="vault-list"></div>
+                </section>
+
+                <section class="vault-column">
+                  <div class="vault-column-head">
+                    <span class="meta-label">Authority checks</span>
+                    <span id="authorityVaultCount" class="evidence-count">0 items</span>
+                  </div>
+                  <div id="authorityVault" class="vault-list"></div>
+                </section>
+              </div>
+            </article>
+          </article>
+
+          <article class="panel accent">
+            <div class="panel-head">
+              <p class="section-label">Evidence Packet</p>
+              <h2>Case packet builder</h2>
+              <p>Convert a retail dispute into a structured packet that can be reviewed by AI copilots and sent into the onchain policy workflow.</p>
+            </div>
+
+            <form id="builderForm" class="stack">
+              <div class="split">
+                <label>
+                  Resolution template
+                  <select name="template">
+                    <option value="delivery-missing">Missing item</option>
+                    <option value="delivery-damaged">Damaged goods</option>
+                    <option value="payment-refund">Refund not received</option>
+                    <option value="order-mismatch">Wrong order delivered</option>
+                  </select>
+                </label>
+                <label>
+                  Case name
+                  <input name="projectName" value="order-resolution-console" required />
+                </label>
+              </div>
+
+              <div class="split">
+                <label>
+                  Merchant or repo URL
+                  <input name="repoUrl" value="https://github.com/Jinchainne/genlayer-policy-eco" required />
+                </label>
+                <label>
+                  Shopper portal or live app
+                  <input name="liveApp" value="https://genlayer-policy-eco.vercel.app/" />
+                </label>
+              </div>
+
+              <div class="split">
+                <label>
+                  Contract explorer URL
+                  <input name="contractUrl" value="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" />
+                </label>
+                <label>
+                  Deployment tx URL
+                  <input name="deployTxUrl" value="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" />
+                </label>
+              </div>
+
+              <div class="split">
+                <label>
+                  create_policy tx URL
+                  <input name="createPolicyTxUrl" value="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" />
+                </label>
+                <label>
+                  evaluate or workflow tx URL
+                  <input name="evaluateTxUrl" value="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" />
+                </label>
+              </div>
+
+              <label>
+                Claims
+                <textarea name="claims" rows="4">buyer provided receipt and missing item report
+seller provided packing note and delivery timestamp
+evidence includes payment, invoice, and order timeline
+resolution requires qualitative dispute assessment</textarea>
+              </label>
+
+              <label>
+                Case notes
+                <textarea name="reviewNotes" rows="4">This case packet is designed for retail dispute resolution. It combines buyer claim data, seller response material, payment proof, and order timeline evidence before final GenLayer evaluation.</textarea>
+              </label>
+
+              <div class="split">
+                <label>
+                  AI reviewer
+                  <select id="aiPersona" name="aiPersona">
+                    <option value="lexi">Lexi Review (Groq)</option>
+                    <option value="mira">Mira Review (MiMo)</option>
+                  </select>
+                </label>
+                <div class="persona-note">
+                  <span class="meta-label">Copilot roles</span>
+                  <p><strong>Lexi</strong> triages quickly for operations queues. <strong>Mira</strong> writes a careful evidence-facing resolution packet.</p>
+                </div>
+              </div>
+
+              <div class="action-row">
+                <button type="submit">Build Case Packet</button>
+                <button type="button" id="aiPreJudgeButton" class="button-secondary">Run AI Triage</button>
+                <button type="button" id="applyBundleButton" class="button-secondary">Use In Resolution</button>
+                <button type="button" id="loadDemoButton" class="button-ghost">Load Demo Case</button>
+              </div>
+            </form>
+          </article>
+        </section>
+
+        <aside class="panel resolution-panel accent">
           <div class="panel-head">
-            <p class="section-label">Step 1</p>
-            <h2>Evidence Workspace</h2>
-            <p>Build a structured review bundle from real project links instead of hand-writing raw JSON.</p>
+            <p class="section-label">Resolution Panel</p>
+            <h2>Decision workflow</h2>
+            <p>Run AI-assisted triage, create a reusable policy, and map the final GenLayer verdict into an operational action.</p>
           </div>
 
-          <form id="builderForm" class="stack">
-            <div class="split">
-              <label>
-                Use case template
-                <select name="template">
-                  <option value="project-review">Project review</option>
-                  <option value="grant-approval">Grant approval</option>
-                  <option value="contribution-screening">Contribution screening</option>
-                  <option value="moderation-gate">Moderation gate</option>
-                </select>
-              </label>
-              <label>
-                Project or workflow name
-                <input name="projectName" value="genlayer-policy-eco" required />
-              </label>
+          <div class="resolution-status">
+            <div class="status-card">
+              <span class="meta-label">Recommended action</span>
+              <strong id="recommendedAction">Awaiting case packet</strong>
+              <p id="recommendedActionReason">Build a case packet or load a demo case to generate a recommendation.</p>
             </div>
-
-            <div class="split">
-              <label>
-                Repository URL
-                <input name="repoUrl" value="https://github.com/Jinchainne/genlayer-policy-eco" required />
-              </label>
-              <label>
-                Live app URL
-                <input name="liveApp" value="https://genlayer-policy-eco.vercel.app/" />
-              </label>
-            </div>
-
-            <div class="split">
-              <label>
-                Contract explorer URL
-                <input name="contractUrl" value="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" />
-              </label>
-              <label>
-                Deployment tx URL
-                <input name="deployTxUrl" value="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" />
-              </label>
-            </div>
-
-            <div class="split">
-              <label>
-                create_policy tx URL
-                <input name="createPolicyTxUrl" value="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" />
-              </label>
-              <label>
-                evaluate or workflow tx URL
-                <input name="evaluateTxUrl" value="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" />
-              </label>
-            </div>
-
-            <label>
-              Claims
-              <textarea name="claims" rows="4">real GenLayer integration
-live application-to-contract workflow
-policy-gated execution
-onchain review results
-useful builder tool</textarea>
-            </label>
-
-            <label>
-              Review notes
-              <textarea name="reviewNotes" rows="4">This project provides a live web tool for building evidence bundles, creating reusable policies onchain, evaluating project evidence through GenLayer consensus, and turning the verdict into unlock or hold execution outcomes.</textarea>
-            </label>
-
-            <div class="action-row">
-              <button type="submit">Generate Review Bundle</button>
-              <button type="button" id="aiPreJudgeButton" class="button-secondary">AI Pre-Judge</button>
-              <button type="button" id="applyBundleButton" class="button-secondary">Use In Workflow</button>
-              <button type="button" id="loadDemoButton" class="button-ghost">Load Demo Data</button>
-            </div>
-          </form>
-        </article>
-
-        <article class="panel workspace-panel accent">
-          <div class="panel-head">
-            <p class="section-label">Step 2</p>
-            <h2>Bundle Preview</h2>
-            <p>Preview the exact subject, evidence JSON, and reference URLs before sending them to GenLayer.</p>
-          </div>
-
-          <div class="bundle-preview">
-            <div class="preview-block">
-              <h3>Generated subject</h3>
-              <pre id="generatedSubject" class="output compact muted">No bundle generated yet.</pre>
-            </div>
-            <div class="preview-block">
-              <h3>Generated evidence JSON</h3>
-              <pre id="generatedEvidence" class="output compact muted">No bundle generated yet.</pre>
-            </div>
-            <div class="preview-block">
-              <h3>Generated reference URLs JSON</h3>
-              <pre id="generatedReferences" class="output compact muted">No bundle generated yet.</pre>
-            </div>
-            <div class="preview-block">
-              <h3>AI preliminary verdict</h3>
-              <pre id="aiPreJudgeOutput" class="output compact muted">No AI pre-judge run yet.</pre>
+            <div class="status-card">
+              <span class="meta-label">Operational mapping</span>
+              <div class="pill-row">
+                <span class="pill">approve_refund</span>
+                <span class="pill">partial_refund</span>
+                <span class="pill">release_seller</span>
+                <span class="pill">escalate_manual</span>
+              </div>
             </div>
           </div>
-        </article>
-      </section>
 
-      <section class="grid">
-        <article class="panel">
-          <div class="panel-head">
-            <p class="section-label">Step 3</p>
-            <h2>Create Policy</h2>
-            <p>Store a reusable review policy on GenLayer for repeated use across project workflows.</p>
+          <div class="preview-block">
+            <h3>Case subject</h3>
+            <pre id="generatedSubject" class="output compact muted">No case packet generated yet.</pre>
+          </div>
+          <div class="preview-block">
+            <h3>Evidence JSON</h3>
+            <pre id="generatedEvidence" class="output compact muted">No case packet generated yet.</pre>
+          </div>
+          <div class="preview-block">
+            <h3>Reference URLs JSON</h3>
+            <pre id="generatedReferences" class="output compact muted">No case packet generated yet.</pre>
+          </div>
+          <div class="preview-block">
+            <h3>AI triage result</h3>
+            <pre id="aiPreJudgeOutput" class="output compact muted">No AI triage run yet.</pre>
           </div>
 
-          <form id="policyForm" class="stack">
+          <form id="policyForm" class="stack compact-form">
             <label>
               Policy name
-              <input name="name" value="Project Review Gate" required />
+              <input name="name" value="Retail Order Dispute Policy" required />
             </label>
             <label>
               Category
-              <input name="category" value="project-gating" required />
+              <input name="category" value="order-resolution" required />
             </label>
             <label>
               Policy text
-              <textarea name="policyText" rows="5" required>Allow only if the project shows original work, clear evidence, real GenLayer integration, and a useful execution workflow.</textarea>
+              <textarea name="policyText" rows="4" required>Allow the resolution only when buyer and seller evidence supports a fair, evidence-backed decision on payment, delivery, or refund responsibility.</textarea>
             </label>
             <label>
               Criteria text
-              <textarea name="criteriaText" rows="5" required>Deny weak, copied, or non-functional project submissions. Return undetermined if the evidence or live execution proof is incomplete.</textarea>
+              <textarea name="criteriaText" rows="4" required>Return deny or undetermined if the evidence is incomplete, the authoritative records conflict, or the seller and buyer claims cannot be reconciled with payment and delivery proof.</textarea>
             </label>
-            <button type="submit">Create Policy Onchain</button>
+            <button type="submit">Create Resolution Policy</button>
           </form>
 
           <pre id="policyOutput" class="output muted">No policy created yet.</pre>
-        </article>
 
-        <article class="panel accent">
-          <div class="panel-head">
-            <p class="section-label">Step 4</p>
-            <h2>Run Workflow Gate</h2>
-            <p>Evaluate a real project bundle and bind the result to an execution path from the live app.</p>
-          </div>
-
-          <form id="workflowForm" class="stack">
+          <form id="workflowForm" class="stack compact-form">
             <label>
               Existing policy id
               <input name="policyId" placeholder="policy-1" />
             </label>
             <label>
-              Submission subject
-              <textarea name="subject" rows="4" required>A builder uses genlayer-policy-eco as a live workflow tool to review project evidence, store policy decisions on GenLayer, and control downstream execution.</textarea>
+              Resolution subject
+              <textarea name="subject" rows="4" required>A buyer reports a missing-item grocery order dispute and requests a refund after seller delivery completion.</textarea>
             </label>
             <label>
               Evidence JSON
               <textarea name="evidence" rows="8" required>{
-  "projectName": "genlayer-policy-eco",
-  "repoUrl": "https://github.com/Jinchainne/genlayer-policy-eco",
-  "liveApp": "https://genlayer-policy-eco.vercel.app/",
-  "artifacts": ["README", "live app", "deploy tx", "create_policy tx", "workflow tx"],
-  "claims": ["real GenLayer integration", "policy-gated workflow", "useful builder tool"],
-  "reviewNotes": "The project provides a live app, real contract reads and writes, and execution gating."
+  "projectName": "order-resolution-console",
+  "orderId": "BXH-2048",
+  "buyerClaim": "Two paid items were missing from the delivered order.",
+  "sellerResponse": "The order was packed and scanned as complete before dispatch.",
+  "artifacts": ["invoice", "payment proof", "packing note", "delivery timestamp"],
+  "claims": ["buyer evidence included", "seller response included", "qualitative resolution required"],
+  "reviewNotes": "The case requires a refund or escalation decision based on authoritative order evidence."
 }</textarea>
             </label>
             <label>
               Reference URLs JSON
               <textarea name="referenceUrls" rows="4">["https://github.com/Jinchainne/genlayer-policy-eco","https://genlayer-policy-eco.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea>
             </label>
-            <button type="submit">Evaluate And Gate Execution</button>
+            <button type="submit">Run Resolution Workflow</button>
           </form>
 
           <div id="verdictCard" class="verdict verdict-waiting">
-            <strong>Waiting for evaluation</strong>
-            <span>Run the workflow to determine whether execution unlocks.</span>
+            <strong>Awaiting resolution</strong>
+            <span>Run the workflow to map the dispute verdict into an operational action.</span>
           </div>
 
-          <pre id="workflowOutput" class="output muted">No workflow executed yet.</pre>
-        </article>
+          <pre id="workflowOutput" class="output muted">No resolution workflow executed yet.</pre>
+        </aside>
       </section>
 
-      <section class="workspace">
-        <article class="panel recent-panel">
+      <section class="bottom-grid">
+        <article class="panel">
           <div class="panel-head">
-            <p class="section-label">Review Memory</p>
-            <h2>Recent Reviews</h2>
-            <p>Reuse recent project bundles and show that this tool supports ongoing operational work.</p>
+            <p class="section-label">Recent Reviews</p>
+            <h2>Resolution memory</h2>
+            <p>Operators can reopen prior cases and reuse evidence packets instead of starting from scratch.</p>
           </div>
           <div id="recentRuns" class="recent-runs">
-            <p class="empty-state">No recent reviews yet. Generate a bundle or run the workflow to build your review history.</p>
+            <p class="empty-state">No recent reviews yet. Build a case packet or run the workflow to populate the desk.</p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <p class="section-label">Decision History</p>
+            <h2>Audit trail</h2>
+            <p>Track AI triage, policy creation, workflow results, and operator-ready actions for each dispute.</p>
+          </div>
+          <div id="decisionHistory" class="history-list">
+            <p class="empty-state">No decision events yet. Run triage, create a policy, or execute the workflow to build the audit trail.</p>
+          </div>
+        </article>
+
+        <article class="panel accent">
+          <div class="panel-head">
+            <p class="section-label">Live Evidence</p>
+            <h2>Explorer and deployment proof</h2>
+            <p>These links show the live contract, policy creation, evaluation, and workflow transactions used by the project.</p>
+          </div>
+          <div class="evidence-links-grid">
+            <a class="evidence-link" href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">Contract explorer</a>
+            <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" target="_blank" rel="noreferrer">Deploy tx</a>
+            <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer">create_policy tx</a>
+            <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59" target="_blank" rel="noreferrer">evaluate tx</a>
+            <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" target="_blank" rel="noreferrer">workflow tx</a>
+            <a class="evidence-link" href="https://github.com/Jinchainne/genlayer-policy-eco" target="_blank" rel="noreferrer">Repository</a>
           </div>
         </article>
       </section>

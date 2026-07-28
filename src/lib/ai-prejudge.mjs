@@ -1,8 +1,46 @@
 const DEFAULT_MIMO_API_URL = "https://api.xiaomimimo.com/v1/chat/completions";
 const DEFAULT_MIMO_MODEL = "mimo-v2.5";
+const DEFAULT_GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile";
+
+const AI_PERSONAS = {
+  mira: {
+    key: "mira",
+    label: "Mira Review",
+    provider: "mimo",
+    envKey: "MIMO_API_KEY",
+    apiUrlEnv: "MIMO_API_URL",
+    modelEnv: "MIMO_MODEL",
+    defaultApiUrl: DEFAULT_MIMO_API_URL,
+    defaultModel: DEFAULT_MIMO_MODEL,
+    systemPrompt:
+      "You are Mira Review, a careful GenLayer project reviewer assistant. Analyze project evidence and return strict JSON only. Focus on whether the project looks genuinely useful, has real GenLayer integration, and has enough proof for a reviewer. Do not use markdown fences.",
+  },
+  lexi: {
+    key: "lexi",
+    label: "Lexi Review",
+    provider: "groq",
+    envKey: "GROQ_API_KEY",
+    apiUrlEnv: "GROQ_API_URL",
+    modelEnv: "GROQ_MODEL",
+    defaultApiUrl: DEFAULT_GROQ_API_URL,
+    defaultModel: DEFAULT_GROQ_MODEL,
+    systemPrompt:
+      "You are Lexi Review, a fast but strict GenLayer project reviewer assistant. Analyze project evidence and return strict JSON only. Prioritize practical usefulness, real contract integration, workflow completeness, and proof quality. Do not use markdown fences.",
+  },
+};
+
+function readEnv(name) {
+  const value = process.env[name];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function hasEnv(name) {
+  return Boolean(readEnv(name));
+}
 
 function requireEnv(name) {
-  const value = process.env[name];
+  const value = readEnv(name);
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
@@ -23,7 +61,7 @@ function extractJson(text) {
   }
 }
 
-function normalizePreJudgeResult(payload, fallbackBundle) {
+function normalizePreJudgeResult(payload, fallbackBundle, persona) {
   const verdict = String(payload.preliminaryVerdict || "undetermined").toLowerCase();
   const confidence = String(payload.confidence || "medium").toLowerCase();
   const reasons = Array.isArray(payload.reasons) ? payload.reasons.map((item) => String(item)) : [];
@@ -35,6 +73,10 @@ function normalizePreJudgeResult(payload, fallbackBundle) {
     : fallbackBundle.referenceUrls;
 
   return {
+    persona: persona.key,
+    personaLabel: persona.label,
+    provider: persona.provider,
+    model: persona.model,
     preliminaryVerdict: ["allow", "deny", "undetermined"].includes(verdict) ? verdict : "undetermined",
     confidence: ["high", "medium", "low"].includes(confidence) ? confidence : "medium",
     summary: String(payload.summary || "").trim(),
@@ -49,30 +91,66 @@ function normalizePreJudgeResult(payload, fallbackBundle) {
   };
 }
 
-export async function runAiPreJudge(bundle) {
-  const apiKey = requireEnv("MIMO_API_KEY");
-  const apiUrl = process.env.MIMO_API_URL || DEFAULT_MIMO_API_URL;
-  const model = process.env.MIMO_MODEL || DEFAULT_MIMO_MODEL;
+function resolvePersona(requestedPersona = "") {
+  const preferred = String(requestedPersona || readEnv("AI_PERSONA") || readEnv("AI_PROVIDER") || "auto")
+    .trim()
+    .toLowerCase();
 
-  const response = await fetch(apiUrl, {
+  if (preferred && preferred !== "auto") {
+    const persona = AI_PERSONAS[preferred];
+    if (!persona) {
+      throw new Error(`Unknown AI persona: ${preferred}`);
+    }
+
+    const apiKey = requireEnv(persona.envKey);
+    return {
+      ...persona,
+      apiKey,
+      apiUrl: readEnv(persona.apiUrlEnv) || persona.defaultApiUrl,
+      model: readEnv(persona.modelEnv) || persona.defaultModel,
+    };
+  }
+
+  if (hasEnv(AI_PERSONAS.lexi.envKey)) {
+    return {
+      ...AI_PERSONAS.lexi,
+      apiKey: requireEnv(AI_PERSONAS.lexi.envKey),
+      apiUrl: readEnv(AI_PERSONAS.lexi.apiUrlEnv) || AI_PERSONAS.lexi.defaultApiUrl,
+      model: readEnv(AI_PERSONAS.lexi.modelEnv) || AI_PERSONAS.lexi.defaultModel,
+    };
+  }
+
+  if (hasEnv(AI_PERSONAS.mira.envKey)) {
+    return {
+      ...AI_PERSONAS.mira,
+      apiKey: requireEnv(AI_PERSONAS.mira.envKey),
+      apiUrl: readEnv(AI_PERSONAS.mira.apiUrlEnv) || AI_PERSONAS.mira.defaultApiUrl,
+      model: readEnv(AI_PERSONAS.mira.modelEnv) || AI_PERSONAS.mira.defaultModel,
+    };
+  }
+
+  throw new Error("Missing AI credentials. Configure GROQ_API_KEY or MIMO_API_KEY.");
+}
+
+async function requestChatCompletion(persona, bundle) {
+  const response = await fetch(persona.apiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${persona.apiKey}`,
     },
     body: JSON.stringify({
-      model,
+      model: persona.model,
       temperature: 0.2,
       messages: [
         {
           role: "system",
-          content:
-            "You are a GenLayer builder project reviewer assistant. Analyze project evidence and return strict JSON only. Focus on whether the project looks genuinely useful, has real GenLayer integration, and has enough proof for a reviewer. Do not use markdown fences.",
+          content: persona.systemPrompt,
         },
         {
           role: "user",
           content: [
-            "Review this project bundle and produce a pre-judge result.",
+            `Review this project bundle as ${persona.label} and produce a pre-judge result.`,
             "",
             "Return exactly one JSON object with these keys:",
             "{",
@@ -97,14 +175,19 @@ export async function runAiPreJudge(bundle) {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`MiMo API request failed with ${response.status}: ${text}`);
+    throw new Error(`${persona.label} API request failed with ${response.status}: ${text}`);
   }
 
   const payload = await response.json();
   const content = payload?.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) {
-    throw new Error("MiMo API returned an empty completion.");
+    throw new Error(`${persona.label} returned an empty completion.`);
   }
 
-  return normalizePreJudgeResult(extractJson(content), bundle);
+  return normalizePreJudgeResult(extractJson(content), bundle, persona);
+}
+
+export async function runAiPreJudge(bundle, options = {}) {
+  const persona = resolvePersona(options.persona);
+  return requestChatCompletion(persona, bundle);
 }

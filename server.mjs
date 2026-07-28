@@ -175,7 +175,9 @@ async function handleApi(req, res) {
       throw new Error("Missing bundle payload.");
     }
 
-    const result = await runAiPreJudge(body.bundle);
+    const result = await runAiPreJudge(body.bundle, {
+      persona: body.persona,
+    });
     json(res, 200, result);
     return true;
   }
