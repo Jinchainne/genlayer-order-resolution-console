@@ -1,4 +1,5 @@
 import { createClient, createAccount } from "genlayer-js";
+import { studionet } from "genlayer-js/chains";
 import { Wallet } from "ethers";
 import fs from "node:fs";
 import path from "node:path";
@@ -32,10 +33,11 @@ function buildAccountFromEnv() {
 }
 
 export function buildClient() {
-  const rpcUrl = process.env.GENLAYER_RPC_URL || "https://studio.genlayer.com/api";
+  const endpoint = process.env.GENLAYER_RPC_URL || "https://studio.genlayer.com/api";
   const account = buildAccountFromEnv();
   return createClient({
-    rpcUrl,
+    chain: studionet,
+    endpoint,
     account,
   });
 }

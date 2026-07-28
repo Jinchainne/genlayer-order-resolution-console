@@ -4,17 +4,8 @@ import {
   readIsAllowed,
   readResult,
 } from "../../src/lib/policy-client.mjs";
+import { extractReturnValue } from "../../src/lib/receipt-utils.mjs";
 import { readJsonBody, requireMethod, sendJson } from "../_lib/response.js";
-
-function extractReturnValue(receipt) {
-  return (
-    receipt?.returnValue ??
-    receipt?.return_value ??
-    receipt?.result ??
-    receipt?.result_name ??
-    null
-  );
-}
 
 export default async function handler(req, res) {
   if (!requireMethod(req, res, ["POST"])) {

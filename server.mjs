@@ -11,6 +11,7 @@ import {
   readResult,
   readIsAllowed,
 } from "./src/lib/policy-client.mjs";
+import { extractReturnValue } from "./src/lib/receipt-utils.mjs";
 import { runSubmissionGateWorkflow } from "./src/project/policy-submission-workflow.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,16 +49,6 @@ function readJsonBody(req) {
     });
     req.on("error", reject);
   });
-}
-
-function extractReturnValue(receipt) {
-  return (
-    receipt?.returnValue ??
-    receipt?.return_value ??
-    receipt?.result ??
-    receipt?.result_name ??
-    null
-  );
 }
 
 function mimeType(filePath) {
@@ -103,7 +94,7 @@ async function handleApi(req, res) {
   if (req.method === "GET" && url.pathname === "/api/config") {
     json(res, 200, {
       contractAddress: process.env.POLICY_ORACLE_ADDRESS || "",
-      rpcUrl: process.env.GENLAYER_RPC_URL || "http://127.0.0.1:4000/api",
+      rpcUrl: process.env.GENLAYER_RPC_URL || "https://studio.genlayer.com/api",
       explorerBase: "https://explorer-studio.genlayer.com",
     });
     return true;

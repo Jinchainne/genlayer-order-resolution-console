@@ -6,16 +6,7 @@ import {
   readResult,
   readIsAllowed,
 } from "../lib/policy-client.mjs";
-
-function extractReturnValue(receipt) {
-  return (
-    receipt?.returnValue ??
-    receipt?.return_value ??
-    receipt?.result ??
-    receipt?.result_name ??
-    null
-  );
-}
+import { extractReturnValue } from "../lib/receipt-utils.mjs";
 
 export async function runPolicyBoundExecution() {
   const address = process.env.POLICY_ORACLE_ADDRESS;
