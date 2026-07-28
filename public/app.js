@@ -22,6 +22,8 @@ const recommendedAction = document.querySelector("#recommendedAction");
 const recommendedActionReason = document.querySelector("#recommendedActionReason");
 const tabButtons = document.querySelectorAll("[data-tab-target]");
 const tabPanels = document.querySelectorAll(".tab-panel");
+const detailTabButtons = document.querySelectorAll("[data-detail-tab]");
+const detailPanels = document.querySelectorAll(".detail-panel");
 
 const caseTitle = document.querySelector("#caseTitle");
 const caseSubtitle = document.querySelector("#caseSubtitle");
@@ -285,6 +287,15 @@ function activateTab(tabId) {
   });
 }
 
+function activateDetailTab(tabId) {
+  detailTabButtons.forEach((button) => {
+    button.classList.toggle("tab-active", button.dataset.detailTab === tabId);
+  });
+  detailPanels.forEach((panel) => {
+    panel.classList.toggle("detail-panel-active", panel.id === tabId);
+  });
+}
+
 function setBusy(form, busy) {
   const button = form.querySelector("button[type='submit']");
   button.disabled = busy;
@@ -460,6 +471,7 @@ function renderCaseQueue() {
       selectedCaseId = button.dataset.caseId;
       renderCaseQueue();
       fillCaseDetail(getCaseById(selectedCaseId));
+      activateDetailTab("overviewTab");
     });
   });
 }
@@ -685,6 +697,8 @@ function createCustomCase(form) {
   renderCaseQueue();
   fillCaseDetail(customCase);
   buildBundle();
+  activateDetailTab("builderTab");
+  activateTab("packetTab");
   saveDecisionEvent({
     caseId: customCase.id,
     projectName: customCase.id,
@@ -821,6 +835,8 @@ function buildBundle() {
   generatedSubject.textContent = subject;
   generatedEvidence.textContent = pretty(evidence);
   generatedReferences.textContent = pretty(referenceUrls);
+  activateDetailTab("builderTab");
+  activateTab("packetTab");
   recommendedAction.textContent = caseItem.requestedAction;
   recommendedActionReason.textContent =
     "Case packet prepared. You can run AI triage next or send the packet into the live policy workflow.";
@@ -946,6 +962,7 @@ applyBundleButton.addEventListener("click", () => {
   try {
     applyBundleToWorkflow();
     activateTab("workflowTab");
+    activateDetailTab("builderTab");
   } catch (error) {
     workflowOutput.textContent = error.message;
   }
@@ -964,6 +981,12 @@ aiPreJudgeButton.addEventListener("click", async () => {
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => {
     activateTab(button.dataset.tabTarget);
+  });
+});
+
+detailTabButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    activateDetailTab(button.dataset.detailTab);
   });
 });
 
