@@ -11,6 +11,7 @@ import {
   readResult,
   readIsAllowed,
 } from "./src/lib/policy-client.mjs";
+import { runAiPreJudge } from "./src/lib/ai-prejudge.mjs";
 import { extractReturnValue } from "./src/lib/receipt-utils.mjs";
 import { runSubmissionGateWorkflow } from "./src/project/policy-submission-workflow.mjs";
 
@@ -165,6 +166,17 @@ async function handleApi(req, res) {
 
     const workflow = await runSubmissionGateWorkflow(address, body);
     json(res, 200, workflow);
+    return true;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/ai/prejudge") {
+    const body = await readJsonBody(req);
+    if (!body.bundle) {
+      throw new Error("Missing bundle payload.");
+    }
+
+    const result = await runAiPreJudge(body.bundle);
+    json(res, 200, result);
     return true;
   }
 

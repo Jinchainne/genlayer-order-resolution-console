@@ -9,9 +9,11 @@ const runtimeNotice = document.querySelector("#runtimeNotice");
 const generatedSubject = document.querySelector("#generatedSubject");
 const generatedEvidence = document.querySelector("#generatedEvidence");
 const generatedReferences = document.querySelector("#generatedReferences");
+const aiPreJudgeOutput = document.querySelector("#aiPreJudgeOutput");
 const recentRuns = document.querySelector("#recentRuns");
 const applyBundleButton = document.querySelector("#applyBundleButton");
 const loadDemoButton = document.querySelector("#loadDemoButton");
+const aiPreJudgeButton = document.querySelector("#aiPreJudgeButton");
 
 const STORAGE_KEY = "policyoracle-recent-runs-v1";
 
@@ -277,6 +279,53 @@ function applyBundleToWorkflow(bundle = latestBundle) {
   workflowOutput.textContent = "Bundle copied into the workflow form. Run evaluation when ready.";
 }
 
+async function runAiPreJudgeForBundle() {
+  if (!latestBundle) {
+    throw new Error("Generate a review bundle first.");
+  }
+
+  aiPreJudgeButton.disabled = true;
+  aiPreJudgeButton.textContent = "Thinking...";
+
+  try {
+    const result = await fetchJson("/api/ai/prejudge", {
+      method: "POST",
+      body: JSON.stringify({ bundle: latestBundle }),
+    });
+
+    latestBundle = {
+      ...latestBundle,
+      subject: result.improvedSubject || latestBundle.subject,
+      evidence: {
+        ...latestBundle.evidence,
+        claims: result.improvedClaims?.length ? result.improvedClaims : latestBundle.evidence.claims,
+        reviewNotes: result.reviewerNotes || latestBundle.evidence.reviewNotes,
+      },
+      referenceUrls:
+        result.improvedReferenceUrls?.length ? result.improvedReferenceUrls : latestBundle.referenceUrls,
+    };
+
+    generatedSubject.textContent = latestBundle.subject;
+    generatedEvidence.textContent = pretty(latestBundle.evidence);
+    generatedReferences.textContent = pretty(latestBundle.referenceUrls);
+    aiPreJudgeOutput.textContent = pretty(result);
+    applyBundleToWorkflow(latestBundle);
+
+    saveRecentRun({
+      projectName: latestBundle.projectName || latestBundle.evidence.projectName || "AI pre-judge",
+      subject: latestBundle.subject,
+      executionStatus: `ai-${result.preliminaryVerdict}`,
+      nextAction: "review_before_genlayer",
+      evaluationId: "",
+      timestamp: new Date().toLocaleString(),
+      bundle: latestBundle,
+    });
+  } finally {
+    aiPreJudgeButton.disabled = false;
+    aiPreJudgeButton.textContent = "AI Pre-Judge";
+  }
+}
+
 function loadDemoBundle() {
   builderForm.elements.template.value = "project-review";
   builderForm.elements.projectName.value = "genlayer-policy-eco";
@@ -312,6 +361,13 @@ applyBundleButton.addEventListener("click", () => {
 });
 
 loadDemoButton.addEventListener("click", loadDemoBundle);
+aiPreJudgeButton.addEventListener("click", async () => {
+  try {
+    await runAiPreJudgeForBundle();
+  } catch (error) {
+    aiPreJudgeOutput.textContent = error.message;
+  }
+});
 
 builderForm.elements.template.addEventListener("change", () => {
   const template = TEMPLATE_PRESETS[builderForm.elements.template.value];

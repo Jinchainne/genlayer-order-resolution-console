@@ -127,6 +127,7 @@ useful builder tool</textarea>
 
             <div class="action-row">
               <button type="submit">Generate Review Bundle</button>
+              <button type="button" id="aiPreJudgeButton" class="button-secondary">AI Pre-Judge</button>
               <button type="button" id="applyBundleButton" class="button-secondary">Use In Workflow</button>
               <button type="button" id="loadDemoButton" class="button-ghost">Load Demo Data</button>
             </div>
@@ -151,6 +152,10 @@ useful builder tool</textarea>
             <div class="preview-block">
               <h3>Generated reference URLs JSON</h3>
               <pre id="generatedReferences" class="output compact muted">No bundle generated yet.</pre>
+            </div>
+            <div class="preview-block">
+              <h3>AI preliminary verdict</h3>
+              <pre id="aiPreJudgeOutput" class="output compact muted">No AI pre-judge run yet.</pre>
             </div>
           </div>
         </article>
