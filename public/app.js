@@ -19,6 +19,9 @@ const aiPersona = document.querySelector("#aiPersona");
 const caseQueue = document.querySelector("#caseQueue");
 const caseCreateForm = document.querySelector("#caseCreateForm");
 const caseDetailForm = document.querySelector("#caseDetailForm");
+const evidenceForm = document.querySelector("#evidenceForm");
+const saveEvidenceButton = document.querySelector("#saveEvidenceButton");
+const resetEvidenceButton = document.querySelector("#resetEvidenceButton");
 const activeCaseCount = document.querySelector("#activeCaseCount");
 const recommendedAction = document.querySelector("#recommendedAction");
 const recommendedActionReason = document.querySelector("#recommendedActionReason");
@@ -26,6 +29,9 @@ const tabButtons = document.querySelectorAll("[data-tab-target]");
 const tabPanels = document.querySelectorAll(".tab-panel");
 const detailTabButtons = document.querySelectorAll("[data-detail-tab]");
 const detailPanels = document.querySelectorAll(".detail-panel");
+const actionChips = document.querySelectorAll("[data-action-value]");
+const resolutionActionForm = document.querySelector("#resolutionActionForm");
+const clearResolutionActionButton = document.querySelector("#clearResolutionActionButton");
 
 const caseTitle = document.querySelector("#caseTitle");
 const caseSubtitle = document.querySelector("#caseSubtitle");
@@ -889,6 +895,86 @@ function applyPresetValuesToForm(formElement, presetKey) {
   if (formElement.elements.reviewNotes) formElement.elements.reviewNotes.value = preset.reviewNotes;
 }
 
+function getSelectedCaseIndex() {
+  return CASES.findIndex((item) => item.id === selectedCaseId);
+}
+
+function getSelectedCase() {
+  return getCaseById(selectedCaseId);
+}
+
+function syncSelectedCase(caseItem) {
+  renderCaseQueue();
+  fillCaseDetail(caseItem);
+}
+
+function actionLabel(value) {
+  return String(value || "")
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function normalizeActionValue(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+}
+
+function resolutionStatusForAction(action) {
+  const map = {
+    approve_refund: "refund approved",
+    partial_refund: "partial refund approved",
+    reship_order: "reship scheduled",
+    store_credit: "credit issued",
+    hold_payout: "payout on hold",
+    fraud_review: "fraud review queue",
+    deny_claim: "claim denied",
+  };
+  return map[action] || "resolution updated";
+}
+
+function actionReasonForValue(action, note = "") {
+  const map = {
+    approve_refund: "The dispute record supports reversing payment to the buyer.",
+    partial_refund: "The record supports only partial reimbursement rather than a full reversal.",
+    reship_order: "The issue looks fulfillment-related, so replacement shipment is the cleaner operational remedy.",
+    store_credit: "The case supports compensation without full cash reversal.",
+    hold_payout: "Risk, fraud, or unresolved evidence means merchant payout should stay frozen.",
+    fraud_review: "Conflicting payment or identity evidence requires specialist fraud review.",
+    deny_claim: "The evidence package does not justify compensation at this stage.",
+  };
+  return note || map[action] || "The current case was mapped to a concrete operational action.";
+}
+
+function resetEvidenceEditor() {
+  evidenceForm.reset();
+  evidenceForm.elements.evidenceIndex.value = "";
+  evidenceForm.elements.side.value = "buyer";
+  evidenceForm.elements.status.value = "submitted";
+  saveEvidenceButton.textContent = "Add Evidence Record";
+}
+
+function clearActionSelection() {
+  actionChips.forEach((chip) => {
+    chip.classList.remove("action-chip-active");
+  });
+  resolutionActionForm.dataset.selectedAction = "";
+  resolutionActionForm.elements.actionNote.value = "";
+}
+
+function hydrateEvidenceEditor(item, index) {
+  evidenceForm.elements.evidenceIndex.value = String(index);
+  evidenceForm.elements.side.value = item.side;
+  evidenceForm.elements.status.value = item.status;
+  evidenceForm.elements.source.value = item.source;
+  evidenceForm.elements.title.value = item.title;
+  evidenceForm.elements.detail.value = item.detail;
+  saveEvidenceButton.textContent = "Update Evidence Record";
+}
+
 function loadRecentRuns() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -1113,6 +1199,10 @@ function renderVaultItems(items, target) {
             <span>${escapeHtml(item.source)}</span>
             <span>${escapeHtml(item.side)}</span>
           </div>
+          <div class="vault-actions">
+            <button type="button" class="mini-action" data-evidence-action="edit" data-evidence-index="${item.index}">Edit</button>
+            <button type="button" class="mini-action mini-danger" data-evidence-action="delete" data-evidence-index="${item.index}">Delete</button>
+          </div>
         </article>
       `,
     )
@@ -1120,9 +1210,10 @@ function renderVaultItems(items, target) {
 }
 
 function renderEvidenceVault(caseItem) {
-  const buyerItems = caseItem.evidence.filter((item) => item.side === "buyer");
-  const sellerItems = caseItem.evidence.filter((item) => item.side === "seller");
-  const authorityItems = caseItem.evidence.filter((item) => item.side === "authority");
+  const indexedEvidence = caseItem.evidence.map((item, index) => ({ ...item, index }));
+  const buyerItems = indexedEvidence.filter((item) => item.side === "buyer");
+  const sellerItems = indexedEvidence.filter((item) => item.side === "seller");
+  const authorityItems = indexedEvidence.filter((item) => item.side === "authority");
 
   renderVaultItems(buyerItems, buyerVault);
   renderVaultItems(sellerItems, sellerVault);
@@ -1188,6 +1279,8 @@ function hydrateFormsFromCase(caseItem) {
   recommendedActionReason.textContent =
     `Current case pattern: ${caseItem.type}. Build the packet, run AI triage, then send the dispute through the reusable policy workflow.`;
   hydrateCaseEditor(caseItem);
+  resetEvidenceEditor();
+  clearActionSelection();
 }
 
 function buildEvidenceFromCase(caseItem) {
@@ -1346,6 +1439,97 @@ function updateCurrentCase(form) {
   });
 }
 
+function saveEvidenceRecord(form) {
+  const selectedCase = getSelectedCase();
+  const caseIndex = getSelectedCaseIndex();
+  const evidenceIndexRaw = String(form.get("evidenceIndex") || "").trim();
+  const nextRecord = {
+    side: String(form.get("side") || "buyer").trim(),
+    status: String(form.get("status") || "submitted").trim(),
+    source: String(form.get("source") || "").trim(),
+    title: String(form.get("title") || "").trim(),
+    detail: String(form.get("detail") || "").trim(),
+  };
+
+  const evidence = cloneData(selectedCase.evidence);
+  const isEditing = evidenceIndexRaw !== "";
+
+  if (isEditing) {
+    evidence[Number(evidenceIndexRaw)] = nextRecord;
+  } else {
+    evidence.push(nextRecord);
+  }
+
+  const updated = {
+    ...selectedCase,
+    evidence,
+  };
+
+  CASES[caseIndex] = updated;
+  syncSelectedCase(updated);
+  saveDecisionEvent({
+    caseId: updated.id,
+    projectName: updated.id,
+    type: isEditing ? "evidence_updated" : "evidence_added",
+    outcome: nextRecord.side,
+    action: nextRecord.status,
+    notes: `${isEditing ? "Updated" : "Added"} ${nextRecord.side} evidence: ${nextRecord.title}.`,
+    timestamp: new Date().toLocaleString(),
+  });
+}
+
+function deleteEvidenceRecord(index) {
+  const selectedCase = getSelectedCase();
+  const caseIndex = getSelectedCaseIndex();
+  const target = selectedCase.evidence[index];
+  if (!target) return;
+
+  const updated = {
+    ...selectedCase,
+    evidence: selectedCase.evidence.filter((_, itemIndex) => itemIndex !== index),
+  };
+
+  CASES[caseIndex] = updated;
+  syncSelectedCase(updated);
+  saveDecisionEvent({
+    caseId: updated.id,
+    projectName: updated.id,
+    type: "evidence_deleted",
+    outcome: target.side,
+    action: target.status,
+    notes: `Deleted ${target.side} evidence: ${target.title}.`,
+    timestamp: new Date().toLocaleString(),
+  });
+}
+
+function applyResolutionAction(action, note = "") {
+  const normalizedAction = normalizeActionValue(action);
+  const selectedCase = getSelectedCase();
+  const caseIndex = getSelectedCaseIndex();
+  const updated = {
+    ...selectedCase,
+    requestedAction: normalizedAction,
+    status: resolutionStatusForAction(normalizedAction),
+    reviewNotes: note
+      ? `${selectedCase.reviewNotes}\nAction note: ${note}`.trim()
+      : selectedCase.reviewNotes,
+  };
+
+  CASES[caseIndex] = updated;
+  syncSelectedCase(updated);
+  recommendedAction.textContent = normalizedAction;
+  recommendedActionReason.textContent = actionReasonForValue(normalizedAction, note);
+  saveDecisionEvent({
+    caseId: updated.id,
+    projectName: updated.id,
+    type: "resolution_action_applied",
+    outcome: normalizedAction,
+    action: normalizedAction,
+    notes: actionReasonForValue(normalizedAction, note),
+    timestamp: new Date().toLocaleString(),
+  });
+}
+
 function buildReferenceUrlsFromCase(caseItem) {
   return compactUrls([
     caseItem.references.repoUrl,
@@ -1364,7 +1548,7 @@ function updateVerdictCard(data) {
     verdictCard.classList.add("verdict-deny");
     verdictCard.innerHTML =
       `<strong>Resolution held</strong><span>Policy verdict did not unlock the decision path. Next action: ${data.nextAction}</span>`;
-    recommendedAction.textContent = "escalate_manual";
+    recommendedAction.textContent = data.nextAction === "hold_submission" ? "hold_payout" : "fraud_review";
     recommendedActionReason.textContent =
       "The current evidence did not cleanly unlock the workflow, so the dispute should be escalated for manual operations review.";
     return;
@@ -1373,7 +1557,7 @@ function updateVerdictCard(data) {
   verdictCard.classList.add("verdict-allow");
   verdictCard.innerHTML =
     `<strong>Resolution unlocked</strong><span>Policy verdict unlocked the workflow. Next action: ${data.nextAction}</span>`;
-  recommendedAction.textContent = "approve_refund_or_release";
+  recommendedAction.textContent = getSelectedCase().requestedAction;
   recommendedActionReason.textContent =
     "The policy flow returned an allow-style result, so the case can move into an operational refund or release step depending on merchant rules.";
 }
@@ -1602,6 +1786,16 @@ caseDetailForm.addEventListener("submit", (event) => {
   updateCurrentCase(form);
 });
 
+evidenceForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const form = new FormData(evidenceForm);
+  saveEvidenceRecord(form);
+});
+
+resetEvidenceButton.addEventListener("click", () => {
+  resetEvidenceEditor();
+});
+
 createPresetSelect.addEventListener("change", () => {
   applyPresetValuesToForm(caseCreateForm, createPresetSelect.value);
 });
@@ -1625,6 +1819,48 @@ jumpToBuilderButton.addEventListener("click", () => {
   updateCurrentCase(form);
   activateDetailTab("builderTab");
   buildBundle();
+});
+
+[buyerVault, sellerVault, authorityVault].forEach((target) => {
+  target.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-evidence-action]");
+    if (!button) return;
+
+    const evidenceIndex = Number(button.dataset.evidenceIndex);
+    const selectedCase = getSelectedCase();
+    const item = selectedCase.evidence[evidenceIndex];
+    if (!item) return;
+
+    if (button.dataset.evidenceAction === "edit") {
+      activateDetailTab("vaultTab");
+      hydrateEvidenceEditor(item, evidenceIndex);
+      return;
+    }
+
+    deleteEvidenceRecord(evidenceIndex);
+  });
+});
+
+actionChips.forEach((chip) => {
+  chip.addEventListener("click", () => {
+    actionChips.forEach((item) => item.classList.remove("action-chip-active"));
+    chip.classList.add("action-chip-active");
+    resolutionActionForm.dataset.selectedAction = chip.dataset.actionValue;
+  });
+});
+
+resolutionActionForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const selectedAction = resolutionActionForm.dataset.selectedAction;
+  if (!selectedAction) {
+    recommendedActionReason.textContent = "Choose a resolution action before applying it to the active case.";
+    return;
+  }
+  applyResolutionAction(selectedAction, resolutionActionForm.elements.actionNote.value.trim());
+});
+
+clearResolutionActionButton.addEventListener("click", () => {
+  clearActionSelection();
 });
 
 loadDemoButton.addEventListener("click", loadDemoBundle);

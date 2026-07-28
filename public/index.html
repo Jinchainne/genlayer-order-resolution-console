@@ -371,6 +371,59 @@
                     <div id="authorityVault" class="vault-list"></div>
                   </section>
                 </div>
+
+                <article class="evidence-card evidence-composer-card">
+                  <div class="panel-head compact-head">
+                    <p class="section-label">Evidence Composer</p>
+                    <h2>Add or revise evidence</h2>
+                    <p>Create buyer, seller, or authority records directly inside the active dispute.</p>
+                  </div>
+
+                  <form id="evidenceForm" class="stack compact-form">
+                    <input type="hidden" name="evidenceIndex" value="" />
+
+                    <div class="split triple-split">
+                      <label>
+                        Evidence side
+                        <select name="side" required>
+                          <option value="buyer">Buyer</option>
+                          <option value="seller">Seller</option>
+                          <option value="authority">Authority</option>
+                        </select>
+                      </label>
+                      <label>
+                        Status
+                        <select name="status" required>
+                          <option value="submitted">submitted</option>
+                          <option value="time-verified">time-verified</option>
+                          <option value="authoritative">authoritative</option>
+                          <option value="pending-proof">pending-proof</option>
+                          <option value="needs-review">needs-review</option>
+                          <option value="missing">missing</option>
+                        </select>
+                      </label>
+                      <label>
+                        Source
+                        <input name="source" placeholder="buyer upload / payment ledger / CRM" required />
+                      </label>
+                    </div>
+
+                    <label>
+                      Evidence title
+                      <input name="title" placeholder="Refund processor receipt" required />
+                    </label>
+
+                    <label>
+                      Evidence detail
+                      <textarea name="detail" rows="3" placeholder="Describe what this evidence proves and why it matters." required></textarea>
+                    </label>
+
+                    <div class="action-row">
+                      <button type="submit" id="saveEvidenceButton">Add Evidence Record</button>
+                      <button type="button" id="resetEvidenceButton" class="button-ghost">Reset Editor</button>
+                    </div>
+                  </form>
+                </article>
               </article>
               </section>
 
@@ -485,6 +538,29 @@ resolution requires qualitative dispute assessment</textarea>
                 </div>
               </div>
             </div>
+
+            <article class="status-card action-desk-card">
+              <span class="meta-label">Resolution actions</span>
+              <div class="action-chip-grid">
+                <button type="button" class="action-chip" data-action-value="approve_refund">Approve refund</button>
+                <button type="button" class="action-chip" data-action-value="partial_refund">Partial refund</button>
+                <button type="button" class="action-chip" data-action-value="reship_order">Reship order</button>
+                <button type="button" class="action-chip" data-action-value="store_credit">Store credit</button>
+                <button type="button" class="action-chip" data-action-value="hold_payout">Hold payout</button>
+                <button type="button" class="action-chip" data-action-value="fraud_review">Fraud review</button>
+                <button type="button" class="action-chip" data-action-value="deny_claim">Deny claim</button>
+              </div>
+              <form id="resolutionActionForm" class="stack compact-form">
+                <label>
+                  Action note
+                  <textarea name="actionNote" rows="3" placeholder="Explain why this operational action is appropriate for the current dispute."></textarea>
+                </label>
+                <div class="action-row">
+                  <button type="submit" id="applyResolutionActionButton">Apply Resolution Action</button>
+                  <button type="button" id="clearResolutionActionButton" class="button-ghost">Clear Selection</button>
+                </div>
+              </form>
+            </article>
 
             <div class="resolution-tabs" id="resolutionTabs">
               <button type="button" class="tab-button tab-active" data-tab-target="packetTab">Case packet</button>

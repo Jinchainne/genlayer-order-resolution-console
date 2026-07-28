@@ -439,6 +439,12 @@ body {
   font-size: 12px;
 }
 
+.vault-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 .vault-status {
   display: inline-flex;
   align-items: center;
@@ -624,6 +630,42 @@ button:disabled {
   background: rgba(17, 29, 44, 0.92);
   color: #d8e3ef;
   box-shadow: none;
+}
+
+.mini-action,
+.action-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(17, 29, 44, 0.96);
+  color: #d8e3ef;
+  box-shadow: none;
+}
+
+.mini-action {
+  font-size: 11px;
+}
+
+.mini-danger {
+  border-color: rgba(255, 106, 106, 0.22);
+  color: #ffb3b3;
+}
+
+.action-desk-card {
+  margin-top: 14px;
+}
+
+.action-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.action-chip-active {
+  background: linear-gradient(135deg, #1fc6a1, #0d8b71);
+  color: #fff;
+  border-color: transparent;
 }
 
 .action-row,
