@@ -1,310 +1,432 @@
 # genlayer-policy-eco
 
-`genlayer-policy-eco` is a GenLayer repository built around `PolicyOracle`, a reusable Intelligent Contract for policy evaluation, evidence review, and execution gating.
+`genlayer-policy-eco` is a live GenLayer project tool for teams that need to review evidence, apply reusable policies, and turn qualitative decisions into real workflow outcomes.
 
-This is the same repo that was originally submitted for `Intelligent Contracts`, and it now also contains the expanded `Project` layer. The original contract submission is preserved in this repo and has not been removed or replaced.
+Instead of forcing operators to manually inspect links, rewrite JSON, and make one-off judgment calls in chat, this project provides a repeatable review workflow:
 
-## Submission Status
+- build an evidence bundle from repo, live app, and explorer links
+- optionally run an AI pre-judge to improve the review bundle
+- create or reuse a policy on GenLayer
+- evaluate the bundle through the `PolicyOracle` contract
+- bind the verdict to downstream execution such as `unlock_submission` or `hold_submission`
 
-### Original submission
+Live project:
 
-- Category: `Intelligent Contracts`
-- Primitive: `PolicyOracle`
-- Purpose: reusable allow / deny / undetermined policy evaluation contract
+- App: `https://genlayer-policy-eco.vercel.app`
+- Repo: `https://github.com/Jinchainne/genlayer-policy-eco`
+- Contract: `https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108`
 
-### Current expanded state
+## What This Tool Is For
 
-- Category: `Projects`
-- Product layer: policy review console
-- Workflow: app write -> GenLayer evaluation -> app read -> execution gate
+This is not just a contract demo. It is a usable review operations tool.
 
-## What This Repo Is
+Practical use cases:
 
-This repo now has two valid layers living together:
+- project submission review
+- grant or payout approval review
+- contribution screening
+- moderation review
+- internal execution gating for builder workflows
 
-1. `Intelligent Contract` layer
-   `PolicyOracle` stores natural-language policies and produces consensus-backed policy decisions from submitted evidence.
+Real-world problem it solves:
 
-2. `Project` layer
-   A real app workflow lets a reviewer create policies, evaluate a submission, and bind the result to downstream execution status such as `unlock_submission` or `hold_submission`.
+- reviewers often receive messy proof spread across GitHub, live apps, tx links, screenshots, and notes
+- teams need a structured way to turn that evidence into a repeatable decision
+- if the decision matters, it should not live only in a centralized backend or a temporary spreadsheet note
 
-That means this repo should be read as:
+`genlayer-policy-eco` solves that by giving teams a front-end workspace, an AI copilot, and a GenLayer-native final decision path.
 
-- the original contract submission is still here
-- the project expansion is built on top of that same contract
-- the contract was not discarded just because the repo later became a project
+## Why GenLayer Matters
 
-## Why This Matters For Reviewers
+The core decision is qualitative, not deterministic-only.
 
-If you are reviewing this repo for the earlier `Intelligent Contracts` submission, the core artifact is still:
+The final verdict depends on:
 
-- [`contracts/PolicyOracle.py`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/contracts/PolicyOracle.py)
-
-If you are reviewing this repo as a `Project`, the app workflow is now also present in:
-
-- [`public/index.html`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/index.html)
-- [`public/app.js`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/app.js)
-- [`api/workflows/submission-gate.js`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/workflows/submission-gate.js)
-- [`src/project/policy-submission-workflow.mjs`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/src/project/policy-submission-workflow.mjs)
-
-## TL;DR
-
-- Contract name: `PolicyOracle`
-- Core decision: `allow` / `deny` / `undetermined`
-- Why GenLayer: the judgment is qualitative and non-deterministic, so one backend should not decide it alone
-- Why this is reusable: other builders can reuse it for submissions, payouts, moderation, refunds, disputes, and agent actions
-- Why this is now a project: the repo includes a real app workflow that writes to and reads from the submitted contract
-
-## The Core Use Case
-
-`PolicyOracle` evaluates whether a requested action complies with a human-readable policy and supporting evidence.
-
-Example use cases:
-
-- contribution approval
-- milestone payout gating
-- reward eligibility review
-- refund pre-checks
-- moderation decisions
-- agent action approval
-
-## Why GenLayer Is Necessary
-
-The result is not a deterministic formula. It depends on:
-
-- policy interpretation
+- natural-language policy interpretation
 - evidence quality
 - ambiguity handling
-- reasoning over structured and natural-language inputs
+- reasoning over multiple public sources
 
-A centralized backend could call one model and return one answer, but that would still be a unilateral decision. GenLayer is the meaningful part because validators independently evaluate and converge on a stable result that downstream execution can trust.
+That is why the contract uses GenLayer-native non-deterministic execution instead of a normal if/else rule engine.
 
-## Contract Layer
+Strong contract signals:
 
-### Main contract
-
-- Name: `PolicyOracle`
-- Path: [`contracts/PolicyOracle.py`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/contracts/PolicyOracle.py)
-- Purpose: store policies and persist consensus-backed evaluation results
-
-### Main write methods
-
-- `create_policy(...)`
-- `set_policy_active(...)`
-- `evaluate(...)`
-
-### Main read methods
-
-- `get_policy(...)`
-- `get_result(...)`
-- `is_allowed(...)`
-- `get_counts(...)`
-
-## Project Layer
-
-The project layer turns the contract into a real review workflow.
-
-### Real app workflow
-
-```text
-Reviewer creates policy in app
--> app writes create_policy to PolicyOracle
--> policy stored onchain
-
-Reviewer submits a request + evidence
--> app writes evaluate to PolicyOracle
--> GenLayer reaches consensus
--> evaluation stored onchain
-
-App reads get_result + is_allowed
--> project sets unlock_submission or hold_submission
-```
-
-### Execution binding
-
-The important project-side binding happens in:
-
-- [`src/project/policy-submission-workflow.mjs`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/src/project/policy-submission-workflow.mjs)
-
-This is the line of thought reviewers care about:
-
-- verdict is not cosmetic
-- verdict is not local-only state
-- verdict is used to decide whether execution continues
-
-## Repository Structure
-
-```text
-.
-|-- contracts/
-|   `-- PolicyOracle.py
-|-- sdk/
-|   `-- policy-client.mjs
-|-- src/
-|   |-- lib/
-|   |   `-- policy-client.mjs
-|   `-- project/
-|       |-- policy-gated-flow.mjs
-|       `-- policy-submission-workflow.mjs
-|-- api/
-|   |-- config.js
-|   |-- health.js
-|   |-- policies/
-|   |-- evaluations/
-|   `-- workflows/
-|-- public/
-|   |-- index.html
-|   |-- app.js
-|   `-- styles.css
-|-- docs/
-|   |-- BLUEPRINT.md
-|   |-- CONTRACT_DESIGN_SPEC.md
-|   |-- SUBMISSION.md
-|   `-- PROJECT_SUBMISSION.md
-|-- scripts/
-|   |-- deploy_policy_oracle.mjs
-|   |-- demo_policy_flow.mjs
-|   `-- LOCAL_SETUP.md
-|-- tests/
-|   `-- test_policy_oracle_contract.py
-|-- vercel.json
-`-- README.md
-```
-
-## Validator / Consensus Logic
-
-`PolicyOracle` uses:
-
-- `gl.nondet.exec_prompt(..., response_format="json")`
+- `gl.nondet.web.render(...)`
+- `gl.nondet.exec_prompt(...)`
 - `gl.vm.run_nondet_unsafe(...)`
 
-The validator compares stable execution-relevant fields:
+The result is then written onchain and read back into the app so the workflow can continue or stop.
 
-- `decision`
-- `confidence`
-- `score`
+## What The Project Does
 
-This matters because the contract is not just checking JSON shape. It is checking whether validators converge closely enough on the result that actually drives execution.
+### Main user-facing features
 
-## Real State Change
+1. `Evidence Workspace`
+Build a structured bundle from:
+- repo URL
+- live app URL
+- contract explorer URL
+- deploy tx
+- `create_policy` tx
+- `evaluate` or workflow tx
+- claims and review notes
 
-Each evaluation stores:
+2. `AI Pre-Judge`
+Send the bundle to a server-side AI copilot that returns:
+- preliminary verdict
+- confidence
+- reasons
+- missing evidence
+- improved subject
+- improved claims
+- improved reviewer notes
 
-- `policy_id`
-- `subject`
-- `evidence_json`
-- `reference_urls_json`
-- `decision`
-- `score`
-- `confidence`
-- `reason`
-- `evidence_used`
-- `evaluator`
+3. `Policy Creation`
+Create reusable policies directly on GenLayer from the web app.
 
-This means the result is:
+4. `Workflow Gate`
+Run a real evaluation against the contract and map the result to:
+- `unlock_submission`
+- `hold_submission`
 
-- onchain
-- readable later
-- reusable by another app
-- suitable for gating downstream execution
+5. `Recent Reviews`
+Store recent review bundles in the browser so operators can reuse them instead of rebuilding the same workflow every time.
 
-## Screenshots / Visual Review
+## Text Illustration
 
-### Live app
+### Product view
 
-- Production app: `https://genlayer-policy-eco.vercel.app`
-- Deployment inspector: `https://vercel.com/jinchains-projects/genlayer-policy-eco/13SuEfanuhjzaKcg8SbZc8mZG2rM`
+```text
+┌───────────────────────────────┐
+│ PolicyOracle Workflow Studio  │
+├───────────────────────────────┤
+│ 1. Build evidence bundle      │
+│ 2. Run AI pre-judge           │
+│ 3. Create or reuse policy     │
+│ 4. Evaluate on GenLayer       │
+│ 5. Unlock or hold execution   │
+└───────────────────────────────┘
+```
 
-### Suggested screenshots for reviewers
+### End-to-end flow
 
-This repo does not embed local screenshot image files yet, but the easiest screenshots to capture from the live app are:
+```text
+Operator collects proof
+-> Evidence Workspace structures the bundle
+-> AI Pre-Judge improves subject / claims / notes
+-> App writes create_policy or reuses existing policy
+-> App writes evaluate to PolicyOracle
+-> GenLayer validators review the evidence
+-> Contract stores allow / deny / undetermined
+-> App reads get_result + is_allowed
+-> Workflow becomes unlock_submission or hold_submission
+```
 
-1. Policy creation form
-2. Submission evaluation form
-3. Returned verdict card showing execution unlocked or blocked
-4. Explorer page for the deployed contract
-5. Explorer page for the `create_policy` and `evaluate` transactions
+### Review state model
 
-If image assets are added later, they should be placed in a dedicated folder such as `docs/screenshots/`.
+```text
+[bundle-ready]
+      |
+      v
+[ai pre-judged]
+      |
+      v
+[policy created or selected]
+      |
+      v
+[evaluated onchain]
+      |
+      +--> [allowed] ------> unlock_submission
+      |
+      +--> [blocked] ------> hold_submission
+      |
+      +--> [undetermined] -> manual follow-up
+```
 
-## Live Links And Evidence
+## Architecture
+
+There are three layers in this repo.
+
+### 1. Contract layer
+
+The reusable primitive is `PolicyOracle`.
+
+Responsibilities:
+
+- store natural-language policies
+- accept evidence and reference URLs
+- fetch public source material during execution
+- produce consensus-backed `allow`, `deny`, or `undetermined`
+- persist evaluation results onchain
+
+Main file:
+
+- [contracts/PolicyOracle.py](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/contracts/PolicyOracle.py)
+
+### 2. Project application layer
+
+The project layer turns the contract into a usable tool.
+
+Responsibilities:
+
+- generate evidence bundles
+- run AI-assisted pre-review
+- create policies from UI
+- evaluate project bundles from UI
+- bind verdict to execution state
+
+Main files:
+
+- [public/index.html](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/index.html)
+- [public/app.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/app.js)
+- [api/workflows/submission-gate.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/workflows/submission-gate.js)
+- [src/project/policy-submission-workflow.mjs](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/src/project/policy-submission-workflow.mjs)
+
+### 3. AI copilot layer
+
+The AI layer is offchain and advisory.
+
+Responsibilities:
+
+- produce a preliminary review
+- improve the bundle before final onchain evaluation
+- keep the API key server-side
+
+Main files:
+
+- [api/ai/prejudge.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/ai/prejudge.js)
+- [src/lib/ai-prejudge.mjs](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/src/lib/ai-prejudge.mjs)
+
+Important design boundary:
+
+- `AI Pre-Judge` is helper logic
+- `GenLayer evaluation` is the final project decision path
+
+## Repository Tree
+
+```text
+genlayer-policy-eco/
+├─ api/
+│  ├─ ai/
+│  │  └─ prejudge.js
+│  ├─ evaluations/
+│  │  ├─ [evaluationId].js
+│  │  └─ index.js
+│  ├─ policies/
+│  │  ├─ [policyId].js
+│  │  └─ index.js
+│  ├─ workflows/
+│  │  └─ submission-gate.js
+│  ├─ _lib/
+│  │  └─ response.js
+│  ├─ config.js
+│  └─ health.js
+├─ app/
+│  ├─ app.js
+│  ├─ index.html
+│  └─ styles.css
+├─ contracts/
+│  └─ PolicyOracle.py
+├─ docs/
+│  ├─ BLUEPRINT.md
+│  ├─ CONTRACT_DESIGN_SPEC.md
+│  ├─ PORTAL_SUBMISSION.md
+│  ├─ PROJECT_SUBMISSION.md
+│  └─ SUBMISSION.md
+├─ public/
+│  ├─ app.js
+│  ├─ index.html
+│  └─ styles.css
+├─ scripts/
+│  ├─ create_github_repo.ps1
+│  ├─ demo_policy_flow.mjs
+│  ├─ deploy_policy_oracle.mjs
+│  └─ LOCAL_SETUP.md
+├─ sdk/
+│  └─ policy-client.mjs
+├─ src/
+│  ├─ lib/
+│  │  ├─ ai-prejudge.mjs
+│  │  ├─ policy-client.mjs
+│  │  └─ receipt-utils.mjs
+│  └─ project/
+│     ├─ policy-gated-flow.mjs
+│     └─ policy-submission-workflow.mjs
+├─ tests/
+│  └─ test_policy_oracle_contract.py
+├─ .env.example
+├─ package.json
+├─ pyproject.toml
+├─ README.md
+├─ server.mjs
+└─ vercel.json
+```
+
+## Important Files
+
+### Contract and consensus
+
+- [contracts/PolicyOracle.py](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/contracts/PolicyOracle.py)
+- [tests/test_policy_oracle_contract.py](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/tests/test_policy_oracle_contract.py)
+
+### Frontend
+
+- [public/index.html](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/index.html)
+- [public/app.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/app.js)
+- [public/styles.css](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/styles.css)
+
+### API routes
+
+- [api/policies/index.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/policies/index.js)
+- [api/evaluations/index.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/evaluations/index.js)
+- [api/workflows/submission-gate.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/workflows/submission-gate.js)
+- [api/ai/prejudge.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/ai/prejudge.js)
+
+### Workflow binding
+
+- [src/project/policy-submission-workflow.mjs](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/src/project/policy-submission-workflow.mjs)
+- [src/project/policy-gated-flow.mjs](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/src/project/policy-gated-flow.mjs)
+
+### Shared clients and helpers
+
+- [src/lib/policy-client.mjs](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/src/lib/policy-client.mjs)
+- [sdk/policy-client.mjs](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/sdk/policy-client.mjs)
+- [src/lib/receipt-utils.mjs](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/src/lib/receipt-utils.mjs)
+
+## Practical Applications
+
+### 1. Builder review desk
+
+A small team can use this tool to review incoming submissions and avoid making decisions from scattered notes.
+
+```text
+Incoming project
+-> attach repo, live app, explorer links
+-> AI pre-judge improves the review bundle
+-> policy runs onchain
+-> action unlocks or stays blocked
+```
+
+### 2. Grant or milestone approval
+
+The same workflow can gate milestone releases:
+
+- policy checks whether evidence is sufficient
+- bundle includes repo diff, live demo, deployment, and tx links
+- final verdict decides whether the next payout step should proceed
+
+### 3. Contribution moderation
+
+For communities or tooling teams:
+
+- gather issue, PR, demo, and explorer proof
+- review against reusable moderation or quality policy
+- use onchain result as the trusted record of the decision
+
+### 4. Internal compliance-like workflows
+
+For teams that want evidence-based approvals:
+
+- define team-specific policy once
+- reuse it across repeated reviews
+- keep the final result tied to a real contract state instead of a private backend only
+
+## Why This Is More Than A Demo
+
+This repo has all three of the things reviewers usually want to see:
+
+1. meaningful GenLayer-native non-deterministic contract logic
+2. real application-to-contract write and read paths
+3. project-side execution binding
+
+Concrete code signals:
+
+- contract writes: `create_policy`, `set_policy_active`, `evaluate`
+- contract reads: `get_policy`, `get_result`, `is_allowed`, `get_counts`
+- client writes: `writeContract(...)`
+- client reads: `readContract(...)`
+- receipt handling: `waitForTransactionReceipt(...)`
+- execution binding: `blockedByPolicy`, `policyBoundToExecution`, `unlock_submission`, `hold_submission`
+
+## Live Evidence
 
 ### GitHub
 
 - Repo: `https://github.com/Jinchainne/genlayer-policy-eco`
 
-### Live project
+### Production app
 
-- Live app: `https://genlayer-policy-eco.vercel.app`
+- `https://genlayer-policy-eco.vercel.app`
 
-### Studionet contract evidence
+### Studionet contract
 
-- Network: `studionet`
 - Contract address: `0x378986E3Af625f1873c46Ab96E919E7886eFf108`
-- Contract link: `https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108`
-- Deploy tx: `0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111`
-- Deploy tx link: `https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111`
-- `create_policy` tx: `0xe22a6be500cf62c57ce947f4cba16452f8d18f8115d3c041df7f10d6f4825a32`
-- `create_policy` tx link: `https://explorer-studio.genlayer.com/tx/0xe22a6be500cf62c57ce947f4cba16452f8d18f8115d3c041df7f10d6f4825a32`
-- `evaluate` tx: `0x50c88b16daefd867962206539628ad7b633dda07b47222f619b8c21dcd9eabb1`
-- `evaluate` tx link: `https://explorer-studio.genlayer.com/tx/0x50c88b16daefd867962206539628ad7b633dda07b47222f619b8c21dcd9eabb1`
-- Returned `policy_id`: `policy-1`
-- Returned `evaluation_id`: `evaluation-1`
+- Explorer: `https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108`
 
-## Original Intelligent Contract Submission Context
+### Verified transactions
 
-This section exists intentionally so reviewers do not think the original `Intelligent Contracts` submission disappeared.
+- Deploy tx:
+  `https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111`
+- Live `create_policy` tx:
+  `https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083`
+- Live `evaluate` tx:
+  `https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59`
+- Live workflow tx:
+  `https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121`
 
-The original submission was about:
+## Screenshots In Text Form
 
-- the reusable `PolicyOracle` primitive
-- contract-native policy evaluation
-- onchain verdict storage
-- downstream gating potential
+### Home screen layout
 
-That original artifact still exists in this repo, especially in:
+```text
+[Masthead]
+PolicyOracle Workflow Studio
+Operational Policy Infrastructure
 
-- [`contracts/PolicyOracle.py`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/contracts/PolicyOracle.py)
-- [`docs/SUBMISSION.md`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/SUBMISSION.md)
-- [`docs/CONTRACT_DESIGN_SPEC.md`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/CONTRACT_DESIGN_SPEC.md)
+[Overview]
+- what makes this useful
+- core workflow
+- why GenLayer
 
-So if a judge is reviewing the earlier `Intelligent Contracts` entry, this repo still remains valid for that purpose.
+[Evidence Workspace]
+- use case template
+- repo URL
+- live app URL
+- contract / tx links
+- claims
+- review notes
 
-## Why This Also Qualifies As A Project
+[Bundle Preview]
+- generated subject
+- evidence JSON
+- reference URLs JSON
+- AI preliminary verdict
 
-The repo now goes beyond a standalone primitive because it includes:
+[Policy + Workflow]
+- create policy onchain
+- run workflow gate
+- verdict card
+- workflow output
 
-- a frontend UI
-- API routes
-- real contract reads and writes
-- a real execution binding path
-- a deployed live app
+[Recent Reviews]
+- reusable review memory
+```
 
-This directly addresses the usual rejection pattern of:
+### Verdict behavior
 
-- static UI only
-- fake integration
-- no workflow that actually depends on the contract
-
-## Reusability
-
-Other builders can reuse `PolicyOracle` as:
-
-- a contribution review engine
-- a payout approval gate
-- a moderation review layer
-- an agent action safety gate
-- a refund / dispute pre-check
-- a compliance-like decision layer
+```text
+allow         -> Execution unlocked
+deny          -> Execution blocked
+undetermined  -> Manual follow-up required
+```
 
 ## Running Locally
 
-### Prerequisites
+### Requirements
 
 - Node.js 18+
 - Python 3.10+
 - `pytest`
-- GenLayer-compatible RPC
 
 ### Install
 
@@ -313,16 +435,25 @@ npm install
 pip install pytest
 ```
 
-### Test the contract layer
+### Configure
+
+Copy `.env.example` into your local env file and fill:
+
+- `GENLAYER_RPC_URL`
+- `GENLAYER_KEYSTORE_JSON`
+- `GENLAYER_KEYSTORE_PASSWORD`
+- `POLICY_ORACLE_ADDRESS`
+- `MIMO_API_KEY`
+
+### Test the contract
 
 ```bash
 pytest
 ```
 
-### Run the local app server
+### Run the local server
 
 ```bash
-cp .env.example .env
 npm run app
 ```
 
@@ -332,43 +463,34 @@ Open:
 http://127.0.0.1:3000
 ```
 
-### Deploy contract / run demo scripts
+## Deployment Notes
 
-```bash
-npm run deploy:local
-npm run demo:local
-```
+The hosted app uses server-side environment variables for:
 
-## Review Path
+- GenLayer RPC
+- contract address
+- keystore and signer
+- MiMo AI API key
 
-If a reviewer wants the fastest path:
+This keeps the signer and AI credentials off the client.
+
+## Reviewer Path
+
+If you want the fastest serious review path:
 
 1. Read this README
-2. Inspect [`contracts/PolicyOracle.py`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/contracts/PolicyOracle.py)
-3. Inspect [`public/index.html`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/index.html)
-4. Inspect [`api/workflows/submission-gate.js`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/workflows/submission-gate.js)
-5. Open `https://genlayer-policy-eco.vercel.app`
-6. Check the Studionet explorer links above
-
-## Known Limitations
-
-- The current project UI is intentionally focused and minimal rather than a full operations dashboard.
-- The first project version is optimized for submission review and policy gating, not for multi-role enterprise administration.
-- Screenshot image files are not yet stored inside the repo, even though the live app and explorer evidence are available.
-
-## Anti-Reject Notes
-
-This repo is designed to avoid the most common GenLayer review failures:
-
-- not deterministic-only
-- not static UI only
-- not fake contract integration
-- not local-only state pretending to be onchain
-- not a one-file example with no reusable value
+2. Inspect [contracts/PolicyOracle.py](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/contracts/PolicyOracle.py)
+3. Inspect [public/index.html](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/index.html)
+4. Inspect [public/app.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/public/app.js)
+5. Inspect [api/workflows/submission-gate.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/workflows/submission-gate.js)
+6. Inspect [api/ai/prejudge.js](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/api/ai/prejudge.js)
+7. Open `https://genlayer-policy-eco.vercel.app`
+8. Verify the explorer links above
 
 ## Related Docs
 
-- [`docs/SUBMISSION.md`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/SUBMISSION.md)
-- [`docs/PROJECT_SUBMISSION.md`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/PROJECT_SUBMISSION.md)
-- [`docs/CONTRACT_DESIGN_SPEC.md`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/CONTRACT_DESIGN_SPEC.md)
-- [`docs/BLUEPRINT.md`](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/BLUEPRINT.md)
+- [docs/PROJECT_SUBMISSION.md](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/PROJECT_SUBMISSION.md)
+- [docs/SUBMISSION.md](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/SUBMISSION.md)
+- [docs/CONTRACT_DESIGN_SPEC.md](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/CONTRACT_DESIGN_SPEC.md)
+- [docs/PORTAL_SUBMISSION.md](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/PORTAL_SUBMISSION.md)
+- [docs/BLUEPRINT.md](/D:/AIRDROP/GENLAYER/2.%20JIN/genlayer-policy-eco/docs/BLUEPRINT.md)
