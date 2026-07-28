@@ -10,28 +10,27 @@
     <main class="shell">
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">GenLayer Project Upgrade</p>
-          <h1>PolicyOracle Review Console</h1>
+          <p class="eyebrow">GenLayer Project Tool</p>
+          <h1>PolicyOracle Workflow Studio</h1>
           <p class="lede">
-            Review submissions against reusable natural-language policies, send
-            real contract actions to GenLayer, and bind the verdict to
-            execution.
+            A live builder tool for creating reusable review policies, assembling real evidence bundles,
+            sending policy decisions to GenLayer, and binding the verdict to execution outcomes.
           </p>
           <div class="hero-meta">
             <span id="contractAddressPill" class="pill">Loading contract...</span>
-            <span class="pill">Project path: submission gating</span>
+            <span class="pill">Tool mode: project reviews</span>
             <span class="pill">Category: Projects</span>
           </div>
         </div>
 
         <aside class="hero-side">
           <div class="stat">
-            <span class="stat-label">Live app</span>
-            <a href="https://genlayer-policy-eco.vercel.app" target="_blank" rel="noreferrer">genlayer-policy-eco.vercel.app</a>
+            <span class="stat-label">Useful for</span>
+            <span>project reviews, approval flows, contribution screening, execution gating</span>
           </div>
           <div class="stat">
-            <span class="stat-label">Explorer</span>
-            <a href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">PolicyOracle contract</a>
+            <span class="stat-label">Live app</span>
+            <a href="https://genlayer-policy-eco.vercel.app" target="_blank" rel="noreferrer">genlayer-policy-eco.vercel.app</a>
           </div>
           <div class="stat">
             <span class="stat-label">GitHub</span>
@@ -41,31 +40,133 @@
       </section>
 
       <section class="evidence-strip">
-        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" target="_blank" rel="noreferrer">Deploy tx</a>
-        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xe22a6be500cf62c57ce947f4cba16452f8d18f8115d3c041df7f10d6f4825a32" target="_blank" rel="noreferrer">create_policy tx</a>
-        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x50c88b16daefd867962206539628ad7b633dda07b47222f619b8c21dcd9eabb1" target="_blank" rel="noreferrer">evaluate tx</a>
+        <a class="evidence-link" href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">Contract explorer</a>
+        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer">Live create_policy tx</a>
+        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59" target="_blank" rel="noreferrer">Live evaluate tx</a>
+        <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" target="_blank" rel="noreferrer">Workflow tx</a>
       </section>
 
       <section class="notice" id="runtimeNotice">
         <strong>Runtime status</strong>
         <span>
-          This console is wired to the real contract. If remote RPC calls fail from
-          serverless infrastructure, use the onchain proof links above and the local
-          workflow in the repo for full end-to-end verification.
+          This project tool is wired to the real contract and now supports live policy creation,
+          evidence assembly, evaluation, and workflow gating from the hosted app.
         </span>
+      </section>
+
+      <section class="workspace">
+        <article class="panel workspace-panel">
+          <div class="panel-head">
+            <h2>Evidence Workspace</h2>
+            <p>Build a structured review bundle from real project links instead of hand-writing raw JSON.</p>
+          </div>
+
+          <form id="builderForm" class="stack">
+            <div class="split">
+              <label>
+                Use case template
+                <select name="template">
+                  <option value="project-review">Project review</option>
+                  <option value="grant-approval">Grant approval</option>
+                  <option value="contribution-screening">Contribution screening</option>
+                  <option value="moderation-gate">Moderation gate</option>
+                </select>
+              </label>
+              <label>
+                Project or workflow name
+                <input name="projectName" value="genlayer-policy-eco" required />
+              </label>
+            </div>
+
+            <div class="split">
+              <label>
+                Repository URL
+                <input name="repoUrl" value="https://github.com/Jinchainne/genlayer-policy-eco" required />
+              </label>
+              <label>
+                Live app URL
+                <input name="liveApp" value="https://genlayer-policy-eco.vercel.app/" />
+              </label>
+            </div>
+
+            <div class="split">
+              <label>
+                Contract explorer URL
+                <input name="contractUrl" value="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" />
+              </label>
+              <label>
+                Deployment tx URL
+                <input name="deployTxUrl" value="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" />
+              </label>
+            </div>
+
+            <div class="split">
+              <label>
+                create_policy tx URL
+                <input name="createPolicyTxUrl" value="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" />
+              </label>
+              <label>
+                evaluate or workflow tx URL
+                <input name="evaluateTxUrl" value="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" />
+              </label>
+            </div>
+
+            <label>
+              Claims
+              <textarea name="claims" rows="4">real GenLayer integration
+live application-to-contract workflow
+policy-gated execution
+onchain review results
+useful builder tool</textarea>
+            </label>
+
+            <label>
+              Review notes
+              <textarea name="reviewNotes" rows="4">This project provides a live web tool for building evidence bundles, creating reusable policies onchain, evaluating project evidence through GenLayer consensus, and turning the verdict into unlock or hold execution outcomes.</textarea>
+            </label>
+
+            <div class="action-row">
+              <button type="submit">Generate Review Bundle</button>
+              <button type="button" id="applyBundleButton" class="button-secondary">Use In Workflow</button>
+              <button type="button" id="loadDemoButton" class="button-ghost">Load Demo Data</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="panel workspace-panel accent">
+          <div class="panel-head">
+            <h2>Bundle Preview</h2>
+            <p>Preview the exact subject, evidence JSON, and reference URLs before sending them to GenLayer.</p>
+          </div>
+
+          <div class="bundle-preview">
+            <div class="preview-block">
+              <h3>Generated subject</h3>
+              <pre id="generatedSubject" class="output compact muted">No bundle generated yet.</pre>
+            </div>
+            <div class="preview-block">
+              <h3>Generated evidence JSON</h3>
+              <pre id="generatedEvidence" class="output compact muted">No bundle generated yet.</pre>
+            </div>
+            <div class="preview-block">
+              <h3>Generated reference URLs JSON</h3>
+              <pre id="generatedReferences" class="output compact muted">No bundle generated yet.</pre>
+            </div>
+          </div>
+        </article>
       </section>
 
       <section class="grid">
         <article class="panel">
           <div class="panel-head">
             <h2>Create Policy</h2>
-            <p>Store a reusable review policy on GenLayer.</p>
+            <p>Store a reusable review policy on GenLayer for repeated use across project workflows.</p>
           </div>
 
           <form id="policyForm" class="stack">
             <label>
               Policy name
-              <input name="name" value="Project Submission Gate" required />
+              <input name="name" value="Project Review Gate" required />
             </label>
             <label>
               Category
@@ -73,11 +174,11 @@
             </label>
             <label>
               Policy text
-              <textarea name="policyText" rows="5" required>Allow only if the submission shows original work, clear evidence, and meaningful execution.</textarea>
+              <textarea name="policyText" rows="5" required>Allow only if the project shows original work, clear evidence, real GenLayer integration, and a useful execution workflow.</textarea>
             </label>
             <label>
               Criteria text
-              <textarea name="criteriaText" rows="5" required>Deny copied or weak submissions. Return undetermined if the evidence is partial or ambiguous.</textarea>
+              <textarea name="criteriaText" rows="5" required>Deny weak, copied, or non-functional project submissions. Return undetermined if the evidence or live execution proof is incomplete.</textarea>
             </label>
             <button type="submit">Create Policy Onchain</button>
           </form>
@@ -87,8 +188,8 @@
 
         <article class="panel accent">
           <div class="panel-head">
-            <h2>Run Submission Gate</h2>
-            <p>Evaluate a real submission request and bind the verdict to an execution path.</p>
+            <h2>Run Workflow Gate</h2>
+            <p>Evaluate a real project bundle and bind the result to an execution path from the live app.</p>
           </div>
 
           <form id="workflowForm" class="stack">
@@ -98,20 +199,22 @@
             </label>
             <label>
               Submission subject
-              <textarea name="subject" rows="4" required>A builder requests unlock for a project submission after providing docs, code, and live evidence.</textarea>
+              <textarea name="subject" rows="4" required>A builder uses genlayer-policy-eco as a live workflow tool to review project evidence, store policy decisions on GenLayer, and control downstream execution.</textarea>
             </label>
             <label>
               Evidence JSON
               <textarea name="evidence" rows="8" required>{
+  "projectName": "genlayer-policy-eco",
   "repoUrl": "https://github.com/Jinchainne/genlayer-policy-eco",
-  "artifacts": ["README", "deploy tx", "evaluation tx", "workflow code"],
-  "claims": ["original work", "real GenLayer integration", "execution gating"],
-  "reviewNotes": "The submission includes real contract source and a project-side binding flow."
+  "liveApp": "https://genlayer-policy-eco.vercel.app/",
+  "artifacts": ["README", "live app", "deploy tx", "create_policy tx", "workflow tx"],
+  "claims": ["real GenLayer integration", "policy-gated workflow", "useful builder tool"],
+  "reviewNotes": "The project provides a live app, real contract reads and writes, and execution gating."
 }</textarea>
             </label>
             <label>
               Reference URLs JSON
-              <textarea name="referenceUrls" rows="4">["https://github.com/Jinchainne/genlayer-policy-eco"]</textarea>
+              <textarea name="referenceUrls" rows="4">["https://github.com/Jinchainne/genlayer-policy-eco","https://genlayer-policy-eco.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea>
             </label>
             <button type="submit">Evaluate And Gate Execution</button>
           </form>
@@ -124,8 +227,20 @@
           <pre id="workflowOutput" class="output muted">No workflow executed yet.</pre>
         </article>
       </section>
+
+      <section class="workspace">
+        <article class="panel recent-panel">
+          <div class="panel-head">
+            <h2>Recent Reviews</h2>
+            <p>Reuse recent project bundles and show that this tool supports ongoing operational work.</p>
+          </div>
+          <div id="recentRuns" class="recent-runs">
+            <p class="empty-state">No recent reviews yet. Generate a bundle or run the workflow to build your review history.</p>
+          </div>
+        </article>
+      </section>
     </main>
 
     <script type="module" src="/app.js"></script>
   </body>
-  </html>
+</html>
