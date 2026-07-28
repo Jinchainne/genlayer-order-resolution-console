@@ -94,6 +94,13 @@
               </summary>
 
               <form id="caseCreateForm" class="stack compact-form">
+                <label>
+                  Preset dispute type
+                  <select name="presetType">
+                    <option value="">Manual custom dispute</option>
+                  </select>
+                </label>
+
                 <div class="split">
                   <label>
                     Case ID
@@ -170,6 +177,7 @@
             <div class="panel-scroll workbench-scroll">
               <div class="detail-tabs" id="detailTabs">
                 <button type="button" class="tab-button tab-active" data-detail-tab="overviewTab">Overview</button>
+                <button type="button" class="tab-button" data-detail-tab="intakeTab">Intake Editor</button>
                 <button type="button" class="tab-button" data-detail-tab="vaultTab">Evidence Vault</button>
                 <button type="button" class="tab-button" data-detail-tab="builderTab">Packet Builder</button>
               </div>
@@ -230,6 +238,102 @@
                   <div id="disagreementList" class="bullet-list"></div>
                 </article>
               </div>
+              </section>
+
+              <section id="intakeTab" class="detail-panel">
+              <article class="evidence-card intake-editor-card">
+                <div class="panel-head compact-head">
+                  <p class="section-label">Flexible Intake</p>
+                  <h2>Edit current dispute</h2>
+                  <p>Use a global preset or rewrite the active case for marketplaces, retail chains, logistics, subscriptions, or chargeback operations.</p>
+                </div>
+
+                <form id="caseDetailForm" class="stack compact-form">
+                  <div class="split triple-split">
+                    <label>
+                      Preset dispute type
+                      <select id="detailPreset" name="presetType">
+                        <option value="">Manual custom dispute</option>
+                      </select>
+                    </label>
+                    <label>
+                      Case ID
+                      <input name="caseId" required />
+                    </label>
+                    <label>
+                      Status
+                      <input name="status" placeholder="new / evidence ready / awaiting resolution" required />
+                    </label>
+                  </div>
+
+                  <div class="split triple-split">
+                    <label>
+                      Claim type
+                      <input name="claimType" placeholder="missing-item / late-delivery / chargeback-risk" required />
+                    </label>
+                    <label>
+                      Requested action
+                      <input name="requestedAction" placeholder="partial refund / release seller / escalate manual" required />
+                    </label>
+                    <label>
+                      Currency
+                      <input name="currency" value="USD" required />
+                    </label>
+                  </div>
+
+                  <div class="split triple-split">
+                    <label>
+                      Merchant
+                      <input name="merchant" required />
+                    </label>
+                    <label>
+                      Buyer
+                      <input name="buyer" required />
+                    </label>
+                    <label>
+                      Seller team
+                      <input name="seller" required />
+                    </label>
+                  </div>
+
+                  <div class="split">
+                    <label>
+                      Order total
+                      <input name="orderAmount" placeholder="248.00" required />
+                    </label>
+                    <label>
+                      Amount at risk
+                      <input name="riskAmount" placeholder="74.00" required />
+                    </label>
+                  </div>
+
+                  <label>
+                    Subject
+                    <textarea name="subject" rows="3" required></textarea>
+                  </label>
+
+                  <div class="split">
+                    <label>
+                      Buyer statement
+                      <textarea name="buyerStatement" rows="4" required></textarea>
+                    </label>
+                    <label>
+                      Seller response
+                      <textarea name="sellerStatement" rows="4" required></textarea>
+                    </label>
+                  </div>
+
+                  <label>
+                    Review notes
+                    <textarea name="reviewNotes" rows="3" placeholder="Summarize what the operator should verify next."></textarea>
+                  </label>
+
+                  <div class="action-row">
+                    <button type="submit">Update Current Case</button>
+                    <button type="button" id="jumpToBuilderButton" class="button-secondary">Update And Build Packet</button>
+                  </div>
+                </form>
+              </article>
               </section>
 
               <section id="vaultTab" class="detail-panel">

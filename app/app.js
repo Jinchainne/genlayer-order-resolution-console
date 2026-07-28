@@ -13,10 +13,12 @@ const aiPreJudgeOutput = document.querySelector("#aiPreJudgeOutput");
 const recentRuns = document.querySelector("#recentRuns");
 const applyBundleButton = document.querySelector("#applyBundleButton");
 const loadDemoButton = document.querySelector("#loadDemoButton");
+const jumpToBuilderButton = document.querySelector("#jumpToBuilderButton");
 const aiPreJudgeButton = document.querySelector("#aiPreJudgeButton");
 const aiPersona = document.querySelector("#aiPersona");
 const caseQueue = document.querySelector("#caseQueue");
 const caseCreateForm = document.querySelector("#caseCreateForm");
+const caseDetailForm = document.querySelector("#caseDetailForm");
 const activeCaseCount = document.querySelector("#activeCaseCount");
 const recommendedAction = document.querySelector("#recommendedAction");
 const recommendedActionReason = document.querySelector("#recommendedActionReason");
@@ -50,6 +52,8 @@ const sellerVaultCount = document.querySelector("#sellerVaultCount");
 const authorityVaultCount = document.querySelector("#authorityVaultCount");
 const vaultStatus = document.querySelector("#vaultStatus");
 const decisionHistory = document.querySelector("#decisionHistory");
+const createPresetSelect = document.querySelector("#caseCreateForm select[name='presetType']");
+const detailPresetSelect = document.querySelector("#detailPreset");
 
 const STORAGE_KEY = "order-resolution-recent-runs-v2";
 const HISTORY_STORAGE_KEY = "order-resolution-decision-history-v1";
@@ -268,7 +272,526 @@ const TEMPLATE_PRESETS = {
     notes:
       "The packet should evaluate whether the mismatch is well-supported enough for refund approval or whether the case remains undetermined pending route evidence.",
   },
+  "delivery-late": {
+    subject:
+      "A buyer requests compensation because a promised delivery window was missed and both checkout SLA and carrier timing should be reviewed.",
+    claims: [
+      "promised delivery window exists",
+      "actual delivery completed late",
+      "seller attached carrier timing records",
+      "resolution may lead to refund, credit, or denial",
+    ],
+    notes:
+      "The packet should compare the promised fulfillment window against authoritative carrier completion time before compensation is approved.",
+  },
+  "chargeback-risk": {
+    subject:
+      "A buyer disputes a charge as unauthorized while the merchant relies on account, device, and payment records to defend or hold payout.",
+    claims: [
+      "buyer disputes charge authorization",
+      "seller attached auth or risk evidence",
+      "payment capture is authoritative",
+      "payout release should depend on evidence quality",
+    ],
+    notes:
+      "The packet should reconcile account, device, and payment records before deciding whether to hold payout, reverse the charge, or escalate fraud review.",
+  },
+  "service-cancellation": {
+    subject:
+      "A customer says a cancellation should have stopped renewal billing, but the merchant recorded another charge and service continuation.",
+    claims: [
+      "buyer claims cancellation happened before renewal",
+      "seller has subscription lifecycle records",
+      "billing event timing is authoritative",
+      "resolution may unlock reversal or denial",
+    ],
+    notes:
+      "The packet should compare cancellation events and billing ledger timing before allowing a renewal reversal.",
+  },
+  "counterfeit-quality": {
+    subject:
+      "A buyer claims an order is counterfeit or materially below listing quality and requests a refund after comparing product evidence against merchant records.",
+    claims: [
+      "buyer attached authenticity or quality concerns",
+      "seller disputes counterfeit or listing mismatch",
+      "order and listing records are available",
+      "qualitative evidence matters more than simple deterministic checks",
+    ],
+    notes:
+      "The packet should align buyer evidence, merchant listing proof, and any authenticity records before a refund or escalation decision is made.",
+  },
+  "warranty-claim": {
+    subject:
+      "A buyer seeks replacement or refund under warranty and the merchant disputes whether failure conditions meet the support policy.",
+    claims: [
+      "buyer claims defect within support period",
+      "seller cites warranty terms or usage conditions",
+      "proof of purchase and defect evidence are available",
+      "resolution may unlock replacement or denial",
+    ],
+    notes:
+      "The packet should assess warranty timing, purchase proof, and defect evidence before allowing a replacement or denying the claim.",
+  },
 };
+
+const GLOBAL_DISPUTE_PRESETS = {
+  "missing-item": {
+    label: "Missing items after delivery",
+    templateKey: "delivery-missing",
+    requestedAction: "partial refund",
+    status: "awaiting resolution",
+    paymentStatus: "paid by card",
+    fulfillment: "delivery completed",
+    subject:
+      "Buyer says paid items were missing from a delivered order and requests a partial refund after fulfillment was marked complete.",
+    buyerStatement:
+      "The order arrived, but paid items shown on the receipt were missing from the package.",
+    sellerStatement:
+      "The merchant marked the order packed and delivered, but must verify whether the missing items actually left the store.",
+    buyerClaims: [
+      "paid items appear missing after delivery",
+      "invoice and payment proof exist",
+      "seller packing records should be checked",
+      "case depends on evidence quality",
+    ],
+    reviewNotes:
+      "Use buyer unpacking proof, invoice data, and seller fulfillment records before allowing a partial refund.",
+    timeline: [
+      { time: "T1", title: "Order paid", description: "Buyer completed payment for the order." },
+      { time: "T2", title: "Fulfillment completed", description: "Merchant marked the order packed and dispatched." },
+      { time: "T3", title: "Delivery received", description: "Buyer received the package and checked contents." },
+      { time: "T4", title: "Missing-item dispute opened", description: "Buyer reported missing paid items." },
+    ],
+    evidence: [
+      { title: "Buyer unpacking proof", side: "buyer", source: "buyer upload", status: "submitted", detail: "Buyer attached photos or video from package opening." },
+      { title: "Receipt or invoice", side: "buyer", source: "buyer account", status: "submitted", detail: "Buyer provided proof that the missing items were paid for." },
+      { title: "Packing record", side: "seller", source: "merchant ops", status: "submitted", detail: "Seller attached picker or packing confirmation records." },
+      { title: "Dispatch confirmation", side: "seller", source: "merchant system", status: "submitted", detail: "Seller provided dispatch or handoff timing." },
+      { title: "Payment settlement", side: "authority", source: "payment ledger", status: "authoritative", detail: "Payment settled before delivery." },
+      { title: "Order line items", side: "authority", source: "merchant checkout", status: "authoritative", detail: "Order record confirms the expected purchased items." },
+    ],
+    disagreements: [
+      "Buyer says the order was incomplete on arrival.",
+      "Seller believes all items may have been packed.",
+      "Authoritative order and payment records should anchor the final decision.",
+    ],
+  },
+  "damaged-goods": {
+    label: "Damaged goods",
+    templateKey: "delivery-damaged",
+    requestedAction: "approve refund",
+    status: "evidence ready",
+    paymentStatus: "paid by card",
+    fulfillment: "delivery completed",
+    subject:
+      "Buyer requests refund or replacement because delivered goods arrived damaged or unusable.",
+    buyerStatement:
+      "The order arrived damaged and cannot be used safely or as intended.",
+    sellerStatement:
+      "The merchant needs to verify whether the damage happened before dispatch or after delivery.",
+    buyerClaims: [
+      "buyer attached photos of damaged goods",
+      "seller has order and handling records",
+      "refund or replacement depends on qualitative review",
+      "timing of damage report matters",
+    ],
+    reviewNotes:
+      "Review item condition evidence, report timing, and merchant handling notes before approving compensation.",
+    timeline: [
+      { time: "T1", title: "Order fulfilled", description: "Merchant completed order preparation." },
+      { time: "T2", title: "Delivery completed", description: "Buyer received the order." },
+      { time: "T3", title: "Damage report opened", description: "Buyer reported item condition issues." },
+      { time: "T4", title: "Merchant review started", description: "Seller reviewed the damage claim." },
+    ],
+    evidence: [
+      { title: "Damage photos", side: "buyer", source: "buyer upload", status: "submitted", detail: "Buyer attached item condition photos." },
+      { title: "Complaint timing", side: "buyer", source: "support desk", status: "time-verified", detail: "Buyer filed the complaint within a reviewable window." },
+      { title: "Packing or temperature note", side: "seller", source: "merchant ops", status: "submitted", detail: "Seller attached quality or handling notes." },
+      { title: "Dispatch record", side: "seller", source: "merchant system", status: "submitted", detail: "Seller provided dispatch timing and item handoff data." },
+      { title: "Order record", side: "authority", source: "merchant ledger", status: "authoritative", detail: "Order and paid items were confirmed." },
+      { title: "Delivery completion", side: "authority", source: "logistics backend", status: "authoritative", detail: "Delivery completion timing is verified." },
+    ],
+    disagreements: [
+      "Buyer says the delivered goods were unusable.",
+      "Seller questions when or how the damage occurred.",
+      "Authority records confirm order and delivery, but condition still needs qualitative judgment.",
+    ],
+  },
+  "refund-delay": {
+    label: "Refund not received",
+    templateKey: "payment-refund",
+    requestedAction: "approve refund",
+    status: "evidence ready",
+    paymentStatus: "refund pending",
+    fulfillment: "refund review in progress",
+    subject:
+      "Buyer says a promised refund has not arrived and wants the merchant to prove whether the reversal actually settled.",
+    buyerStatement:
+      "Support said a refund would be issued, but the charge is still present and no refund proof has appeared.",
+    sellerStatement:
+      "The merchant believes the refund may have been initiated, but payment processor evidence is required.",
+    buyerClaims: [
+      "refund promise exists",
+      "buyer still sees the original charge",
+      "processor proof is decisive",
+      "policy should deny weak refund claims without settlement evidence",
+    ],
+    reviewNotes:
+      "Use authoritative refund settlement evidence before deciding whether to approve refund completion or escalate manually.",
+    timeline: [
+      { time: "T1", title: "Issue acknowledged", description: "Merchant recognized the underlying service or product issue." },
+      { time: "T2", title: "Refund promised", description: "Support communicated refund intent." },
+      { time: "T3", title: "Buyer checks account", description: "Buyer still sees original charge." },
+      { time: "T4", title: "Refund dispute opened", description: "Buyer requests proof or reversal." },
+    ],
+    evidence: [
+      { title: "Refund promise log", side: "buyer", source: "support message", status: "submitted", detail: "Buyer attached merchant communication promising refund." },
+      { title: "Current card statement", side: "buyer", source: "bank app", status: "submitted", detail: "Buyer attached the still-visible original charge." },
+      { title: "Refund initiation note", side: "seller", source: "merchant ops", status: "submitted", detail: "Seller attached any internal refund action." },
+      { title: "Payment processor reference", side: "seller", source: "payments team", status: "pending-proof", detail: "Seller still needs processor confirmation." },
+      { title: "Original charge settlement", side: "authority", source: "payment ledger", status: "authoritative", detail: "Original charge settlement is confirmed." },
+      { title: "Refund settlement receipt", side: "authority", source: "processor ledger", status: "missing", detail: "Authoritative refund settlement proof is still missing." },
+    ],
+    disagreements: [
+      "Buyer says refund never arrived.",
+      "Seller says the refund may still be processing or lacks proof.",
+      "Authoritative processor evidence should decide the outcome.",
+    ],
+  },
+  "wrong-order": {
+    label: "Wrong order delivered",
+    templateKey: "order-mismatch",
+    requestedAction: "full refund",
+    status: "new",
+    paymentStatus: "paid before delivery",
+    fulfillment: "delivery completed",
+    subject:
+      "Buyer says the delivered package contained the wrong order and requests a full refund or replacement.",
+    buyerStatement:
+      "The delivered bag or box contents do not match the receipt or listing.",
+    sellerStatement:
+      "The merchant suspects a picking or handoff mismatch but needs route and package evidence reviewed.",
+    buyerClaims: [
+      "delivered items do not match receipt",
+      "buyer reported immediately",
+      "seller should check route and bag assignment records",
+      "wrong-order claims require qualitative review",
+    ],
+    reviewNotes:
+      "Compare buyer bag photos, route logs, and order records before approving a full refund or escalation.",
+    timeline: [
+      { time: "T1", title: "Order picked", description: "Merchant prepared the order for dispatch." },
+      { time: "T2", title: "Delivery completed", description: "Buyer received the order." },
+      { time: "T3", title: "Mismatch found", description: "Buyer noticed the delivered items did not match the order." },
+      { time: "T4", title: "Dispute opened", description: "Buyer requested correction or refund." },
+    ],
+    evidence: [
+      { title: "Bag content photos", side: "buyer", source: "buyer upload", status: "submitted", detail: "Buyer attached photos of the incorrect contents." },
+      { title: "Receipt comparison", side: "buyer", source: "buyer account", status: "submitted", detail: "Buyer provided the expected item list or invoice." },
+      { title: "Route or picker log", side: "seller", source: "logistics backend", status: "submitted", detail: "Seller attached route or bag assignment records." },
+      { title: "Dispatch completion", side: "seller", source: "merchant system", status: "submitted", detail: "Seller provided dispatch and completion events." },
+      { title: "Expected order contents", side: "authority", source: "order ledger", status: "authoritative", detail: "Authority record confirms what should have been delivered." },
+      { title: "Delivery completion event", side: "authority", source: "logistics ledger", status: "authoritative", detail: "Delivery completion and rider metadata are available." },
+    ],
+    disagreements: [
+      "Buyer says the wrong order arrived.",
+      "Seller says a route or handoff mismatch is possible but not yet proven.",
+      "Authority records confirm the expected order and delivery path.",
+    ],
+  },
+  "late-delivery": {
+    label: "Late delivery compensation",
+    templateKey: "delivery-late",
+    requestedAction: "delivery credit",
+    status: "new",
+    paymentStatus: "paid before dispatch",
+    fulfillment: "delivery completed late",
+    subject:
+      "Buyer says a promised delivery window was missed and asks for compensation or credit.",
+    buyerStatement:
+      "The order arrived after the promised delivery window and missed an important use case.",
+    sellerStatement:
+      "The merchant acknowledges delay risk but wants carrier timing and checkout SLA checked before compensation is approved.",
+    buyerClaims: [
+      "promised delivery window existed",
+      "actual delivery missed the promise",
+      "carrier timing logs exist",
+      "compensation depends on policy and evidence",
+    ],
+    reviewNotes:
+      "Use checkout SLA and carrier logs to determine whether delay compensation should be unlocked.",
+    timeline: [
+      { time: "T1", title: "Priority shipping selected", description: "Buyer paid for faster delivery." },
+      { time: "T2", title: "Transit delay", description: "Carrier or merchant hit a routing delay." },
+      { time: "T3", title: "Late delivery completed", description: "The order arrived beyond the promised window." },
+      { time: "T4", title: "Compensation dispute opened", description: "Buyer requested credit or reversal." },
+    ],
+    evidence: [
+      { title: "SLA promise screenshot", side: "buyer", source: "buyer upload", status: "submitted", detail: "Buyer attached promised delivery timing." },
+      { title: "Complaint timing", side: "buyer", source: "support desk", status: "time-verified", detail: "Buyer opened a claim after receiving the late order." },
+      { title: "Carrier delay note", side: "seller", source: "carrier feed", status: "submitted", detail: "Seller provided routing or weather delay records." },
+      { title: "Merchant response note", side: "seller", source: "ops desk", status: "submitted", detail: "Merchant stated why the order missed the SLA." },
+      { title: "Promised ship window", side: "authority", source: "checkout system", status: "authoritative", detail: "Checkout data confirms the promised delivery level." },
+      { title: "Actual delivery timestamp", side: "authority", source: "carrier ledger", status: "authoritative", detail: "Carrier record confirms late completion." },
+    ],
+    disagreements: [
+      "Buyer says the promised delivery was missed.",
+      "Seller may argue compensation should be limited.",
+      "Authority timing should determine whether compensation is justified.",
+    ],
+  },
+  "chargeback-risk": {
+    label: "Unauthorized payment / chargeback",
+    templateKey: "chargeback-risk",
+    requestedAction: "hold payout",
+    status: "evidence ready",
+    paymentStatus: "captured payment under dispute",
+    fulfillment: "fulfillment may already be released",
+    subject:
+      "Buyer disputes a charge as unauthorized while merchant risk systems claim the session was valid.",
+    buyerStatement:
+      "I did not authorize this transaction and want the charge reversed.",
+    sellerStatement:
+      "The merchant believes session, device, or login evidence supports a valid purchase, but payout should stay controlled until review finishes.",
+    buyerClaims: [
+      "buyer claims unauthorized charge",
+      "seller has risk or auth records",
+      "payout control matters if fulfillment already occurred",
+      "authoritative auth and payment evidence should be reviewed",
+    ],
+    reviewNotes:
+      "This preset is suited for digital commerce and marketplace payment operations where payout must be held or released based on evidence quality.",
+    timeline: [
+      { time: "T1", title: "Purchase session started", description: "Account or device activity preceded payment." },
+      { time: "T2", title: "Payment captured", description: "Merchant captured the charge." },
+      { time: "T3", title: "Buyer disputes authorization", description: "Buyer alleged fraud or unauthorized purchase." },
+      { time: "T4", title: "Chargeback review opened", description: "Merchant moved the case into risk review." },
+    ],
+    evidence: [
+      { title: "Buyer issuer complaint", side: "buyer", source: "issuer notice", status: "submitted", detail: "Buyer attached a chargeback or unauthorized transaction report." },
+      { title: "Buyer identity note", side: "buyer", source: "support desk", status: "submitted", detail: "Buyer explained why the transaction is disputed." },
+      { title: "Device or IP log", side: "seller", source: "risk engine", status: "submitted", detail: "Seller attached device or login evidence." },
+      { title: "Fulfillment log", side: "seller", source: "merchant backend", status: "submitted", detail: "Seller attached release or shipping timing." },
+      { title: "Authentication record", side: "authority", source: "auth service", status: "authoritative", detail: "Authority record confirms account access or step-up auth events." },
+      { title: "Charge settlement", side: "authority", source: "payment ledger", status: "authoritative", detail: "Payment capture and settlement records are available." },
+    ],
+    disagreements: [
+      "Buyer says the charge is fraudulent or unauthorized.",
+      "Seller says session and device evidence support validity.",
+      "Authority auth and payment records should determine whether payout stays held.",
+    ],
+  },
+  "counterfeit-quality": {
+    label: "Counterfeit or listing mismatch",
+    templateKey: "counterfeit-quality",
+    requestedAction: "return and refund",
+    status: "awaiting resolution",
+    paymentStatus: "paid before delivery",
+    fulfillment: "product delivered",
+    subject:
+      "Buyer says the product is counterfeit or materially different from the listing and requests return approval with refund.",
+    buyerStatement:
+      "The received product does not match the listing or appears counterfeit or materially lower quality.",
+    sellerStatement:
+      "The merchant disputes the authenticity claim and wants listing, batch, and product evidence reviewed first.",
+    buyerClaims: [
+      "buyer says product differs from listing",
+      "authenticity or quality is disputed",
+      "seller has listing or sourcing records",
+      "the case requires qualitative comparison",
+    ],
+    reviewNotes:
+      "This preset is useful for marketplaces and cross-border commerce where listing mismatch and authenticity disputes require narrative evidence review.",
+    timeline: [
+      { time: "T1", title: "Order delivered", description: "Buyer received the product." },
+      { time: "T2", title: "Authenticity concern raised", description: "Buyer compared received goods against the listing." },
+      { time: "T3", title: "Return or refund dispute opened", description: "Buyer requested corrective action." },
+      { time: "T4", title: "Merchant evidence review", description: "Seller attached sourcing or listing evidence." },
+    ],
+    evidence: [
+      { title: "Buyer comparison photos", side: "buyer", source: "buyer upload", status: "submitted", detail: "Buyer attached product and packaging comparison images." },
+      { title: "Listing screenshot", side: "buyer", source: "buyer account", status: "submitted", detail: "Buyer attached the original listing details." },
+      { title: "Merchant sourcing note", side: "seller", source: "merchant ops", status: "submitted", detail: "Seller attached supplier or batch information." },
+      { title: "Return policy note", side: "seller", source: "policy desk", status: "submitted", detail: "Seller attached the applicable merchant return or authenticity policy." },
+      { title: "Order record", side: "authority", source: "order ledger", status: "authoritative", detail: "Authority order records confirm the purchased listing." },
+      { title: "Catalog metadata", side: "authority", source: "catalog system", status: "needs-review", detail: "Catalog or SKU metadata should be reconciled with the product evidence." },
+    ],
+    disagreements: [
+      "Buyer says the product does not match the listing or is counterfeit.",
+      "Seller disputes the buyer interpretation or requests a return-first path.",
+      "Listing, catalog, and evidence quality should drive the final resolution.",
+    ],
+  },
+  "service-cancellation": {
+    label: "Subscription cancellation billing",
+    templateKey: "service-cancellation",
+    requestedAction: "reverse renewal",
+    status: "awaiting resolution",
+    paymentStatus: "renewal captured",
+    fulfillment: "service remained active",
+    subject:
+      "Buyer says a subscription should have been canceled before billing but the merchant still renewed and charged the account.",
+    buyerStatement:
+      "I canceled before renewal, but billing still happened and the service renewed anyway.",
+    sellerStatement:
+      "The merchant needs to verify whether the cancellation event fully completed before the renewal cycle executed.",
+    buyerClaims: [
+      "buyer claims cancellation before renewal",
+      "merchant renewal event still fired",
+      "billing and cancellation logs are decisive",
+      "the case may end in reversal or denial",
+    ],
+    reviewNotes:
+      "This preset expands the console beyond physical retail into SaaS and membership support operations.",
+    timeline: [
+      { time: "T1", title: "Cancellation attempt", description: "Buyer says they canceled before renewal." },
+      { time: "T2", title: "Renewal charge posted", description: "Merchant billing still renewed the account." },
+      { time: "T3", title: "Billing dispute opened", description: "Buyer requested reversal." },
+      { time: "T4", title: "Lifecycle review", description: "Seller checked billing and subscription logs." },
+    ],
+    evidence: [
+      { title: "Cancellation confirmation", side: "buyer", source: "buyer inbox", status: "submitted", detail: "Buyer attached cancellation proof or email." },
+      { title: "Renewal charge proof", side: "buyer", source: "bank app", status: "submitted", detail: "Buyer attached the renewal charge." },
+      { title: "Subscription event log", side: "seller", source: "subscription backend", status: "submitted", detail: "Seller attached state-transition records." },
+      { title: "Support interaction log", side: "seller", source: "CRM", status: "submitted", detail: "Seller attached the relevant support interactions." },
+      { title: "Billing ledger", side: "authority", source: "billing ledger", status: "authoritative", detail: "Renewal billing time is confirmed in the ledger." },
+      { title: "Cancellation completion event", side: "authority", source: "subscription service", status: "needs-review", detail: "Cancellation timing must be reconciled with renewal timing." },
+    ],
+    disagreements: [
+      "Buyer says cancellation occurred before billing.",
+      "Seller says the account may still have been active at renewal time.",
+      "Authority billing and cancellation events should decide the outcome.",
+    ],
+  },
+  "warranty-claim": {
+    label: "Warranty replacement or refund",
+    templateKey: "warranty-claim",
+    requestedAction: "approve replacement",
+    status: "evidence ready",
+    paymentStatus: "paid in full",
+    fulfillment: "device or product in-use",
+    subject:
+      "Buyer says a product failed within the support period and requests warranty replacement or refund.",
+    buyerStatement:
+      "The product stopped working within the warranty window and I want a replacement or reimbursement.",
+    sellerStatement:
+      "The merchant needs to review purchase timing, defect evidence, and policy terms before replacement is approved.",
+    buyerClaims: [
+      "buyer claims defect within support period",
+      "seller has warranty policy and support records",
+      "proof of purchase is essential",
+      "the case may resolve as replacement, refund, or denial",
+    ],
+    reviewNotes:
+      "This preset is useful for electronics, appliances, and durable goods support teams.",
+    timeline: [
+      { time: "T1", title: "Original purchase", description: "Buyer purchased the product." },
+      { time: "T2", title: "Defect reported", description: "Buyer reported a defect within the support window." },
+      { time: "T3", title: "Warranty review started", description: "Seller checked support eligibility." },
+      { time: "T4", title: "Resolution pending", description: "Policy-backed decision will determine replacement or denial." },
+    ],
+    evidence: [
+      { title: "Defect photos or video", side: "buyer", source: "buyer upload", status: "submitted", detail: "Buyer attached proof of product failure." },
+      { title: "Proof of purchase", side: "buyer", source: "buyer account", status: "submitted", detail: "Buyer attached receipt and order history." },
+      { title: "Warranty terms", side: "seller", source: "merchant support", status: "submitted", detail: "Seller attached relevant warranty clauses." },
+      { title: "Support diagnostics", side: "seller", source: "repair desk", status: "submitted", detail: "Seller attached troubleshooting or inspection notes." },
+      { title: "Purchase ledger", side: "authority", source: "order ledger", status: "authoritative", detail: "Original purchase timing is confirmed." },
+      { title: "Support eligibility window", side: "authority", source: "policy service", status: "authoritative", detail: "Eligibility dates can be checked against policy." },
+    ],
+    disagreements: [
+      "Buyer says the product failure should be covered.",
+      "Seller says warranty terms or use conditions may limit coverage.",
+      "Purchase timing, defect evidence, and policy scope should drive the final decision.",
+    ],
+  },
+};
+
+function cloneData(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function baseReferences() {
+  return {
+    repoUrl: "https://github.com/Jinchainne/genlayer-policy-eco",
+    liveApp: "https://genlayer-policy-eco.vercel.app/",
+    contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
+    deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",
+    createPolicyTxUrl: "https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083",
+    evaluateTxUrl: "https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121",
+  };
+}
+
+function makeSeedCase({
+  id,
+  merchant,
+  buyer,
+  seller,
+  type,
+  amount,
+  atRisk,
+  paymentStatus,
+  fulfillment,
+}) {
+  const preset = GLOBAL_DISPUTE_PRESETS[type];
+  return {
+    id,
+    merchant,
+    buyer,
+    seller,
+    subject: preset.subject,
+    type,
+    status: preset.status,
+    amount,
+    atRisk,
+    paymentStatus: paymentStatus || preset.paymentStatus,
+    fulfillment: fulfillment || preset.fulfillment,
+    requestedAction: preset.requestedAction,
+    buyerStatement: preset.buyerStatement,
+    sellerStatement: preset.sellerStatement,
+    buyerClaims: cloneData(preset.buyerClaims),
+    reviewNotes: preset.reviewNotes,
+    references: baseReferences(),
+    timeline: cloneData(preset.timeline),
+    evidence: cloneData(preset.evidence),
+    disagreements: cloneData(preset.disagreements),
+  };
+}
+
+CASES.push(
+  makeSeedCase({
+    id: "ORD-2143",
+    merchant: "MetroParcel EU",
+    buyer: "Amelia Novak",
+    seller: "Cross-Border Delivery Ops",
+    type: "late-delivery",
+    amount: "96.00 EUR",
+    atRisk: "24.00 EUR",
+    paymentStatus: "paid by wallet",
+    fulfillment: "delivered Jul 27, 2026 18:10",
+  }),
+  makeSeedCase({
+    id: "ORD-2191",
+    merchant: "NovaPay Marketplace",
+    buyer: "Marcus Lee",
+    seller: "Chargeback Response Team",
+    type: "chargeback-risk",
+    amount: "420.00 USD",
+    atRisk: "420.00 USD",
+    paymentStatus: "card captured",
+    fulfillment: "digital goods released Jul 28, 2026 02:10",
+  }),
+  makeSeedCase({
+    id: "ORD-2230",
+    merchant: "StreamSpace Global",
+    buyer: "Lina Hassan",
+    seller: "Subscription Support",
+    type: "service-cancellation",
+    amount: "39.00 USD",
+    atRisk: "39.00 USD",
+    paymentStatus: "renewal captured",
+    fulfillment: "subscription renewed Jul 27, 2026",
+  }),
+);
 
 let contractAddress = "";
 let latestBundle = null;
@@ -325,11 +848,45 @@ function compactUrls(urls) {
   return urls.filter((url) => typeof url === "string" && url.trim() !== "");
 }
 
+function splitMoney(value) {
+  const raw = String(value || "").trim();
+  const amountMatch = raw.match(/[\d.,]+/);
+  const currencyMatch = raw.match(/[A-Z]{3,}/);
+  return {
+    amount: amountMatch ? amountMatch[0].replace(/,/g, "") : "",
+    currency: currencyMatch ? currencyMatch[0] : "USD",
+  };
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function buildPresetOptions() {
+  const options = Object.entries(GLOBAL_DISPUTE_PRESETS)
+    .map(
+      ([key, preset]) => `<option value="${escapeHtml(key)}">${escapeHtml(preset.label)}</option>`,
+    )
+    .join("");
+
+  createPresetSelect.innerHTML = `<option value="">Manual custom dispute</option>${options}`;
+  detailPresetSelect.innerHTML = `<option value="">Manual custom dispute</option>${options}`;
+}
+
+function applyPresetValuesToForm(formElement, presetKey) {
+  const preset = GLOBAL_DISPUTE_PRESETS[presetKey];
+  if (!preset) return;
+
+  if (formElement.elements.claimType) formElement.elements.claimType.value = presetKey;
+  if (formElement.elements.requestedAction) formElement.elements.requestedAction.value = preset.requestedAction;
+  if (formElement.elements.status) formElement.elements.status.value = preset.status;
+  if (formElement.elements.subject) formElement.elements.subject.value = preset.subject;
+  if (formElement.elements.buyerStatement) formElement.elements.buyerStatement.value = preset.buyerStatement;
+  if (formElement.elements.sellerStatement) formElement.elements.sellerStatement.value = preset.sellerStatement;
+  if (formElement.elements.reviewNotes) formElement.elements.reviewNotes.value = preset.reviewNotes;
 }
 
 function loadRecentRuns() {
@@ -578,10 +1135,34 @@ function renderEvidenceVault(caseItem) {
 }
 
 function inferTemplateFromCase(caseItem) {
+  if (GLOBAL_DISPUTE_PRESETS[caseItem.type]?.templateKey) {
+    return GLOBAL_DISPUTE_PRESETS[caseItem.type].templateKey;
+  }
   if (caseItem.type === "missing-item") return "delivery-missing";
   if (caseItem.type === "refund-delay") return "payment-refund";
   if (caseItem.type === "wrong-order") return "order-mismatch";
   return "delivery-damaged";
+}
+
+function hydrateCaseEditor(caseItem) {
+  const { amount, currency } = splitMoney(caseItem.amount);
+  const { amount: atRiskAmount } = splitMoney(caseItem.atRisk);
+
+  caseDetailForm.elements.presetType.value = GLOBAL_DISPUTE_PRESETS[caseItem.type] ? caseItem.type : "";
+  caseDetailForm.elements.caseId.value = caseItem.id;
+  caseDetailForm.elements.status.value = caseItem.status;
+  caseDetailForm.elements.claimType.value = caseItem.type;
+  caseDetailForm.elements.requestedAction.value = caseItem.requestedAction;
+  caseDetailForm.elements.currency.value = currency;
+  caseDetailForm.elements.merchant.value = caseItem.merchant;
+  caseDetailForm.elements.buyer.value = caseItem.buyer;
+  caseDetailForm.elements.seller.value = caseItem.seller;
+  caseDetailForm.elements.orderAmount.value = amount;
+  caseDetailForm.elements.riskAmount.value = atRiskAmount;
+  caseDetailForm.elements.subject.value = caseItem.subject;
+  caseDetailForm.elements.buyerStatement.value = caseItem.buyerStatement;
+  caseDetailForm.elements.sellerStatement.value = caseItem.sellerStatement;
+  caseDetailForm.elements.reviewNotes.value = caseItem.reviewNotes || "";
 }
 
 function hydrateFormsFromCase(caseItem) {
@@ -606,6 +1187,7 @@ function hydrateFormsFromCase(caseItem) {
   recommendedAction.textContent = caseItem.requestedAction;
   recommendedActionReason.textContent =
     `Current case pattern: ${caseItem.type}. Build the packet, run AI triage, then send the dispute through the reusable policy workflow.`;
+  hydrateCaseEditor(caseItem);
 }
 
 function buildEvidenceFromCase(caseItem) {
@@ -631,6 +1213,8 @@ function buildEvidenceFromCase(caseItem) {
 }
 
 function createCustomCase(form) {
+  const presetKey = String(form.get("presetType") || "").trim();
+  const preset = GLOBAL_DISPUTE_PRESETS[presetKey];
   const caseId = String(form.get("caseId") || "").trim();
   const claimType = String(form.get("claimType") || "").trim();
   const merchant = String(form.get("merchant") || "").trim();
@@ -648,48 +1232,45 @@ function createCustomCase(form) {
     merchant,
     buyer,
     seller,
-    subject,
-    type: titleFromClaimType(claimType),
-    status: "new",
+    subject: subject || preset?.subject || "Custom dispute case requires review.",
+    type: presetKey || titleFromClaimType(claimType),
+    status: preset?.status || "new",
     amount: normalizeMoney(orderAmount, currency),
     atRisk: normalizeMoney(riskAmountRaw, currency),
-    paymentStatus: `paid in ${currency}`,
-    fulfillment: "submitted Jul 28, 2026",
-    requestedAction: "custom resolution",
-    buyerStatement: buyerSide,
-    sellerStatement: sellerSide,
-    buyerClaims: [
-      `${claimType} dispute opened`,
-      "buyer submitted statement",
-      "seller response recorded",
-      "case requires qualitative review",
-    ],
+    paymentStatus: preset?.paymentStatus || `paid in ${currency}`,
+    fulfillment: preset?.fulfillment || "submitted Jul 28, 2026",
+    requestedAction: preset?.requestedAction || "custom resolution",
+    buyerStatement: buyerSide || preset?.buyerStatement || "Buyer statement pending.",
+    sellerStatement: sellerSide || preset?.sellerStatement || "Seller response pending.",
+    buyerClaims: preset
+      ? cloneData(preset.buyerClaims)
+      : [`${claimType} dispute opened`, "buyer submitted statement", "seller response recorded", "case requires qualitative review"],
     reviewNotes:
+      preset?.reviewNotes ||
       "Custom case created by operator. Add buyer, seller, and authority evidence before final policy evaluation.",
-    references: {
-      repoUrl: "https://github.com/Jinchainne/genlayer-policy-eco",
-      liveApp: "https://genlayer-policy-eco.vercel.app/",
-      contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
-      deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",
-      createPolicyTxUrl: "https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083",
-      evaluateTxUrl: "https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121",
-    },
-    timeline: [
-      { time: "Now", title: "Case opened", description: "Operator created a custom dispute intake case." },
-      { time: "Next", title: "Evidence intake", description: "Buyer, seller, and authority records should be attached." },
-      { time: "Next", title: "AI triage", description: "Copilot can review the packet before onchain evaluation." },
-      { time: "Final", title: "Resolution workflow", description: "Run policy evaluation and map the verdict to an action." },
-    ],
-    evidence: [
-      { title: "Buyer statement", side: "buyer", source: "manual intake", status: "submitted", detail: buyerSide },
-      { title: "Seller response", side: "seller", source: "manual intake", status: "submitted", detail: sellerSide },
-      { title: "Authority record placeholder", side: "authority", source: "pending source", status: "needs-review", detail: "Attach invoice, payment proof, delivery logs, policy URL, or another authoritative source." },
-    ],
-    disagreements: [
-      "Buyer and seller positions are both recorded.",
-      "Authority evidence still needs to be attached or expanded.",
-      "Final decision should be delayed if the packet remains incomplete.",
-    ],
+    references: baseReferences(),
+    timeline: preset
+      ? cloneData(preset.timeline)
+      : [
+          { time: "Now", title: "Case opened", description: "Operator created a custom dispute intake case." },
+          { time: "Next", title: "Evidence intake", description: "Buyer, seller, and authority records should be attached." },
+          { time: "Next", title: "AI triage", description: "Copilot can review the packet before onchain evaluation." },
+          { time: "Final", title: "Resolution workflow", description: "Run policy evaluation and map the verdict to an action." },
+        ],
+    evidence: preset
+      ? cloneData(preset.evidence)
+      : [
+          { title: "Buyer statement", side: "buyer", source: "manual intake", status: "submitted", detail: buyerSide },
+          { title: "Seller response", side: "seller", source: "manual intake", status: "submitted", detail: sellerSide },
+          { title: "Authority record placeholder", side: "authority", source: "pending source", status: "needs-review", detail: "Attach invoice, payment proof, delivery logs, policy URL, or another authoritative source." },
+        ],
+    disagreements: preset
+      ? cloneData(preset.disagreements)
+      : [
+          "Buyer and seller positions are both recorded.",
+          "Authority evidence still needs to be attached or expanded.",
+          "Final decision should be delayed if the packet remains incomplete.",
+        ],
   };
 
   CASES = [customCase, ...CASES];
@@ -706,6 +1287,61 @@ function createCustomCase(form) {
     outcome: claimType,
     action: "collect_evidence",
     notes: "Operator added a new custom dispute case to the queue.",
+    timestamp: new Date().toLocaleString(),
+  });
+}
+
+function updateCurrentCase(form) {
+  const current = getCaseById(selectedCaseId);
+  const presetKey = String(form.get("presetType") || "").trim();
+  const preset = GLOBAL_DISPUTE_PRESETS[presetKey];
+  const caseId = String(form.get("caseId") || "").trim();
+  const claimTypeValue = String(form.get("claimType") || "").trim();
+  const merchant = String(form.get("merchant") || "").trim();
+  const buyer = String(form.get("buyer") || "").trim();
+  const seller = String(form.get("seller") || "").trim();
+  const currency = String(form.get("currency") || "USD").trim().toUpperCase();
+  const orderAmount = String(form.get("orderAmount") || "").trim();
+  const riskAmountRaw = String(form.get("riskAmount") || "").trim();
+  const status = String(form.get("status") || "").trim();
+  const requestedActionValue = String(form.get("requestedAction") || "").trim();
+  const subject = String(form.get("subject") || "").trim();
+  const buyerSide = String(form.get("buyerStatement") || "").trim();
+  const sellerSide = String(form.get("sellerStatement") || "").trim();
+  const reviewNotes = String(form.get("reviewNotes") || "").trim();
+
+  const updated = {
+    ...current,
+    id: caseId,
+    type: presetKey || titleFromClaimType(claimTypeValue),
+    merchant,
+    buyer,
+    seller,
+    status,
+    requestedAction: requestedActionValue,
+    amount: normalizeMoney(orderAmount, currency),
+    atRisk: normalizeMoney(riskAmountRaw, currency),
+    subject,
+    buyerStatement: buyerSide,
+    sellerStatement: sellerSide,
+    reviewNotes: reviewNotes || preset?.reviewNotes || current.reviewNotes,
+    buyerClaims: preset ? cloneData(preset.buyerClaims) : current.buyerClaims,
+    timeline: preset ? cloneData(preset.timeline) : current.timeline,
+    evidence: preset ? cloneData(preset.evidence) : current.evidence,
+    disagreements: preset ? cloneData(preset.disagreements) : current.disagreements,
+  };
+
+  CASES = CASES.map((item) => (item.id === selectedCaseId ? updated : item));
+  selectedCaseId = updated.id;
+  renderCaseQueue();
+  fillCaseDetail(updated);
+  saveDecisionEvent({
+    caseId: updated.id,
+    projectName: updated.id,
+    type: "case_updated",
+    outcome: updated.type,
+    action: updated.requestedAction,
+    notes: "Operator updated the active dispute intake and normalized it for policy review.",
     timestamp: new Date().toLocaleString(),
   });
 }
@@ -944,6 +1580,7 @@ function loadDemoBundle() {
 
 policyForm.querySelector("button").dataset.idleText = "Create Resolution Policy";
 workflowForm.querySelector("button").dataset.idleText = "Run Resolution Workflow";
+buildPresetOptions();
 
 builderForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -956,6 +1593,21 @@ caseCreateForm.addEventListener("submit", (event) => {
   createCustomCase(form);
   caseCreateForm.reset();
   caseCreateForm.elements.currency.value = "USD";
+  caseCreateForm.elements.presetType.value = "";
+});
+
+caseDetailForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const form = new FormData(caseDetailForm);
+  updateCurrentCase(form);
+});
+
+createPresetSelect.addEventListener("change", () => {
+  applyPresetValuesToForm(caseCreateForm, createPresetSelect.value);
+});
+
+detailPresetSelect.addEventListener("change", () => {
+  applyPresetValuesToForm(caseDetailForm, detailPresetSelect.value);
 });
 
 applyBundleButton.addEventListener("click", () => {
@@ -966,6 +1618,13 @@ applyBundleButton.addEventListener("click", () => {
   } catch (error) {
     workflowOutput.textContent = error.message;
   }
+});
+
+jumpToBuilderButton.addEventListener("click", () => {
+  const form = new FormData(caseDetailForm);
+  updateCurrentCase(form);
+  activateDetailTab("builderTab");
+  buildBundle();
 });
 
 loadDemoButton.addEventListener("click", loadDemoBundle);
