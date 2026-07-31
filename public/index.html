@@ -6,864 +6,611 @@
     <title>Order Resolution Console</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="shell">
-      <section class="network-rail">
-        <div class="rail-brand">
-          <span class="rail-logo"></span>
-          <div>
-            <strong>POLICYECO</strong>
-            <span>order resolution suite</span>
-          </div>
-        </div>
-        <div class="rail-ticker">
-          <div id="railTickerTrack" class="rail-ticker-track">
-            <span>studionet live</span>
-            <span>policy oracle online</span>
-            <span>merchant ops console</span>
-            <span>genlayer workflow active</span>
-          </div>
-        </div>
-        <div class="rail-stats">
-          <span id="networkCaseStat">CASES: 0</span>
-          <span>CHAIN: STUDIO</span>
-          <span id="networkAiStat">AI: READY</span>
-        </div>
-      </section>
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1>Order Resolution Console</h1>
+        <p class="topbar-sub">Merchant dispute management powered by GenLayer</p>
+      </div>
+      <nav class="topbar-nav">
+        <a href="#queue" class="nav-link nav-active" data-nav="queue">Dispute Queue</a>
+        <a href="#resolution" class="nav-link" data-nav="resolution">Resolution</a>
+        <a href="#history" class="nav-link" data-nav="history">History</a>
+        <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer" class="nav-link nav-external">GitHub</a>
+      </nav>
+      <div class="topbar-right">
+        <span id="contractPill" class="contract-pill">Loading contract...</span>
+      </div>
+    </header>
 
-      <section class="topbar">
-        <div>
-          <p class="kicker">GenLayer Merchant Infrastructure</p>
-          <h1><span>Order Resolution</span><span>Console</span></h1>
-          <p class="lede">
-            A commerce dispute desk for payment, delivery, and refund cases. Review both sides,
-            build an authoritative evidence packet, run AI-assisted triage, and bind the final
-            decision to a live GenLayer policy workflow.
-          </p>
-          <div class="hero-action-row">
-            <span class="hero-chip">refund control</span>
-            <span class="hero-chip">payout protection</span>
-            <span class="hero-chip">fraud escalation</span>
-            <span class="hero-chip">authority evidence</span>
-          </div>
+    <main class="app-layout">
+      <!-- LEFT: Case Queue -->
+      <section class="queue-panel" id="queue">
+        <div class="panel-header">
+          <h2>Dispute Queue</h2>
+          <span class="case-count" id="activeCaseCount">0 cases</span>
         </div>
 
-        <div class="topbar-side">
-          <div class="top-card">
-            <span class="meta-label">Connected contract</span>
-            <span id="contractAddressPill" class="pill">Loading contract...</span>
-          </div>
-          <div class="top-card">
-            <span class="meta-label">Typical actions</span>
-            <div class="pill-row">
-              <span class="pill">approve refund</span>
-              <span class="pill">hold payout</span>
-              <span class="pill">escalate review</span>
-            </div>
-          </div>
-          <div class="top-card status-matrix-card">
-            <span class="meta-label">Operations board</span>
-            <div class="status-matrix">
-              <div class="status-cell">
-                <span>resolution window</span>
-                <strong id="resolutionWindowStat">&lt; 24h</strong>
-              </div>
-              <div class="status-cell">
-                <span>authority sync</span>
-                <strong id="authoritySyncStat">82%</strong>
-              </div>
-              <div class="status-cell">
-                <span>AI copilot</span>
-                <strong id="aiCopilotStat">2 live</strong>
-              </div>
-              <div class="status-cell">
-                <span>workflow mode</span>
-                <strong id="workflowModeStat">GenLayer</strong>
-              </div>
-            </div>
-          </div>
+        <div class="queue-controls">
+          <input id="queueSearch" class="search-input" placeholder="Search cases..." />
+          <select id="queueStatusFilter" class="filter-select">
+            <option value="all">All statuses</option>
+            <option value="new">new</option>
+            <option value="evidence ready">evidence ready</option>
+            <option value="awaiting resolution">awaiting resolution</option>
+            <option value="refund approved">refund approved</option>
+            <option value="payout on hold">payout on hold</option>
+            <option value="fraud review queue">fraud review queue</option>
+          </select>
         </div>
-      </section>
 
-      <section class="hero-ledger">
-        <article class="ledger-card">
-          <span class="meta-label">Primary use case</span>
-          <strong>Cross-border order disputes with payout-sensitive resolution.</strong>
-          <p>Merchants, delivery operators, and support teams can verify who should receive money, refund, replacement, or escalation based on structured evidence instead of chat-only narratives.</p>
-        </article>
-        <article class="ledger-card">
-          <span class="meta-label">Why GenLayer</span>
-          <strong>Non-deterministic judgment with onchain policy memory.</strong>
-          <p>The workflow combines flexible case evidence, AI-assisted triage, policy evaluation, and reusable verdict logic so every resolution can be inspected, replayed, and extended.</p>
-        </article>
-      </section>
+        <div id="caseQueue" class="queue-list"></div>
 
-      <section class="signal-strip">
-        <div class="signal-pill">queue-led review</div>
-        <div class="signal-pill">buyer vs seller evidence</div>
-        <div class="signal-pill">authority-source checks</div>
-        <div class="signal-pill">AI-assisted triage</div>
-        <div class="signal-pill">policy-controlled resolution</div>
-        <div class="signal-pill">live GenLayer workflow</div>
-      </section>
-
-      <section class="ops-banner" id="runtimeNotice">
-        <strong>Operations status</strong>
-        <span>The console is configured for live policy creation, AI triage, case review, and GenLayer-backed resolution gating.</span>
-      </section>
-
-      <section class="ops-metrics">
-        <article class="metric-card">
-          <span class="meta-label">Queue exposure</span>
-          <strong id="queueExposureMetric">0 USD</strong>
-          <p>Capital currently exposed across active disputes.</p>
-        </article>
-        <article class="metric-card">
-          <span class="meta-label">Authority gaps</span>
-          <strong id="authorityGapMetric">0</strong>
-          <p>Cases still missing decisive ledger or logistics proof.</p>
-        </article>
-        <article class="metric-card">
-          <span class="meta-label">Payout holds</span>
-          <strong id="payoutHoldMetric">0</strong>
-          <p>Cases mapped to hold or fraud-protection actions.</p>
-        </article>
-        <article class="metric-card">
-          <span class="meta-label">SLA risk</span>
-          <strong id="slaRiskMetric">0</strong>
-          <p>Delivery or subscription cases close to support breach.</p>
-        </article>
-      </section>
-
-      <section class="dashboard-grid">
-        <aside class="panel queue-panel panel-shell">
-          <div class="panel-head">
-            <p class="section-label">Case Queue</p>
-            <h2>Incoming disputes</h2>
-            <p>Review buyer claims, seller responses, amounts at risk, and readiness before resolution.</p>
-          </div>
-
-          <div class="panel-scroll queue-scroll">
-            <div class="queue-toolbar">
-              <span class="toolbar-chip">July 28, 2026</span>
-              <span class="toolbar-chip" id="activeCaseCount">3 active cases</span>
-              <span class="toolbar-chip">studionet ready</span>
-            </div>
-
-            <div class="queue-filters">
+        <details class="add-case-section">
+          <summary class="add-case-toggle">+ Add New Case</summary>
+          <form id="caseCreateForm" class="case-form">
+            <div class="form-row">
               <label>
-                Search
-                <input id="queueSearch" placeholder="Search case, merchant, buyer..." />
+                Case ID
+                <input name="caseId" placeholder="ORD-5001" required />
               </label>
               <label>
-                Status filter
-                <select id="queueStatusFilter">
-                  <option value="all">All statuses</option>
-                  <option value="new">new</option>
-                  <option value="evidence ready">evidence ready</option>
-                  <option value="awaiting resolution">awaiting resolution</option>
-                  <option value="refund approved">refund approved</option>
-                  <option value="payout on hold">payout on hold</option>
-                  <option value="fraud review queue">fraud review queue</option>
+                Dispute type
+                <select name="presetType">
+                  <option value="">Custom dispute</option>
                 </select>
               </label>
             </div>
+            <div class="form-row">
+              <label>
+                Merchant
+                <input name="merchant" placeholder="NorthStar Grocery" required />
+              </label>
+              <label>
+                Buyer
+                <input name="buyer" placeholder="Olivia Carter" required />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Claim type
+                <input name="claimType" placeholder="late-delivery / chargeback" required />
+              </label>
+              <label>
+                Currency
+                <input name="currency" value="USD" required />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Order total
+                <input name="orderAmount" placeholder="142.00" required />
+              </label>
+              <label>
+                Amount at risk
+                <input name="riskAmount" placeholder="58.00" required />
+              </label>
+            </div>
+            <label>
+              Subject
+              <textarea name="subject" rows="2" placeholder="Brief description of the dispute." required></textarea>
+            </label>
+            <div class="form-row">
+              <label>
+                Buyer statement
+                <textarea name="buyerStatement" rows="2" placeholder="Buyer's side." required></textarea>
+              </label>
+              <label>
+                Seller response
+                <textarea name="sellerStatement" rows="2" placeholder="Seller's side." required></textarea>
+              </label>
+            </div>
+            <label>
+              Seller team
+              <input name="seller" placeholder="Merchant Resolution Desk" required />
+            </label>
+            <button type="submit" class="btn-primary">Add Case</button>
+          </form>
+        </details>
+      </section>
 
-            <div id="caseQueue" class="queue-list"></div>
+      <!-- CENTER: Case Detail -->
+      <section class="detail-panel" id="detail">
+        <div class="panel-header">
+          <div>
+            <h2 id="caseTitle">Select a case</h2>
+            <p id="caseSubtitle" class="panel-desc">Choose a dispute from the queue to view details.</p>
+          </div>
+        </div>
 
-            <details class="queue-create-card" open>
-              <summary class="queue-create-summary">
-                <span>
-                  <span class="section-label">Custom Intake</span>
-                  <strong>Add custom case</strong>
-                </span>
-                <span class="toolbar-chip">global-ready</span>
-              </summary>
+        <div class="tab-bar" id="detailTabs">
+          <button type="button" class="tab tab-active" data-detail-tab="overviewTab">Overview</button>
+          <button type="button" class="tab" data-detail-tab="intakeTab">Edit Case</button>
+          <button type="button" class="tab" data-detail-tab="vaultTab">Evidence</button>
+          <button type="button" class="tab" data-detail-tab="builderTab">Build Packet</button>
+        </div>
 
-              <form id="caseCreateForm" class="stack compact-form">
+        <!-- Overview Tab -->
+        <section id="overviewTab" class="tab-content tab-content-active">
+          <div class="summary-row">
+            <div class="summary-item">
+              <span class="label">Order</span>
+              <strong id="orderNumber">-</strong>
+              <span class="sub" id="orderMeta">-</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">At Risk</span>
+              <strong id="riskAmount">-</strong>
+              <span class="sub" id="riskMeta">-</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Claim</span>
+              <strong id="claimType">-</strong>
+              <span class="sub" id="claimStatus">-</span>
+            </div>
+          </div>
+
+          <div class="party-row">
+            <div class="party-card">
+              <span class="label">Buyer</span>
+              <h3 id="buyerName">-</h3>
+              <p id="buyerStatement">-</p>
+            </div>
+            <div class="party-card">
+              <span class="label">Seller</span>
+              <h3 id="sellerName">-</h3>
+              <p id="sellerStatement">-</p>
+            </div>
+          </div>
+
+          <div class="timeline-section">
+            <div class="section-header">
+              <span class="label">Timeline</span>
+              <span id="resolutionWindow" class="time-badge">-</span>
+            </div>
+            <div id="caseTimeline" class="timeline"></div>
+          </div>
+
+          <div class="evidence-row">
+            <div class="evidence-card">
+              <div class="section-header">
+                <span class="label">Authority Checks</span>
+                <span id="evidenceCount" class="count-badge">0 sources</span>
+              </div>
+              <div id="authoritativeEvidence" class="evidence-list"></div>
+            </div>
+            <div class="evidence-card">
+              <span class="label">Key Disagreements</span>
+              <div id="disagreementList" class="disagreement-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Edit Case Tab -->
+        <section id="intakeTab" class="tab-content">
+          <form id="caseDetailForm" class="case-form">
+            <div class="form-row form-row-3">
+              <label>
+                Preset type
+                <select id="detailPreset" name="presetType">
+                  <option value="">Custom dispute</option>
+                </select>
+              </label>
+              <label>
+                Case ID
+                <input name="caseId" required />
+              </label>
+              <label>
+                Status
+                <input name="status" placeholder="new / evidence ready" required />
+              </label>
+            </div>
+            <div class="form-row form-row-3">
+              <label>
+                Claim type
+                <input name="claimType" placeholder="missing-item / late-delivery" required />
+              </label>
+              <label>
+                Requested action
+                <input name="requestedAction" placeholder="partial refund" required />
+              </label>
+              <label>
+                Currency
+                <input name="currency" value="USD" required />
+              </label>
+            </div>
+            <div class="form-row form-row-3">
+              <label>
+                Merchant
+                <input name="merchant" required />
+              </label>
+              <label>
+                Buyer
+                <input name="buyer" required />
+              </label>
+              <label>
+                Seller team
+                <input name="seller" required />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Order total
+                <input name="orderAmount" placeholder="248.00" required />
+              </label>
+              <label>
+                Amount at risk
+                <input name="riskAmount" placeholder="74.00" required />
+              </label>
+            </div>
+            <label>
+              Subject
+              <textarea name="subject" rows="2" required></textarea>
+            </label>
+            <div class="form-row">
+              <label>
+                Buyer statement
+                <textarea name="buyerStatement" rows="3" required></textarea>
+              </label>
+              <label>
+                Seller response
+                <textarea name="sellerStatement" rows="3" required></textarea>
+              </label>
+            </div>
+            <label>
+              Review notes
+              <textarea name="reviewNotes" rows="2" placeholder="What should the operator verify next?"></textarea>
+            </label>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Update Case</button>
+              <button type="button" id="jumpToBuilderButton" class="btn-secondary">Update &amp; Build Packet</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Evidence Vault Tab -->
+        <section id="vaultTab" class="tab-content">
+          <div class="vault-grid">
+            <div class="vault-column">
+              <div class="section-header">
+                <span class="label">Buyer Evidence</span>
+                <span id="buyerVaultCount" class="count-badge">0 items</span>
+              </div>
+              <div id="buyerVault" class="vault-list"></div>
+            </div>
+            <div class="vault-column">
+              <div class="section-header">
+                <span class="label">Seller Evidence</span>
+                <span id="sellerVaultCount" class="count-badge">0 items</span>
+              </div>
+              <div id="sellerVault" class="vault-list"></div>
+            </div>
+            <div class="vault-column">
+              <div class="section-header">
+                <span class="label">Authority Records</span>
+                <span id="authorityVaultCount" class="count-badge">0 items</span>
+              </div>
+              <div id="authorityVault" class="vault-list"></div>
+            </div>
+          </div>
+
+          <div class="evidence-form-section">
+            <h3>Add Evidence</h3>
+            <form id="evidenceForm" class="case-form">
+              <input type="hidden" name="evidenceIndex" value="" />
+              <div class="form-row form-row-3">
                 <label>
-                  Preset dispute type
-                  <select name="presetType">
-                    <option value="">Manual custom dispute</option>
+                  Side
+                  <select name="side" required>
+                    <option value="buyer">Buyer</option>
+                    <option value="seller">Seller</option>
+                    <option value="authority">Authority</option>
                   </select>
                 </label>
-
-                <div class="split">
-                  <label>
-                    Case ID
-                    <input name="caseId" placeholder="ORD-5001" required />
-                  </label>
-                  <label>
-                    Dispute type
-                    <input name="claimType" placeholder="late-delivery / chargeback / policy-breach" required />
-                  </label>
-                </div>
-
-                <div class="split">
-                  <label>
-                    Merchant
-                    <input name="merchant" placeholder="NorthStar Grocery" required />
-                  </label>
-                  <label>
-                    Buyer
-                    <input name="buyer" placeholder="Olivia Carter" required />
-                  </label>
-                </div>
-
-                <div class="split">
-                  <label>
-                    Seller team
-                    <input name="seller" placeholder="Merchant Resolution Desk" required />
-                  </label>
-                  <label>
-                    Currency
-                    <input name="currency" value="USD" required />
-                  </label>
-                </div>
-
-                <div class="split">
-                  <label>
-                    Order total
-                    <input name="orderAmount" placeholder="142.00" required />
-                  </label>
-                  <label>
-                    Amount at risk
-                    <input name="riskAmount" placeholder="58.00" required />
-                  </label>
-                </div>
-
                 <label>
-                  Subject
-                  <textarea name="subject" rows="3" placeholder="Buyer says the order arrived late and requests compensation after a failed delivery promise." required></textarea>
+                  Status
+                  <select name="status" required>
+                    <option value="submitted">submitted</option>
+                    <option value="time-verified">time-verified</option>
+                    <option value="authoritative">authoritative</option>
+                    <option value="pending-proof">pending-proof</option>
+                    <option value="needs-review">needs-review</option>
+                    <option value="missing">missing</option>
+                  </select>
                 </label>
-
                 <label>
-                  Buyer statement
-                  <textarea name="buyerStatement" rows="3" placeholder="Describe the buyer side." required></textarea>
+                  Source
+                  <input name="source" placeholder="buyer upload / payment ledger" required />
                 </label>
-
-                <label>
-                  Seller response
-                  <textarea name="sellerStatement" rows="3" placeholder="Describe the seller side." required></textarea>
-                </label>
-
-                <button type="submit">Add Custom Case</button>
-              </form>
-            </details>
+              </div>
+              <label>
+                Title
+                <input name="title" placeholder="Evidence title" required />
+              </label>
+              <label>
+                Detail
+                <textarea name="detail" rows="2" placeholder="What this evidence proves." required></textarea>
+              </label>
+              <div class="form-actions">
+                <button type="submit" id="saveEvidenceButton" class="btn-primary">Add Evidence</button>
+                <button type="button" id="resetEvidenceButton" class="btn-ghost">Reset</button>
+              </div>
+            </form>
           </div>
-        </aside>
 
-        <section class="detail-stack">
-          <article class="panel workbench-panel panel-shell">
-            <div class="panel-head">
-              <p class="section-label">Operations Workbench</p>
-              <h2 id="caseTitle">Case detail</h2>
-              <p id="caseSubtitle">Select a case from the queue to inspect the dispute record.</p>
+          <div class="evidence-form-section">
+            <h3>Ingest Source Data</h3>
+            <div class="source-chips">
+              <button type="button" class="chip" data-source-template="order_ledger">Order ledger</button>
+              <button type="button" class="chip" data-source-template="payment_ledger">Payment ledger</button>
+              <button type="button" class="chip" data-source-template="shipping_events">Shipping events</button>
+              <button type="button" class="chip" data-source-template="support_crm">Support CRM</button>
+              <button type="button" class="chip" data-source-template="fraud_signal">Fraud signal</button>
             </div>
-
-            <div class="panel-scroll workbench-scroll">
-              <div class="workspace-rail">
-                <span class="workspace-tag">review desk</span>
-                <span class="workspace-tag">evidence vault</span>
-                <span class="workspace-tag">packet composer</span>
+            <form id="sourceIngestForm" class="case-form">
+              <label>
+                Source type
+                <input name="sourceType" placeholder="Select a source above" required />
+              </label>
+              <label>
+                Payload JSON
+                <textarea name="payload" rows="4" placeholder='{"orderId":"ORD-2048","status":"paid"}' required></textarea>
+              </label>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">Ingest Source</button>
+                <button type="button" id="resetSourceIngestButton" class="btn-ghost">Reset</button>
               </div>
-              <div class="detail-tabs" id="detailTabs">
-                <button type="button" class="tab-button tab-active" data-detail-tab="overviewTab">Overview</button>
-                <button type="button" class="tab-button" data-detail-tab="intakeTab">Intake Editor</button>
-                <button type="button" class="tab-button" data-detail-tab="vaultTab">Evidence Vault</button>
-                <button type="button" class="tab-button" data-detail-tab="builderTab">Packet Builder</button>
-              </div>
+            </form>
+          </div>
+        </section>
 
-              <section id="overviewTab" class="detail-panel detail-panel-active">
-              <div class="order-grid">
-                <div class="summary-card">
-                  <span class="meta-label">Order</span>
-                  <strong id="orderNumber">-</strong>
-                  <p id="orderMeta">-</p>
-                </div>
-                <div class="summary-card">
-                  <span class="meta-label">Money at risk</span>
-                  <strong id="riskAmount">-</strong>
-                  <p id="riskMeta">-</p>
-                </div>
-                <div class="summary-card">
-                  <span class="meta-label">Current claim</span>
-                  <strong id="claimType">-</strong>
-                  <p id="claimStatus">-</p>
-                </div>
-              </div>
-
-              <div class="participant-grid">
-                <article class="party-card">
-                  <span class="meta-label">Buyer statement</span>
-                  <h3 id="buyerName">-</h3>
-                  <p id="buyerStatement">-</p>
-                </article>
-                <article class="party-card">
-                  <span class="meta-label">Seller response</span>
-                  <h3 id="sellerName">-</h3>
-                  <p id="sellerStatement">-</p>
-                </article>
-              </div>
-
-              <div class="timeline-card">
-                <div class="timeline-head">
-                  <span class="meta-label">Case timeline</span>
-                  <span id="resolutionWindow" class="timeline-window">-</span>
-                </div>
-                <div id="caseTimeline" class="timeline-list"></div>
-              </div>
-
-              <div class="evidence-columns compact-columns">
-                <article class="evidence-card">
-                  <div class="evidence-head">
-                    <span class="meta-label">Authority checks</span>
-                    <span class="evidence-count" id="evidenceCount">0 sources</span>
-                  </div>
-                  <div id="authoritativeEvidence" class="evidence-list"></div>
-                </article>
-
-                <article class="evidence-card">
-                  <div class="evidence-head">
-                    <span class="meta-label">Disagreement handling</span>
-                  </div>
-                  <div id="disagreementList" class="bullet-list"></div>
-                </article>
-              </div>
-              </section>
-
-              <section id="intakeTab" class="detail-panel">
-              <article class="evidence-card intake-editor-card">
-                <div class="panel-head compact-head">
-                  <p class="section-label">Flexible Intake</p>
-                  <h2>Edit current dispute</h2>
-                  <p>Use a global preset or rewrite the active case for marketplaces, retail chains, logistics, subscriptions, or chargeback operations.</p>
-                </div>
-
-                <form id="caseDetailForm" class="stack compact-form">
-                  <div class="split triple-split">
-                    <label>
-                      Preset dispute type
-                      <select id="detailPreset" name="presetType">
-                        <option value="">Manual custom dispute</option>
-                      </select>
-                    </label>
-                    <label>
-                      Case ID
-                      <input name="caseId" required />
-                    </label>
-                    <label>
-                      Status
-                      <input name="status" placeholder="new / evidence ready / awaiting resolution" required />
-                    </label>
-                  </div>
-
-                  <div class="split triple-split">
-                    <label>
-                      Claim type
-                      <input name="claimType" placeholder="missing-item / late-delivery / chargeback-risk" required />
-                    </label>
-                    <label>
-                      Requested action
-                      <input name="requestedAction" placeholder="partial refund / release seller / escalate manual" required />
-                    </label>
-                    <label>
-                      Currency
-                      <input name="currency" value="USD" required />
-                    </label>
-                  </div>
-
-                  <div class="split triple-split">
-                    <label>
-                      Merchant
-                      <input name="merchant" required />
-                    </label>
-                    <label>
-                      Buyer
-                      <input name="buyer" required />
-                    </label>
-                    <label>
-                      Seller team
-                      <input name="seller" required />
-                    </label>
-                  </div>
-
-                  <div class="split">
-                    <label>
-                      Order total
-                      <input name="orderAmount" placeholder="248.00" required />
-                    </label>
-                    <label>
-                      Amount at risk
-                      <input name="riskAmount" placeholder="74.00" required />
-                    </label>
-                  </div>
-
-                  <label>
-                    Subject
-                    <textarea name="subject" rows="3" required></textarea>
-                  </label>
-
-                  <div class="split">
-                    <label>
-                      Buyer statement
-                      <textarea name="buyerStatement" rows="4" required></textarea>
-                    </label>
-                    <label>
-                      Seller response
-                      <textarea name="sellerStatement" rows="4" required></textarea>
-                    </label>
-                  </div>
-
-                  <label>
-                    Review notes
-                    <textarea name="reviewNotes" rows="3" placeholder="Summarize what the operator should verify next."></textarea>
-                  </label>
-
-                  <div class="action-row">
-                    <button type="submit">Update Current Case</button>
-                    <button type="button" id="jumpToBuilderButton" class="button-secondary">Update And Build Packet</button>
-                  </div>
-                </form>
-              </article>
-              </section>
-
-              <section id="vaultTab" class="detail-panel">
-              <article class="vault-card">
-                <div class="panel-head vault-head">
-                  <div>
-                    <p class="section-label">Evidence Vault</p>
-                    <h2>Source-by-source case record</h2>
-                  </div>
-                  <span id="vaultStatus" class="toolbar-chip">Vault ready</span>
-                </div>
-
-                <div class="vault-grid">
-                  <section class="vault-column">
-                    <div class="vault-column-head">
-                      <span class="meta-label">Buyer uploads</span>
-                      <span id="buyerVaultCount" class="evidence-count">0 items</span>
-                    </div>
-                    <div id="buyerVault" class="vault-list"></div>
-                  </section>
-
-                  <section class="vault-column">
-                    <div class="vault-column-head">
-                      <span class="meta-label">Seller records</span>
-                      <span id="sellerVaultCount" class="evidence-count">0 items</span>
-                    </div>
-                    <div id="sellerVault" class="vault-list"></div>
-                  </section>
-
-                  <section class="vault-column">
-                    <div class="vault-column-head">
-                      <span class="meta-label">Authority checks</span>
-                      <span id="authorityVaultCount" class="evidence-count">0 items</span>
-                    </div>
-                    <div id="authorityVault" class="vault-list"></div>
-                  </section>
-                </div>
-
-                <article class="evidence-card evidence-composer-card">
-                  <div class="panel-head compact-head">
-                    <p class="section-label">Evidence Composer</p>
-                    <h2>Add or revise evidence</h2>
-                    <p>Create buyer, seller, or authority records directly inside the active dispute.</p>
-                  </div>
-
-                  <form id="evidenceForm" class="stack compact-form">
-                    <input type="hidden" name="evidenceIndex" value="" />
-
-                    <div class="split triple-split">
-                      <label>
-                        Evidence side
-                        <select name="side" required>
-                          <option value="buyer">Buyer</option>
-                          <option value="seller">Seller</option>
-                          <option value="authority">Authority</option>
-                        </select>
-                      </label>
-                      <label>
-                        Status
-                        <select name="status" required>
-                          <option value="submitted">submitted</option>
-                          <option value="time-verified">time-verified</option>
-                          <option value="authoritative">authoritative</option>
-                          <option value="pending-proof">pending-proof</option>
-                          <option value="needs-review">needs-review</option>
-                          <option value="missing">missing</option>
-                        </select>
-                      </label>
-                      <label>
-                        Source
-                        <input name="source" placeholder="buyer upload / payment ledger / CRM" required />
-                      </label>
-                    </div>
-
-                    <label>
-                      Evidence title
-                      <input name="title" placeholder="Refund processor receipt" required />
-                    </label>
-
-                    <label>
-                      Evidence detail
-                      <textarea name="detail" rows="3" placeholder="Describe what this evidence proves and why it matters." required></textarea>
-                    </label>
-
-                    <div class="action-row">
-                      <button type="submit" id="saveEvidenceButton">Add Evidence Record</button>
-                      <button type="button" id="resetEvidenceButton" class="button-ghost">Reset Editor</button>
-                    </div>
-                  </form>
-                </article>
-
-                <article class="evidence-card evidence-ingest-card">
-                  <div class="panel-head compact-head">
-                    <p class="section-label">Source Intake</p>
-                    <h2>Ingest structured records</h2>
-                    <p>Simulate merchant, payment, logistics, and CRM systems feeding authoritative evidence into the active dispute.</p>
-                  </div>
-
-                  <div class="action-chip-grid">
-                    <button type="button" class="action-chip source-chip" data-source-template="order_ledger">Order ledger</button>
-                    <button type="button" class="action-chip source-chip" data-source-template="payment_ledger">Payment ledger</button>
-                    <button type="button" class="action-chip source-chip" data-source-template="shipping_events">Shipping events</button>
-                    <button type="button" class="action-chip source-chip" data-source-template="support_crm">Support CRM</button>
-                    <button type="button" class="action-chip source-chip" data-source-template="fraud_signal">Fraud signal</button>
-                  </div>
-
-                  <form id="sourceIngestForm" class="stack compact-form">
-                    <label>
-                      Selected source
-                      <input name="sourceType" placeholder="Select a source template above" required />
-                    </label>
-                    <label>
-                      Structured payload
-                      <textarea name="payload" rows="5" placeholder='{"orderId":"ORD-2048","status":"paid","summary":"Processor settlement confirmed."}' required></textarea>
-                    </label>
-                    <div class="action-row">
-                      <button type="submit">Ingest Source Into Vault</button>
-                      <button type="button" id="resetSourceIngestButton" class="button-ghost">Reset Payload</button>
-                    </div>
-                  </form>
-                </article>
-              </article>
-              </section>
-
-              <section id="builderTab" class="detail-panel">
-              <div class="panel-head">
-                <p class="section-label">Evidence Packet</p>
-                <h2>Case packet builder</h2>
-                <p>Convert a retail dispute into a structured packet that can be reviewed by AI copilots and sent into the onchain policy workflow.</p>
-              </div>
-
-              <form id="builderForm" class="stack compact-form">
-                <div class="split">
-                  <label>
-                    Resolution template
-                    <select name="template">
-                      <option value="delivery-missing">Missing item</option>
-                      <option value="delivery-damaged">Damaged goods</option>
-                      <option value="payment-refund">Refund not received</option>
-                      <option value="order-mismatch">Wrong order delivered</option>
-                      <option value="delivery-late">Late delivery compensation</option>
-                      <option value="chargeback-risk">Unauthorized payment / chargeback</option>
-                      <option value="service-cancellation">Subscription cancellation</option>
-                      <option value="counterfeit-quality">Counterfeit or listing mismatch</option>
-                      <option value="warranty-claim">Warranty replacement</option>
-                    </select>
-                  </label>
-                  <label>
-                    Case name
-                    <input name="projectName" value="order-resolution-console" required />
-                  </label>
-                </div>
-
-                <div class="split">
-                  <label>
-                    Merchant or repo URL
-                    <input name="repoUrl" value="https://github.com/Jinchainne/genlayer-order-resolution-console" required />
-                  </label>
-                  <label>
-                    Shopper portal or live app
-                    <input name="liveApp" value="https://genlayer-policy-eco.vercel.app/" />
-                  </label>
-                </div>
-
-                <div class="split">
-                  <label>
-                    Contract explorer URL
-                    <input name="contractUrl" value="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" />
-                  </label>
-                  <label>
-                    Deployment tx URL
-                    <input name="deployTxUrl" value="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" />
-                  </label>
-                </div>
-
-                <div class="split">
-                  <label>
-                    create_policy tx URL
-                    <input name="createPolicyTxUrl" value="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" />
-                  </label>
-                  <label>
-                    evaluate or workflow tx URL
-                    <input name="evaluateTxUrl" value="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" />
-                  </label>
-                </div>
-
-                <label>
-                  Claims
-                  <textarea name="claims" rows="4">buyer provided receipt and missing item report
+        <!-- Packet Builder Tab -->
+        <section id="builderTab" class="tab-content">
+          <form id="builderForm" class="case-form">
+            <div class="form-row">
+              <label>
+                Template
+                <select name="template">
+                  <option value="delivery-missing">Missing item</option>
+                  <option value="delivery-damaged">Damaged goods</option>
+                  <option value="payment-refund">Refund not received</option>
+                  <option value="order-mismatch">Wrong order delivered</option>
+                  <option value="delivery-late">Late delivery</option>
+                  <option value="chargeback-risk">Chargeback</option>
+                  <option value="service-cancellation">Subscription cancellation</option>
+                  <option value="counterfeit-quality">Counterfeit / listing mismatch</option>
+                  <option value="warranty-claim">Warranty claim</option>
+                </select>
+              </label>
+              <label>
+                Case name
+                <input name="projectName" value="order-resolution-console" required />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Repository URL
+                <input name="repoUrl" value="https://github.com/Jinchainne/genlayer-order-resolution-console" required />
+              </label>
+              <label>
+                Live app URL
+                <input name="liveApp" value="https://genlayer-policy-eco.vercel.app/" />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Contract explorer
+                <input name="contractUrl" value="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" />
+              </label>
+              <label>
+                Deploy tx
+                <input name="deployTxUrl" value="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                create_policy tx
+                <input name="createPolicyTxUrl" value="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" />
+              </label>
+              <label>
+                evaluate tx
+                <input name="evaluateTxUrl" value="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" />
+              </label>
+            </div>
+            <label>
+              Claims
+              <textarea name="claims" rows="4">buyer provided receipt and missing item report
 seller provided packing note and delivery timestamp
 evidence includes payment, invoice, and order timeline
 resolution requires qualitative dispute assessment</textarea>
-                </label>
-
-                <label>
-                  Case notes
-                  <textarea name="reviewNotes" rows="4">This case packet is designed for retail dispute resolution. It combines buyer claim data, seller response material, payment proof, and order timeline evidence before final GenLayer evaluation.</textarea>
-                </label>
-
-                <div class="builder-actions">
-                  <div class="persona-note">
-                    <span class="meta-label">Copilot roles</span>
-                    <p><strong>Lexi</strong> triages quickly for operations queues. <strong>Mira</strong> writes a careful evidence-facing resolution packet.</p>
-                  </div>
-                  <div class="action-row">
-                    <button type="submit">Build Case Packet</button>
-                    <button type="button" id="applyBundleButton" class="button-secondary">Use In Resolution</button>
-                    <button type="button" id="loadDemoButton" class="button-ghost">Load Demo Case</button>
-                  </div>
-                </div>
-              </form>
-              </section>
+            </label>
+            <label>
+              Notes
+              <textarea name="reviewNotes" rows="3">This case packet is designed for retail dispute resolution with GenLayer-backed policy evaluation.</textarea>
+            </label>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Build Packet</button>
+              <button type="button" id="applyBundleButton" class="btn-secondary">Use in Resolution</button>
+              <button type="button" id="loadDemoButton" class="btn-ghost">Load Demo</button>
             </div>
-          </article>
+          </form>
+        </section>
+      </section>
+
+      <!-- RIGHT: Resolution Workflow -->
+      <section class="resolution-panel" id="resolution">
+        <div class="panel-header">
+          <h2>Resolution</h2>
+        </div>
+
+        <div class="recommended-action">
+          <span class="label">Recommended Action</span>
+          <strong id="recommendedAction">Awaiting case packet</strong>
+          <p id="recommendedActionReason">Build a case packet or load a demo to get started.</p>
+        </div>
+
+        <div class="action-chips">
+          <button type="button" class="chip action-chip" data-action-value="approve_refund">Approve refund</button>
+          <button type="button" class="chip action-chip" data-action-value="partial_refund">Partial refund</button>
+          <button type="button" class="chip action-chip" data-action-value="reship_order">Reship order</button>
+          <button type="button" class="chip action-chip" data-action-value="store_credit">Store credit</button>
+          <button type="button" class="chip action-chip" data-action-value="hold_payout">Hold payout</button>
+          <button type="button" class="chip action-chip" data-action-value="fraud_review">Fraud review</button>
+          <button type="button" class="chip action-chip" data-action-value="deny_claim">Deny claim</button>
+        </div>
+
+        <form id="resolutionActionForm" class="case-form">
+          <label>
+            Action note
+            <textarea name="actionNote" rows="2" placeholder="Why this action is appropriate."></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Apply Action</button>
+            <button type="button" id="clearResolutionActionButton" class="btn-ghost">Clear</button>
+          </div>
+        </form>
+
+        <div class="playbook-section">
+          <span class="label">Execution Playbook</span>
+          <strong id="playbookActionTitle">No action selected</strong>
+          <p id="playbookActionSummary">Pick an action to see downstream tasks.</p>
+          <div id="playbookTasks" class="playbook-tasks"></div>
+        </div>
+
+        <div class="tab-bar">
+          <button type="button" class="tab tab-active" data-tab-target="packetTab">Packet</button>
+          <button type="button" class="tab" data-tab-target="triageTab">AI Triage</button>
+          <button type="button" class="tab" data-tab-target="policyTab">Policy</button>
+          <button type="button" class="tab" data-tab-target="workflowTab">Workflow</button>
+        </div>
+
+        <section id="packetTab" class="tab-content tab-content-active">
+          <div class="preview-section">
+            <h3>Case Subject</h3>
+            <pre id="generatedSubject" class="code-block muted">No packet generated yet.</pre>
+          </div>
+          <div class="preview-section">
+            <h3>References JSON</h3>
+            <pre id="generatedReferences" class="code-block muted">No packet generated yet.</pre>
+          </div>
+          <div class="preview-section">
+            <h3>Evidence JSON</h3>
+            <pre id="generatedEvidence" class="code-block muted">No packet generated yet.</pre>
+          </div>
         </section>
 
-        <aside class="panel resolution-panel accent panel-shell">
-          <div class="panel-head">
-            <p class="section-label">Resolution Panel</p>
-            <h2>Decision workflow</h2>
-            <p>Run AI-assisted triage, create a reusable policy, and map the final GenLayer verdict into an operational action.</p>
+        <section id="triageTab" class="tab-content">
+          <div class="triage-controls">
+            <label>
+              AI Reviewer
+              <select id="aiPersona">
+                <option value="mira">Mira Review (MiMo)</option>
+                <option value="lexi">Lexi Review (Groq)</option>
+              </select>
+            </label>
+            <button type="button" id="aiPreJudgeButton" class="btn-secondary">Run AI Triage</button>
           </div>
+          <pre id="aiPreJudgeOutput" class="code-block muted">No triage run yet.</pre>
+        </section>
 
-          <div class="panel-scroll resolution-scroll">
-            <div class="workspace-rail decision-rail">
-              <span class="workspace-tag">refund ops</span>
-              <span class="workspace-tag">reship routing</span>
-              <span class="workspace-tag">fraud escalation</span>
-            </div>
-            <div class="resolution-status">
-              <div class="status-card">
-                <span class="meta-label">Recommended action</span>
-                <strong id="recommendedAction">Awaiting case packet</strong>
-                <p id="recommendedActionReason">Build a case packet or load a demo case to generate a recommendation.</p>
-              </div>
-              <div class="status-card">
-                <span class="meta-label">Operational mapping</span>
-                <div class="pill-row">
-                  <span class="pill">approve_refund</span>
-                  <span class="pill">partial_refund</span>
-                  <span class="pill">release_seller</span>
-                  <span class="pill">escalate_manual</span>
-                </div>
-              </div>
-            </div>
+        <section id="policyTab" class="tab-content">
+          <form id="policyForm" class="case-form">
+            <label>
+              Policy name
+              <input name="name" value="Retail Order Dispute Policy" required />
+            </label>
+            <label>
+              Category
+              <input name="category" value="order-resolution" required />
+            </label>
+            <label>
+              Policy text
+              <textarea name="policyText" rows="3" required>Allow resolution only when buyer and seller evidence supports a fair, evidence-backed decision.</textarea>
+            </label>
+            <label>
+              Criteria
+              <textarea name="criteriaText" rows="3" required>Return deny or undetermined if evidence is incomplete or authoritative records conflict.</textarea>
+            </label>
+            <button type="submit" class="btn-primary">Create Policy</button>
+          </form>
+          <pre id="policyOutput" class="code-block muted">No policy created yet.</pre>
+        </section>
 
-            <article class="status-card action-desk-card">
-              <span class="meta-label">Resolution actions</span>
-              <div class="action-chip-grid">
-                <button type="button" class="action-chip" data-action-value="approve_refund">Approve refund</button>
-                <button type="button" class="action-chip" data-action-value="partial_refund">Partial refund</button>
-                <button type="button" class="action-chip" data-action-value="reship_order">Reship order</button>
-                <button type="button" class="action-chip" data-action-value="store_credit">Store credit</button>
-                <button type="button" class="action-chip" data-action-value="hold_payout">Hold payout</button>
-                <button type="button" class="action-chip" data-action-value="fraud_review">Fraud review</button>
-                <button type="button" class="action-chip" data-action-value="deny_claim">Deny claim</button>
-              </div>
-              <form id="resolutionActionForm" class="stack compact-form">
-                <label>
-                  Action note
-                  <textarea name="actionNote" rows="3" placeholder="Explain why this operational action is appropriate for the current dispute."></textarea>
-                </label>
-                <div class="action-row">
-                  <button type="submit" id="applyResolutionActionButton">Apply Resolution Action</button>
-                  <button type="button" id="clearResolutionActionButton" class="button-ghost">Clear Selection</button>
-                </div>
-              </form>
-            </article>
-
-            <article class="status-card playbook-card">
-              <span class="meta-label">Execution playbook</span>
-              <strong id="playbookActionTitle">No action playbook selected</strong>
-              <p id="playbookActionSummary">Pick or unlock an operational action to see downstream execution tasks.</p>
-              <div id="playbookTasks" class="playbook-task-list">
-                <p class="empty-state">No action tasks yet.</p>
-              </div>
-            </article>
-
-            <div class="resolution-tabs" id="resolutionTabs">
-              <button type="button" class="tab-button tab-active" data-tab-target="packetTab">Case packet</button>
-              <button type="button" class="tab-button" data-tab-target="triageTab">AI triage</button>
-              <button type="button" class="tab-button" data-tab-target="policyTab">Policy</button>
-              <button type="button" class="tab-button" data-tab-target="workflowTab">Workflow</button>
-            </div>
-
-            <section id="packetTab" class="tab-panel tab-panel-active">
-            <div class="preview-grid">
-              <div class="preview-block">
-                <h3>Case subject</h3>
-                <pre id="generatedSubject" class="output compact muted">No case packet generated yet.</pre>
-              </div>
-              <div class="preview-block">
-                <h3>Reference URLs JSON</h3>
-                <pre id="generatedReferences" class="output compact muted">No case packet generated yet.</pre>
-              </div>
-            </div>
-            <div class="preview-block">
-              <h3>Evidence JSON</h3>
-              <pre id="generatedEvidence" class="output compact muted">No case packet generated yet.</pre>
-            </div>
-            </section>
-
-            <section id="triageTab" class="tab-panel">
-            <div class="triage-toolbar">
-              <div class="inline-control">
-                <label>
-                  AI reviewer
-                  <select id="aiPersona" name="aiPersona">
-                    <option value="mira">Mira Review (MiMo)</option>
-                    <option value="lexi">Lexi Review (Groq)</option>
-                  </select>
-                </label>
-              </div>
-              <button type="button" id="aiPreJudgeButton" class="button-secondary">Run AI Triage</button>
-            </div>
-            <div class="preview-block">
-              <h3>AI triage result</h3>
-              <pre id="aiPreJudgeOutput" class="output compact muted">No AI triage run yet.</pre>
-            </div>
-            </section>
-
-            <section id="policyTab" class="tab-panel">
-            <form id="policyForm" class="stack compact-form">
-              <label>
-                Policy name
-                <input name="name" value="Retail Order Dispute Policy" required />
-              </label>
-              <label>
-                Category
-                <input name="category" value="order-resolution" required />
-              </label>
-              <label>
-                Policy text
-                <textarea name="policyText" rows="4" required>Allow the resolution only when buyer and seller evidence supports a fair, evidence-backed decision on payment, delivery, or refund responsibility.</textarea>
-              </label>
-              <label>
-                Criteria text
-                <textarea name="criteriaText" rows="4" required>Return deny or undetermined if the evidence is incomplete, the authoritative records conflict, or the seller and buyer claims cannot be reconciled with payment and delivery proof.</textarea>
-              </label>
-              <button type="submit">Create Resolution Policy</button>
-            </form>
-            <pre id="policyOutput" class="output muted">No policy created yet.</pre>
-            </section>
-
-            <section id="workflowTab" class="tab-panel">
-            <form id="workflowForm" class="stack compact-form">
-              <label>
-                Existing policy id
-                <input name="policyId" placeholder="policy-1" />
-              </label>
-              <label>
-                Resolution subject
-                <textarea name="subject" rows="4" required>A buyer reports a missing-item grocery order dispute and requests a refund after seller delivery completion.</textarea>
-              </label>
-              <label>
-                Evidence JSON
-                <textarea name="evidence" rows="8" required>{
+        <section id="workflowTab" class="tab-content">
+          <form id="workflowForm" class="case-form">
+            <label>
+              Policy ID
+              <input name="policyId" placeholder="policy-1" />
+            </label>
+            <label>
+              Resolution subject
+              <textarea name="subject" rows="3" required>A buyer reports a missing-item dispute and requests a refund after delivery completion.</textarea>
+            </label>
+            <label>
+              Evidence JSON
+              <textarea name="evidence" rows="6" required>{
   "projectName": "order-resolution-console",
   "orderId": "ORD-2048",
   "buyerClaim": "Two paid items were missing from the delivered order.",
   "sellerResponse": "The order was packed and scanned as complete before dispatch.",
   "artifacts": ["invoice", "payment proof", "packing note", "delivery timestamp"],
-  "claims": ["buyer evidence included", "seller response included", "qualitative resolution required"],
-  "reviewNotes": "The case requires a refund or escalation decision based on authoritative order evidence."
+  "claims": ["buyer evidence included", "seller response included"],
+  "reviewNotes": "Requires refund or escalation decision based on evidence."
 }</textarea>
-              </label>
-              <label>
-                Reference URLs JSON
-                <textarea name="referenceUrls" rows="4">["https://github.com/Jinchainne/genlayer-order-resolution-console","https://genlayer-policy-eco.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea>
-              </label>
-              <button type="submit">Run Resolution Workflow</button>
-            </form>
-
-            <div id="verdictCard" class="verdict verdict-waiting">
-              <strong>Awaiting resolution</strong>
-              <span>Run the workflow to map the dispute verdict into an operational action.</span>
-            </div>
-
-            <pre id="workflowOutput" class="output muted">No resolution workflow executed yet.</pre>
-            </section>
+            </label>
+            <label>
+              Reference URLs JSON
+              <textarea name="referenceUrls" rows="3">["https://github.com/Jinchainne/genlayer-order-resolution-console","https://genlayer-policy-eco.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea>
+            </label>
+            <button type="submit" class="btn-primary">Run Workflow</button>
+          </form>
+          <div id="verdictCard" class="verdict verdict-waiting">
+            <strong>Awaiting resolution</strong>
+            <span>Run the workflow to get a verdict.</span>
           </div>
-        </aside>
-      </section>
-
-      <section class="bottom-grid">
-        <article class="panel">
-          <div class="panel-head">
-            <p class="section-label">Recent Reviews</p>
-            <h2>Resolution memory</h2>
-            <p>Operators can reopen prior cases and reuse evidence packets instead of starting from scratch.</p>
-          </div>
-          <div id="recentRuns" class="recent-runs">
-            <p class="empty-state">No recent reviews yet. Build a case packet or run the workflow to populate the desk.</p>
-          </div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <p class="section-label">Decision History</p>
-            <h2>Audit trail</h2>
-            <p>Track AI triage, policy creation, workflow results, and operator-ready actions for each dispute.</p>
-          </div>
-          <div id="decisionHistory" class="history-list">
-            <p class="empty-state">No decision events yet. Run triage, create a policy, or execute the workflow to build the audit trail.</p>
-          </div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <p class="section-label">Task Board</p>
-            <h2>Operations follow-up queue</h2>
-            <p>Translate policy decisions into merchant tasks such as refund ops, reship fulfillment, payout control, and fraud escalation.</p>
-          </div>
-          <div id="actionQueueBoard" class="history-list">
-            <p class="empty-state">No operational tasks queued yet. Apply a resolution action to generate downstream work.</p>
-          </div>
-        </article>
-
-        <article class="panel accent">
-          <div class="panel-head">
-            <p class="section-label">Live Evidence</p>
-            <h2>Explorer and deployment proof</h2>
-            <p>These links show the live contract, policy creation, evaluation, and workflow transactions used by the project.</p>
-          </div>
-          <div class="evidence-links-grid">
-            <a class="evidence-link" href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">Contract explorer</a>
-            <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" target="_blank" rel="noreferrer">Deploy tx</a>
-            <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer">create_policy tx</a>
-            <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59" target="_blank" rel="noreferrer">evaluate tx</a>
-            <a class="evidence-link" href="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" target="_blank" rel="noreferrer">workflow tx</a>
-            <a class="evidence-link" href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer">Repository</a>
-          </div>
-        </article>
+          <pre id="workflowOutput" class="code-block muted">No workflow executed yet.</pre>
+        </section>
       </section>
     </main>
+
+    <!-- Bottom: History & Links -->
+    <section class="bottom-bar" id="history">
+      <div class="bottom-grid">
+        <div class="bottom-card">
+          <h3>Recent Reviews</h3>
+          <div id="recentRuns" class="history-list">
+            <p class="empty-state">No reviews yet. Build a packet to get started.</p>
+          </div>
+        </div>
+        <div class="bottom-card">
+          <h3>Decision History</h3>
+          <div id="decisionHistory" class="history-list">
+            <p class="empty-state">No decisions yet.</p>
+          </div>
+        </div>
+        <div class="bottom-card">
+          <h3>Task Board</h3>
+          <div id="actionQueueBoard" class="history-list">
+            <p class="empty-state">No tasks queued yet.</p>
+          </div>
+        </div>
+        <div class="bottom-card">
+          <h3>Live Proof</h3>
+          <div class="proof-links">
+            <a href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">Contract Explorer</a>
+            <a href="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" target="_blank" rel="noreferrer">Deploy Tx</a>
+            <a href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer">create_policy Tx</a>
+            <a href="https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59" target="_blank" rel="noreferrer">evaluate Tx</a>
+            <a href="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" target="_blank" rel="noreferrer">workflow Tx</a>
+            <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer">GitHub Repository</a>
+            <a href="https://genlayer-policy-eco.vercel.app/" target="_blank" rel="noreferrer">Live App</a>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <script type="module" src="/app.js"></script>
   </body>
