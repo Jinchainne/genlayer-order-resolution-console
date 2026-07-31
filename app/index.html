@@ -305,46 +305,52 @@
         <aside class="panel resolution-panel accent panel-shell">
           <div class="panel-head">
             <p class="section-label">Resolution</p>
-            <h2>3-Step Workflow</h2>
-            <p>Select a case above, then follow these steps in order.</p>
+            <h2>Follow These 3 Steps</h2>
+            <p>Select a case above, then complete each step in order.</p>
           </div>
 
           <div class="panel-scroll resolution-scroll">
             <!-- Step 1: AI Triage -->
-            <div class="step-block">
+            <div class="step-block" id="step1">
               <div class="step-header">
-                <span class="step-badge">1</span>
-                <strong>AI Triage</strong>
+                <span class="step-num">Step 1</span>
+                <strong>Run AI Triage</strong>
               </div>
+              <p class="step-desc">Let the AI analyze the selected case and recommend an action.</p>
               <button type="button" id="aiPreJudgeButton" class="step-btn">Run AI Triage</button>
-              <pre id="aiPreJudgeOutput" class="output compact muted">Click "Run AI Triage" after selecting a case.</pre>
+              <pre id="aiPreJudgeOutput" class="output compact muted">Select a case from the queue, then click "Run AI Triage".</pre>
             </div>
 
             <!-- Step 2: Create Policy -->
-            <div class="step-block">
+            <div class="step-block" id="step2">
               <div class="step-header">
-                <span class="step-badge">2</span>
-                <strong>Create Policy</strong>
+                <span class="step-num">Step 2</span>
+                <strong>Create Resolution Policy</strong>
               </div>
+              <p class="step-desc">Create an onchain policy that defines the resolution rules.</p>
               <form id="policyForm" class="stack compact-form">
                 <label>Policy name<input name="name" value="Retail Order Dispute Policy" required /></label>
                 <label>Category<input name="category" value="order-resolution" required /></label>
-                <label>Policy text<textarea name="policyText" rows="3" required>Allow resolution when buyer and seller evidence supports a fair, evidence-backed decision.</textarea></label>
-                <label>Criteria<textarea name="criteriaText" rows="3" required>Return deny if evidence is incomplete or claims cannot be reconciled with proof.</textarea></label>
-                <button type="submit" class="step-btn">Create Policy</button>
+                <label>Policy text<textarea name="policyText" rows="2" required>Allow resolution when buyer and seller evidence supports a fair decision.</textarea></label>
+                <label>Criteria<textarea name="criteriaText" rows="2" required>Return deny if evidence is incomplete or claims cannot be reconciled.</textarea></label>
+                <button type="submit" class="step-btn">Create Policy on GenLayer</button>
               </form>
               <pre id="policyOutput" class="output compact muted">No policy created yet.</pre>
             </div>
 
             <!-- Step 3: Run Workflow -->
-            <div class="step-block">
+            <div class="step-block" id="step3">
               <div class="step-header">
-                <span class="step-badge">3</span>
-                <strong>Execute on GenLayer</strong>
+                <span class="step-num">Step 3</span>
+                <strong>Execute Resolution</strong>
               </div>
+              <p class="step-desc">Run the onchain workflow with the policy from Step 2.</p>
               <form id="workflowForm" class="stack compact-form">
-                <label>Policy ID<input name="policyId" placeholder="policy-1" /></label>
-                <button type="submit" class="step-btn step-btn-accent">Run Resolution Workflow</button>
+                <label>Policy ID<input name="policyId" placeholder="policy-1 (from Step 2)" /></label>
+                <label>Resolution subject<textarea name="subject" rows="2" required>A buyer reports a missing-item dispute and requests a refund.</textarea></label>
+                <label>Evidence<textarea name="evidence" rows="2" required>{"orderId":"ORD-2048","buyerClaim":"Missing items","sellerResponse":"Order packed complete"}</textarea></label>
+                <label>Reference URLs<textarea name="referenceUrls" rows="2">["https://github.com/Jinchainne/genlayer-order-resolution-console"]</textarea></label>
+                <button type="submit" class="step-btn step-btn-accent">Execute on GenLayer</button>
               </form>
               <div id="verdictCard" class="verdict verdict-waiting">
                 <strong>Awaiting resolution</strong>
@@ -353,15 +359,21 @@
               <pre id="workflowOutput" class="output compact muted">No workflow executed yet.</pre>
             </div>
 
-            <!-- Hidden fields for app.js compatibility -->
+            <!-- Hidden stubs for app.js -->
             <div style="display:none">
-              <textarea name="subject" form="workflowForm">A buyer reports a missing-item dispute and requests a refund.</textarea>
-              <textarea name="evidence" form="workflowForm">{"orderId":"ORD-2048","buyerClaim":"Missing items","sellerResponse":"Order packed complete"}</textarea>
-              <textarea name="referenceUrls" form="workflowForm">["https://github.com/Jinchainne/genlayer-order-resolution-console"]</textarea>
               <select id="aiPersona" name="aiPersona"><option value="mira">MiMo</option></select>
               <div id="generatedSubject"></div>
               <div id="generatedReferences"></div>
               <div id="generatedEvidence"></div>
+              <form id="caseDetailForm">
+                <select name="presetType" id="detailPreset"><option value="">Manual</option></select>
+                <input name="caseId" /><input name="status" /><input name="claimType" />
+                <input name="requestedAction" /><input name="currency" value="USD" />
+                <input name="merchant" /><input name="buyer" /><input name="seller" />
+                <input name="orderAmount" /><input name="riskAmount" />
+                <input name="subject" /><textarea name="buyerStatement"></textarea>
+                <textarea name="sellerStatement"></textarea><textarea name="reviewNotes"></textarea>
+              </form>
               <form id="resolutionActionForm"><textarea name="actionNote"></textarea></form>
               <button id="applyResolutionActionButton"></button>
               <button id="clearResolutionActionButton"></button>
@@ -382,71 +394,6 @@
         </div>
       </footer>
     </main>
-
-    <!-- Hidden placeholders for app.js compatibility -->
-    <div style="display:none">
-      <form id="caseDetailForm">
-        <select name="presetType" id="detailPreset"><option value="">Manual</option></select>
-        <input name="caseId" />
-        <input name="status" />
-        <input name="claimType" />
-        <input name="requestedAction" />
-        <input name="currency" value="USD" />
-        <input name="merchant" />
-        <input name="buyer" />
-        <input name="seller" />
-        <input name="orderAmount" />
-        <input name="riskAmount" />
-        <input name="subject" />
-        <textarea name="buyerStatement"></textarea>
-        <textarea name="sellerStatement"></textarea>
-        <textarea name="reviewNotes"></textarea>
-      </form>
-      <form id="builderForm">
-        <select name="template"><option value="delivery-missing">Missing item</option></select>
-        <input name="projectName" />
-        <input name="repoUrl" />
-        <input name="liveApp" />
-        <input name="contractUrl" />
-        <input name="deployTxUrl" />
-        <input name="createPolicyTxUrl" />
-        <input name="evaluateTxUrl" />
-        <textarea name="claims"></textarea>
-        <textarea name="reviewNotes"></textarea>
-        <button type="submit">Build Case Packet</button>
-      </form>
-      <form id="evidenceForm">
-        <input type="hidden" name="evidenceIndex" value="" />
-        <select name="side"><option value="buyer">Buyer</option></select>
-        <select name="status"><option value="submitted">submitted</option></select>
-        <input name="source" />
-        <input name="title" />
-        <textarea name="detail"></textarea>
-      </form>
-      <button id="saveEvidenceButton">Add Evidence Record</button>
-      <button id="resetEvidenceButton">Reset Editor</button>
-      <form id="sourceIngestForm">
-        <input name="sourceType" />
-        <textarea name="payload"></textarea>
-      </form>
-      <button id="resetSourceIngestButton">Reset Payload</button>
-      <button id="jumpToBuilderButton">Update And Build Packet</button>
-      <button id="applyBundleButton">Use In Resolution</button>
-      <button id="loadDemoButton">Load Demo Case</button>
-      <div id="buyerVault"></div>
-      <div id="sellerVault"></div>
-      <div id="authorityVault"></div>
-      <span id="buyerVaultCount">0 items</span>
-      <span id="sellerVaultCount">0 items</span>
-      <span id="authorityVaultCount">0 items</span>
-      <span id="vaultStatus">Vault ready</span>
-      <div id="recentRuns"></div>
-      <div id="decisionHistory"></div>
-      <div id="actionQueueBoard"></div>
-      <strong id="playbookActionTitle">No action playbook selected</strong>
-      <p id="playbookActionSummary">Pick or unlock an operational action to see downstream execution tasks.</p>
-      <div id="playbookTasks"></div>
-    </div>
 
     <div id="runtimeNotice" style="display:none"></div>
 

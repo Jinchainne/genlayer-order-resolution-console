@@ -1576,3 +1576,20 @@ button:disabled {
 .step-btn-accent:hover {
   background: var(--brand-dim);
 }
+
+.step-num {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: var(--brand);
+  color: #000;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.step-desc {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
