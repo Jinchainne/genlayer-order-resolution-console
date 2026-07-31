@@ -916,7 +916,7 @@ function renderNetworkRail() {
     resolutionWindowStat.textContent = activeActionCount ? "< 12h" : "< 24h";
   }
   if (aiCopilotStat) {
-    aiCopilotStat.textContent = "2 live";
+    aiCopilotStat.textContent = "1 live";
   }
   if (workflowModeStat) {
     workflowModeStat.textContent = contractAddress ? "GenLayer live" : "GenLayer";
@@ -1170,6 +1170,7 @@ function actionReasonForValue(action, note = "") {
 }
 
 function resetEvidenceEditor() {
+  if (!evidenceForm) return;
   evidenceForm.reset();
   evidenceForm.elements.evidenceIndex.value = "";
   evidenceForm.elements.side.value = "buyer";
@@ -1178,6 +1179,7 @@ function resetEvidenceEditor() {
 }
 
 function resetSourceIngest() {
+  if (!sourceIngestForm) return;
   sourceIngestForm.reset();
   sourceIngestForm.elements.sourceType.value = "";
   sourceChips.forEach((chip) => chip.classList.remove("action-chip-active"));
@@ -1232,6 +1234,7 @@ function saveRecentRun(entry) {
 }
 
 function renderRecentRuns() {
+  if (!recentRuns) return;
   const runs = loadRecentRuns();
   if (!runs.length) {
     recentRuns.innerHTML =
@@ -1270,6 +1273,7 @@ function renderRecentRuns() {
 }
 
 function renderDecisionHistory() {
+  if (!decisionHistory) return;
   const history = loadDecisionHistory();
   if (!history.length) {
     decisionHistory.innerHTML =
@@ -1324,6 +1328,7 @@ function renderOpsMetrics() {
 }
 
 function renderPlaybook(caseItem) {
+  if (!playbookActionTitle || !playbookTasks) return;
   const activeAction = caseItem.opsAction || normalizeActionValue(caseItem.requestedAction);
   const tasks = caseItem.playbookTasks || actionTaskTemplates(activeAction, caseItem);
 
@@ -1366,6 +1371,7 @@ function renderPlaybook(caseItem) {
 }
 
 function renderActionQueueBoard() {
+  if (!actionQueueBoard) return;
   const queued = CASES.flatMap((item) =>
     (item.playbookTasks || []).map((task) => ({
       ...task,
@@ -1597,6 +1603,7 @@ function renderVaultItems(items, target) {
 }
 
 function renderEvidenceVault(caseItem) {
+  if (!buyerVault || !sellerVault || !authorityVault) return;
   const indexedEvidence = caseItem.evidence.map((item, index) => ({ ...item, index }));
   const buyerItems = indexedEvidence.filter((item) => item.side === "buyer");
   const sellerItems = indexedEvidence.filter((item) => item.side === "seller");
@@ -1623,6 +1630,7 @@ function inferTemplateFromCase(caseItem) {
 }
 
 function hydrateCaseEditor(caseItem) {
+  if (!caseDetailForm) return;
   const { amount, currency } = splitMoney(caseItem.amount);
   const { amount: atRiskAmount } = splitMoney(caseItem.atRisk);
 
@@ -1647,16 +1655,18 @@ function hydrateFormsFromCase(caseItem) {
   const templateKey = inferTemplateFromCase(caseItem);
   const template = TEMPLATE_PRESETS[templateKey];
 
-  builderForm.elements.template.value = templateKey;
-  builderForm.elements.projectName.value = caseItem.id;
-  builderForm.elements.repoUrl.value = caseItem.references.repoUrl;
-  builderForm.elements.liveApp.value = caseItem.references.liveApp;
-  builderForm.elements.contractUrl.value = caseItem.references.contractUrl;
-  builderForm.elements.deployTxUrl.value = caseItem.references.deployTxUrl;
-  builderForm.elements.createPolicyTxUrl.value = caseItem.references.createPolicyTxUrl;
-  builderForm.elements.evaluateTxUrl.value = caseItem.references.evaluateTxUrl;
-  builderForm.elements.claims.value = caseItem.buyerClaims.join("\n");
-  builderForm.elements.reviewNotes.value = caseItem.reviewNotes || template.notes;
+  if (builderForm) {
+    builderForm.elements.template.value = templateKey;
+    builderForm.elements.projectName.value = caseItem.id;
+    builderForm.elements.repoUrl.value = caseItem.references.repoUrl;
+    builderForm.elements.liveApp.value = caseItem.references.liveApp;
+    builderForm.elements.contractUrl.value = caseItem.references.contractUrl;
+    builderForm.elements.deployTxUrl.value = caseItem.references.deployTxUrl;
+    builderForm.elements.createPolicyTxUrl.value = caseItem.references.createPolicyTxUrl;
+    builderForm.elements.evaluateTxUrl.value = caseItem.references.evaluateTxUrl;
+    builderForm.elements.claims.value = caseItem.buyerClaims.join("\n");
+    builderForm.elements.reviewNotes.value = caseItem.reviewNotes || template.notes;
+  }
 
   workflowForm.elements.subject.value = caseItem.subject;
   workflowForm.elements.evidence.value = pretty(buildEvidenceFromCase(caseItem));
@@ -1760,7 +1770,7 @@ function createCustomCase(form) {
   renderCaseQueue();
   fillCaseDetail(customCase);
   buildBundle();
-  activateDetailTab("builderTab");
+  activateDetailTab("overviewTab");
   activateTab("packetTab");
   saveDecisionEvent({
     caseId: customCase.id,
@@ -2093,7 +2103,7 @@ function buildBundle() {
   generatedSubject.textContent = subject;
   generatedEvidence.textContent = pretty(evidence);
   generatedReferences.textContent = pretty(referenceUrls);
-  activateDetailTab("builderTab");
+  activateDetailTab("overviewTab");
   activateTab("packetTab");
   recommendedAction.textContent = caseItem.requestedAction;
   recommendedActionReason.textContent =
@@ -2135,9 +2145,9 @@ async function runAiPreJudgeForBundle() {
     throw new Error("Build a case packet first.");
   }
 
-  const persona = aiPersona?.value || "lexi";
+  const persona = aiPersona?.value || "mira";
   aiPreJudgeButton.disabled = true;
-  aiPreJudgeButton.textContent = `Running ${persona === "lexi" ? "Lexi" : "Mira"}...`;
+  aiPreJudgeButton.textContent = "Running AI Triage...";
 
   try {
     const result = await fetchJson("/api/ai/prejudge", {
@@ -2266,7 +2276,7 @@ applyBundleButton.addEventListener("click", () => {
   try {
     applyBundleToWorkflow();
     activateTab("workflowTab");
-    activateDetailTab("builderTab");
+    activateDetailTab("overviewTab");
   } catch (error) {
     workflowOutput.textContent = error.message;
   }
@@ -2275,7 +2285,7 @@ applyBundleButton.addEventListener("click", () => {
 jumpToBuilderButton.addEventListener("click", () => {
   const form = new FormData(caseDetailForm);
   updateCurrentCase(form);
-  activateDetailTab("builderTab");
+  activateDetailTab("overviewTab");
   buildBundle();
 });
 
@@ -2290,7 +2300,7 @@ jumpToBuilderButton.addEventListener("click", () => {
     if (!item) return;
 
     if (button.dataset.evidenceAction === "edit") {
-      activateDetailTab("vaultTab");
+      activateDetailTab("overviewTab");
       hydrateEvidenceEditor(item, evidenceIndex);
       return;
     }

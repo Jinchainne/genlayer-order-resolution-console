@@ -33,13 +33,12 @@ Dispute resolution is a real merchant problem:
 
 Most teams solve this with spreadsheets, Zendesk notes, screenshots, and centralized judgment calls.
 
-This project turns that into a structured workflow with:
+This project turns that into a streamlined workflow with:
 
 - a real case queue
-- evidence vault and source ingestion
-- AI-assisted review
+- buyer/seller evidence review
+- AI-assisted triage
 - GenLayer-backed final evaluation
-- downstream action playbooks
 
 ## Why GenLayer
 
@@ -79,47 +78,13 @@ The console starts with a real queue of cases such as:
 - subscription cancellation billing
 - warranty replacement
 
-### 2. Intake editor
+### 2. Case review
 
-Operators can:
+The Workbench provides an overview of each dispute with buyer/seller statements, case timeline, and authoritative evidence checks.
 
-- select a global dispute preset
-- rewrite the active case
-- change requested action
-- change status, risk amount, merchant, buyer, and seller details
-- normalize the case before evaluation
+### 3. AI triage
 
-### 3. Evidence Vault
-
-The project now includes a dynamic `Evidence Vault` where operators can:
-
-- add new evidence
-- edit existing evidence
-- delete weak or outdated evidence
-- separate buyer, seller, and authority records
-
-This is important because strong dispute review depends on structured evidence, not only free-text claims.
-
-### 4. Structured source ingestion
-
-The app includes `Source Intake` for ingesting records that look like real merchant systems:
-
-- `order_ledger`
-- `payment_ledger`
-- `shipping_events`
-- `support_crm`
-- `fraud_signal`
-
-These sources are converted into evidence records and inserted into the active case, which makes the project look and behave more like a real operations tool instead of a static demo.
-
-### 5. AI triage
-
-Two AI reviewer modes are available:
-
-- `Mira Review`
-- `Lexi Review`
-
-They improve the case packet before the final onchain decision by returning:
+The AI copilot (MiMo) analyzes the case and returns:
 
 - preliminary verdict
 - confidence
@@ -128,7 +93,7 @@ They improve the case packet before the final onchain decision by returning:
 - improved review notes
 - evidence gaps
 
-### 6. GenLayer policy workflow
+### 4. GenLayer policy workflow
 
 The app can:
 
@@ -139,9 +104,7 @@ The app can:
 
 The project workflow maps the result into `allowed` or `blocked` execution state and uses that to control what should happen next.
 
-### 7. Action desk and task board
-
-This project now pushes beyond “AI review” into actual merchant operations.
+### 5. Resolution actions
 
 Supported resolution actions:
 
@@ -153,25 +116,13 @@ Supported resolution actions:
 - `fraud_review`
 - `deny_claim`
 
-Each action generates a downstream playbook such as:
-
-- payments tasks
-- fulfillment tasks
-- support notifications
-- risk / fraud review steps
-- audit and compliance notes
-
-These tasks are shown in the execution playbook and operations follow-up queue.
-
 ## Product Walkthrough
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
 │ Order Resolution Console                                    │
 ├──────────────────────────────────────────────────────────────┤
-│ Queue -> Case Detail -> Evidence Vault -> Source Intake     │
-│        -> Packet Builder -> AI Triage -> Policy Workflow    │
-│        -> Resolution Action -> Task Board                   │
+│ Queue -> Review -> AI Triage -> Policy -> Workflow          │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -179,14 +130,12 @@ These tasks are shown in the execution playbook and operations follow-up queue.
 
 ```text
 Merchant ops receives dispute
--> operator selects or edits the case
--> buyer, seller, and authority evidence are organized
--> structured records are ingested from source systems
+-> operator selects a case from the queue
+-> buyer, seller, and authority evidence are reviewed
 -> AI triage strengthens the case packet
 -> app writes policy/evaluation through GenLayer
 -> contract stores consensus-backed result
 -> app maps result to refund / reship / payout hold / fraud review
--> downstream task board shows what the team must execute next
 ```
 
 ### Case-to-action model
@@ -303,20 +252,10 @@ This repo now clears the important `Projects` bar:
 - real app-to-contract read/write workflow
 - live project UX, not static contract details
 - practical business use case
-- downstream operational execution after verdict
+- streamlined dispute resolution flow
 
-It also tells a stronger `highlight` story than before because it is no longer just “review and evaluate”.
-
-It now behaves like a real merchant operations product with:
-
-- dispute queue
-- authority-aware evidence management
-- structured source ingestion
-- AI-assisted triage
-- onchain decision path
-- action playbooks
-- follow-up task board
+The console provides a clear, intuitive workflow: **Select Case → Review → AI Triage → Create Policy → Execute Workflow**.
 
 ## Submission Summary
 
-`genlayer-order-resolution-console` is a live merchant dispute operations console built on GenLayer. It helps retail, grocery, delivery, marketplace, payment, and subscription teams turn messy buyer-seller disputes into structured evidence packets, evaluate them through a reusable GenLayer policy contract, and bind the resulting verdict to real business actions like refund, reship, store credit, payout hold, or fraud review.
+`genlayer-order-resolution-console` is a streamlined merchant dispute operations console built on GenLayer. It helps retail, grocery, delivery, marketplace, payment, and subscription teams turn messy buyer-seller disputes into structured evidence packets, evaluate them through a reusable GenLayer policy contract, and bind the resulting verdict to real business actions like refund, reship, store credit, payout hold, or fraud review.
