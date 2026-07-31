@@ -39,17 +39,9 @@
         <h1>Order Resolution Console</h1>
         <p class="hero-subtitle">Review buyer-vs-seller disputes, run AI triage, and bind verdicts to GenLayer onchain policy — all in one desk.</p>
         <div class="hero-actions">
-          <button type="button" class="hero-btn" onclick="document.getElementById('case-queue').scrollIntoView({behavior:'smooth'})">
+          <button type="button" class="hero-btn hero-btn-accent" onclick="document.getElementById('dashboard').scrollIntoView({behavior:'smooth'})">
             <span class="hero-btn-icon">📋</span>
-            <span>Review Cases</span>
-          </button>
-          <button type="button" class="hero-btn hero-btn-accent" id="navCreatePolicy">
-            <span class="hero-btn-icon">📜</span>
-            <span>Create Policy</span>
-          </button>
-          <button type="button" class="hero-btn" id="navRunTriage">
-            <span class="hero-btn-icon">🤖</span>
-            <span>Run Triage</span>
+            <span>Start Resolving</span>
           </button>
           <a href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer" class="hero-btn hero-btn-outline">
             <span class="hero-btn-icon">🔍</span>
@@ -121,8 +113,8 @@
         </div>
       </section>
 
-      <!-- ── Dashboard Grid ── -->
-      <section class="dashboard-grid" id="case-queue">
+      <!-- ── Dashboard ── -->
+      <section class="dashboard-grid" id="dashboard">
         <!-- Case Queue Panel -->
         <aside class="panel queue-panel panel-shell">
           <div class="panel-head">
@@ -312,152 +304,70 @@
         <!-- Resolution Panel -->
         <aside class="panel resolution-panel accent panel-shell">
           <div class="panel-head">
-            <p class="section-label">Resolution Panel</p>
-            <h2>Decision workflow</h2>
+            <p class="section-label">Resolution</p>
+            <h2>3-Step Workflow</h2>
+            <p>Select a case above, then follow these steps in order.</p>
           </div>
 
           <div class="panel-scroll resolution-scroll">
-            <div class="resolution-status">
-              <div class="status-card">
-                <span class="meta-label">Recommended action</span>
-                <strong id="recommendedAction">Awaiting case packet</strong>
-                <p id="recommendedActionReason">Build a case packet or load a demo case to generate a recommendation.</p>
+            <!-- Step 1: AI Triage -->
+            <div class="step-block">
+              <div class="step-header">
+                <span class="step-badge">1</span>
+                <strong>AI Triage</strong>
               </div>
-              <div class="status-card">
-                <span class="meta-label">Operational mapping</span>
-                <div class="pill-row">
-                  <span class="pill">approve_refund</span>
-                  <span class="pill">partial_refund</span>
-                  <span class="pill">release_seller</span>
-                  <span class="pill">escalate_manual</span>
-                </div>
-              </div>
+              <button type="button" id="aiPreJudgeButton" class="step-btn">Run AI Triage</button>
+              <pre id="aiPreJudgeOutput" class="output compact muted">Click "Run AI Triage" after selecting a case.</pre>
             </div>
 
-            <article class="status-card action-desk-card">
-              <span class="meta-label">Resolution actions</span>
-              <div class="action-chip-grid">
-                <button type="button" class="action-chip" data-action-value="approve_refund">Approve refund</button>
-                <button type="button" class="action-chip" data-action-value="partial_refund">Partial refund</button>
-                <button type="button" class="action-chip" data-action-value="reship_order">Reship order</button>
-                <button type="button" class="action-chip" data-action-value="store_credit">Store credit</button>
-                <button type="button" class="action-chip" data-action-value="hold_payout">Hold payout</button>
-                <button type="button" class="action-chip" data-action-value="fraud_review">Fraud review</button>
-                <button type="button" class="action-chip" data-action-value="deny_claim">Deny claim</button>
+            <!-- Step 2: Create Policy -->
+            <div class="step-block">
+              <div class="step-header">
+                <span class="step-badge">2</span>
+                <strong>Create Policy</strong>
               </div>
-              <form id="resolutionActionForm" class="stack compact-form">
-                <label>
-                  Action note
-                  <textarea name="actionNote" rows="3" placeholder="Explain why this operational action is appropriate for the current dispute."></textarea>
-                </label>
-                <div class="action-row">
-                  <button type="submit" id="applyResolutionActionButton">Apply Resolution Action</button>
-                  <button type="button" id="clearResolutionActionButton" class="button-ghost">Clear Selection</button>
-                </div>
+              <form id="policyForm" class="stack compact-form">
+                <label>Policy name<input name="name" value="Retail Order Dispute Policy" required /></label>
+                <label>Category<input name="category" value="order-resolution" required /></label>
+                <label>Policy text<textarea name="policyText" rows="3" required>Allow resolution when buyer and seller evidence supports a fair, evidence-backed decision.</textarea></label>
+                <label>Criteria<textarea name="criteriaText" rows="3" required>Return deny if evidence is incomplete or claims cannot be reconciled with proof.</textarea></label>
+                <button type="submit" class="step-btn">Create Policy</button>
               </form>
-            </article>
-
-            <div class="resolution-tabs" id="resolutionTabs">
-              <button type="button" class="tab-button tab-active" data-tab-target="packetTab">Case packet</button>
-              <button type="button" class="tab-button" data-tab-target="triageTab">AI triage</button>
-              <button type="button" class="tab-button" data-tab-target="policyTab">Policy</button>
-              <button type="button" class="tab-button" data-tab-target="workflowTab">Workflow</button>
+              <pre id="policyOutput" class="output compact muted">No policy created yet.</pre>
             </div>
 
-            <section id="packetTab" class="tab-panel tab-panel-active">
-            <div class="preview-grid">
-              <div class="preview-block">
-                <h3>Case subject</h3>
-                <pre id="generatedSubject" class="output compact muted">No case packet generated yet.</pre>
+            <!-- Step 3: Run Workflow -->
+            <div class="step-block">
+              <div class="step-header">
+                <span class="step-badge">3</span>
+                <strong>Execute on GenLayer</strong>
               </div>
-              <div class="preview-block">
-                <h3>Reference URLs JSON</h3>
-                <pre id="generatedReferences" class="output compact muted">No case packet generated yet.</pre>
+              <form id="workflowForm" class="stack compact-form">
+                <label>Policy ID<input name="policyId" placeholder="policy-1" /></label>
+                <button type="submit" class="step-btn step-btn-accent">Run Resolution Workflow</button>
+              </form>
+              <div id="verdictCard" class="verdict verdict-waiting">
+                <strong>Awaiting resolution</strong>
+                <span>Run the workflow to see the verdict.</span>
               </div>
-            </div>
-            <div class="preview-block">
-              <h3>Evidence JSON</h3>
-              <pre id="generatedEvidence" class="output compact muted">No case packet generated yet.</pre>
-            </div>
-            </section>
-
-            <section id="triageTab" class="tab-panel">
-            <div class="triage-toolbar">
-              <div class="inline-control">
-                <label>
-                  AI reviewer
-                  <select id="aiPersona" name="aiPersona">
-                    <option value="mira">AI Triage (MiMo)</option>
-                  </select>
-                </label>
-              </div>
-              <button type="button" id="aiPreJudgeButton" class="button-secondary">Run AI Triage</button>
-            </div>
-            <div class="preview-block">
-              <h3>AI triage result</h3>
-              <pre id="aiPreJudgeOutput" class="output compact muted">No AI triage run yet.</pre>
-            </div>
-            </section>
-
-            <section id="policyTab" class="tab-panel">
-            <form id="policyForm" class="stack compact-form">
-              <label>
-                Policy name
-                <input name="name" value="Retail Order Dispute Policy" required />
-              </label>
-              <label>
-                Category
-                <input name="category" value="order-resolution" required />
-              </label>
-              <label>
-                Policy text
-                <textarea name="policyText" rows="4" required>Allow the resolution only when buyer and seller evidence supports a fair, evidence-backed decision on payment, delivery, or refund responsibility.</textarea>
-              </label>
-              <label>
-                Criteria text
-                <textarea name="criteriaText" rows="4" required>Return deny or undetermined if the evidence is incomplete, the authoritative records conflict, or the seller and buyer claims cannot be reconciled with payment and delivery proof.</textarea>
-              </label>
-              <button type="submit">Create Resolution Policy</button>
-            </form>
-            <pre id="policyOutput" class="output muted">No policy created yet.</pre>
-            </section>
-
-            <section id="workflowTab" class="tab-panel">
-            <form id="workflowForm" class="stack compact-form">
-              <label>
-                Existing policy id
-                <input name="policyId" placeholder="policy-1" />
-              </label>
-              <label>
-                Resolution subject
-                <textarea name="subject" rows="4" required>A buyer reports a missing-item grocery order dispute and requests a refund after seller delivery completion.</textarea>
-              </label>
-              <label>
-                Evidence JSON
-                <textarea name="evidence" rows="8" required>{
-  "projectName": "order-resolution-console",
-  "orderId": "ORD-2048",
-  "buyerClaim": "Two paid items were missing from the delivered order.",
-  "sellerResponse": "The order was packed and scanned as complete before dispatch.",
-  "artifacts": ["invoice", "payment proof", "packing note", "delivery timestamp"],
-  "claims": ["buyer evidence included", "seller response included", "qualitative resolution required"],
-  "reviewNotes": "The case requires a refund or escalation decision based on authoritative order evidence."
-}</textarea>
-              </label>
-              <label>
-                Reference URLs JSON
-                <textarea name="referenceUrls" rows="4">["https://github.com/Jinchainne/genlayer-order-resolution-console","https://genlayer-policy-eco.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea>
-              </label>
-              <button type="submit">Run Resolution Workflow</button>
-            </form>
-
-            <div id="verdictCard" class="verdict verdict-waiting">
-              <strong>Awaiting resolution</strong>
-              <span>Run the workflow to map the dispute verdict into an operational action.</span>
+              <pre id="workflowOutput" class="output compact muted">No workflow executed yet.</pre>
             </div>
 
-            <pre id="workflowOutput" class="output muted">No resolution workflow executed yet.</pre>
-            </section>
+            <!-- Hidden fields for app.js compatibility -->
+            <div style="display:none">
+              <textarea name="subject" form="workflowForm">A buyer reports a missing-item dispute and requests a refund.</textarea>
+              <textarea name="evidence" form="workflowForm">{"orderId":"ORD-2048","buyerClaim":"Missing items","sellerResponse":"Order packed complete"}</textarea>
+              <textarea name="referenceUrls" form="workflowForm">["https://github.com/Jinchainne/genlayer-order-resolution-console"]</textarea>
+              <select id="aiPersona" name="aiPersona"><option value="mira">MiMo</option></select>
+              <div id="generatedSubject"></div>
+              <div id="generatedReferences"></div>
+              <div id="generatedEvidence"></div>
+              <form id="resolutionActionForm"><textarea name="actionNote"></textarea></form>
+              <button id="applyResolutionActionButton"></button>
+              <button id="clearResolutionActionButton"></button>
+              <strong id="recommendedAction"></strong>
+              <p id="recommendedActionReason"></p>
+            </div>
           </div>
         </aside>
       </section>
@@ -541,17 +451,6 @@
     <div id="runtimeNotice" style="display:none"></div>
 
     <script type="module" src="/app.js"></script>
-    <script>
-      // Wire up hero navigation buttons
-      document.getElementById('navCreatePolicy')?.addEventListener('click', () => {
-        document.getElementById('workbench')?.scrollIntoView({ behavior: 'smooth' });
-        document.querySelector('[data-tab-target="policyTab"]')?.click();
-      });
-      document.getElementById('navRunTriage')?.addEventListener('click', () => {
-        document.getElementById('workbench')?.scrollIntoView({ behavior: 'smooth' });
-        document.querySelector('[data-tab-target="triageTab"]')?.click();
-      });
-    </script>
   </body>
 </html>
 <!-- redeploy -->
