@@ -79,6 +79,9 @@ body::before {
   background: rgba(4, 10, 6, 0.94);
   box-shadow: var(--shadow-soft);
   flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .nav-brand {
