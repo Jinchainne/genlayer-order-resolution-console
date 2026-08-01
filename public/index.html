@@ -7,658 +7,579 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-  <script id="tailwind-config">
+  <script>
     tailwind.config = {
-      darkMode: "class",
       theme: {
         extend: {
           colors: {
-            "primary": "#003ec7",
-            "on-primary": "#ffffff",
-            "primary-container": "#0052ff",
-            "on-primary-container": "#dfe3ff",
-            "surface": "#f8f9fa",
-            "surface-dim": "#d9dadb",
-            "surface-container-lowest": "#ffffff",
-            "surface-container-low": "#f3f4f5",
-            "surface-container": "#edeeef",
-            "surface-container-high": "#e7e8e9",
-            "surface-container-highest": "#e1e3e4",
-            "on-surface": "#191c1d",
-            "on-surface-variant": "#434656",
-            "outline": "#737688",
-            "outline-variant": "#c3c5d9",
-            "secondary": "#575e70",
-            "on-secondary": "#ffffff",
-            "secondary-container": "#d9dff5",
-            "status-allowed": "#10B981",
-            "status-review": "#F59E0B",
-            "status-blocked": "#EF4444",
-            "inverse-surface": "#2e3132",
-            "inverse-on-surface": "#f0f1f2",
-            "surface-charcoal": "#1F2937"
+            primary: '#003ec7', 'on-primary': '#ffffff',
+            'primary-container': '#0052ff', 'on-primary-container': '#dfe3ff',
+            surface: '#f8f9fa', 'surface-dim': '#d9dadb',
+            'surface-container-lowest': '#ffffff', 'surface-container-low': '#f3f4f5',
+            'surface-container': '#edeeef', 'surface-container-high': '#e7e8e9',
+            'surface-container-highest': '#e1e3e4',
+            'on-surface': '#191c1d', 'on-surface-variant': '#434656',
+            outline: '#737688', 'outline-variant': '#c3c5d9',
+            secondary: '#575e70', 'on-secondary': '#ffffff', 'secondary-container': '#d9dff5',
+            allowed: '#10B981', review: '#F59E0B', blocked: '#EF4444',
+            'inverse-surface': '#2e3132', 'inverse-on-surface': '#f0f1f2',
           },
-          borderRadius: {
-            DEFAULT: "0.125rem",
-            lg: "0.25rem",
-            xl: "0.5rem",
-            "2xl": "0.75rem"
-          },
-          fontFamily: {
-            sans: ["Inter", "sans-serif"],
-            "data-mono": ["JetBrains Mono", "monospace"],
-            "label-caps": ["JetBrains Mono", "monospace"]
-          }
+          fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] },
         }
       }
     }
   </script>
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #191c1d; }
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-    .mimo-card { border-top: 4px solid #003ec7; background-color: #F0F7FF; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #e1e3e4; border-radius: 10px; }
-    .nav-active { color: #003ec7; font-weight: 700; border-right: 4px solid #003ec7; background: rgba(217,223,245,0.5); }
-    .tab-active { color: #003ec7; border-bottom: 2px solid #003ec7; font-weight: 600; }
-    .chip { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; border: 1px solid #c3c5d9; color: #434656; background: white; }
-    .chip:hover { background: #f3f4f5; }
-    .chip-action-active { background: #003ec7; color: white; border-color: #003ec7; }
-    .verdict { padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
-    .verdict-waiting { background: #f3f4f5; border: 1px solid #c3c5d9; }
-    .verdict-resolved { background: #ecfdf5; border: 1px solid #10B981; }
-    .verdict-denied { background: #fef2f2; border: 1px solid #EF4444; }
-    .code-block { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; background: #f3f4f5; padding: 12px 16px; border-radius: 4px; border: 1px solid #c3c5d9; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
-    .muted { color: #737688; }
-    .empty-state { color: #737688; font-size: 14px; font-style: italic; padding: 16px; text-align: center; }
-    .queue-item { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border: 1px solid #c3c5d9; border-radius: 4px; cursor: pointer; transition: all 0.15s; background: white; }
-    .queue-item:hover { border-color: #003ec7; background: #f3f4f5; }
-    .queue-item-active { border-color: #003ec7; background: #F0F7FF; }
-    .status-badge { display: inline-flex; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; }
-    .status-new { background: #F0F7FF; color: #003ec7; border: 1px solid #003ec733; }
-    .status-evidence-ready { background: #fffbeb; color: #d97706; border: 1px solid #d9770633; }
-    .status-awaiting-resolution { background: #ecfdf5; color: #059669; border: 1px solid #05966933; }
-    .status-refund-approved { background: #ecfdf5; color: #10B981; border: 1px solid #10B98133; }
-    .status-payout-on-hold { background: #fef2f2; color: #dc2626; border: 1px solid #dc262633; }
-    .status-fraud-review-queue { background: #fef2f2; color: #EF4444; border: 1px solid #EF444433; }
-    .timeline-item { display: flex; gap: 12px; padding: 8px 0; }
-    .timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: #003ec7; margin-top: 6px; flex-shrink: 0; }
-    .timeline-line { border-left: 2px solid #c3c5d9; margin-left: 3px; padding-left: 16px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
-    .case-form { display: flex; flex-direction: column; gap: 12px; }
-    .case-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; color: #737688; }
-    .case-form input, .case-form textarea, .case-form select { padding: 8px 12px; border: 1px solid #c3c5d9; border-radius: 4px; font-size: 14px; font-family: 'Inter', sans-serif; color: #191c1d; background: white; outline: none; transition: border-color 0.15s; }
-    .case-form input:focus, .case-form textarea:focus, .case-form select:focus { border-color: #003ec7; box-shadow: 0 0 0 2px rgba(0,62,199,0.1); }
-    .btn-primary { padding: 10px 20px; background: #003ec7; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-primary:hover { background: #0052ff; }
-    .btn-secondary { padding: 10px 20px; background: white; color: #003ec7; border: 1px solid #003ec7; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-    .btn-secondary:hover { background: #F0F7FF; }
-    .btn-ghost { padding: 10px 20px; background: transparent; color: #434656; border: 1px solid #c3c5d9; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
-    .btn-ghost:hover { background: #f3f4f5; }
-    .form-actions { display: flex; gap: 12px; margin-top: 4px; }
-    .tab-content { display: none; }
-    .tab-content-active { display: block; }
-    .proof-links { display: flex; flex-direction: column; gap: 8px; }
-    .proof-links a { color: #003ec7; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; }
-    .proof-links a:hover { text-decoration: underline; }
-    .bottom-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .bottom-card { background: white; border: 1px solid #c3c5d9; border-radius: 8px; padding: 16px; }
-    .bottom-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; color: #737688; }
-    .history-list { max-height: 200px; overflow-y: auto; }
-    .history-item { padding: 8px 0; border-bottom: 1px solid #e1e3e4; font-size: 13px; }
-    .history-item:last-child { border-bottom: none; }
-    .source-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-    .vault-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-    .vault-item { padding: 8px 12px; border: 1px solid #c3c5d9; border-radius: 4px; font-size: 13px; margin-bottom: 8px; background: white; }
-    .vault-item .vault-title { font-weight: 600; margin-bottom: 4px; }
-    .vault-item .vault-detail { color: #737688; font-size: 12px; }
-    .evidence-form-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #c3c5d9; }
-    .evidence-form-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; color: #737688; }
-    .playbook-task { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid #c3c5d9; border-radius: 4px; margin-bottom: 8px; font-size: 13px; }
-    .playbook-task-done { background: #ecfdf5; border-color: #10B98133; }
-    .btn-sm { padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; cursor: pointer; border: none; }
-    .btn-sm-done { background: #10B981; color: white; }
-    .btn-sm-pending { background: #e7e8e9; color: #434656; }
-    @media (max-width: 1024px) {
-      .bottom-grid { grid-template-columns: repeat(2, 1fr); }
-      .vault-grid { grid-template-columns: 1fr; }
-      .form-row-3 { grid-template-columns: 1fr; }
+    body { font-family:'Inter',sans-serif; background:#f8f9fa; color:#191c1d; }
+    .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+    /* Stepper */
+    .step-btn { display:flex; align-items:center; gap:6px; padding:8px 14px; font-size:12px; font-weight:600; letter-spacing:0.03em; border:none; cursor:pointer; transition:all .15s; border-radius:4px; background:transparent; color:#737688; white-space:nowrap; }
+    .step-btn:hover { background:#edeeef; }
+    .step-btn .step-num { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; border:2px solid #c3c5d9; color:#737688; flex-shrink:0; }
+    .step-btn.step-active { color:#003ec7; background:#F0F7FF; }
+    .step-btn.step-active .step-num { border-color:#003ec7; background:#003ec7; color:white; }
+    .step-btn.step-done .step-num { border-color:#10B981; background:#10B981; color:white; }
+    .step-btn.step-done { color:#10B981; }
+
+    /* Panels */
+    .step-panel { display:none; }
+    .step-panel-active { display:block; }
+
+    /* Queue */
+    .q-item { display:flex; flex-direction:column; gap:4px; padding:10px 14px; border:1px solid #c3c5d9; border-radius:4px; cursor:pointer; transition:all .15s; background:white; }
+    .q-item:hover { border-color:#003ec7; }
+    .q-item-active { border-color:#003ec7; background:#F0F7FF; }
+    .q-id { font-weight:700; font-size:13px; font-family:'JetBrains Mono',monospace; }
+    .q-status { font-size:10px; font-weight:600; text-transform:uppercase; font-family:'JetBrains Mono',monospace; letter-spacing:0.05em; padding:2px 6px; border-radius:9999px; }
+    .st-new { background:#F0F7FF; color:#003ec7; }
+    .st-evidence { background:#fffbeb; color:#d97706; }
+    .st-awaiting { background:#ecfdf5; color:#059669; }
+    .st-approved { background:#ecfdf5; color:#10B981; }
+    .st-hold { background:#fef2f2; color:#dc2626; }
+    .st-fraud { background:#fef2f2; color:#EF4444; }
+
+    /* Cards */
+    .card { background:white; border:1px solid #c3c5d9; border-radius:8px; overflow:hidden; }
+    .card-h { padding:12px 16px; border-bottom:1px solid #c3c5d9; display:flex; align-items:center; gap:8px; }
+    .card-b { padding:16px; }
+
+    /* Forms */
+    .frm { display:flex; flex-direction:column; gap:10px; }
+    .frm label { display:flex; flex-direction:column; gap:3px; font-size:11px; font-family:'JetBrains Mono',monospace; letter-spacing:0.05em; text-transform:uppercase; color:#737688; }
+    .frm input,.frm textarea,.frm select { padding:8px 10px; border:1px solid #c3c5d9; border-radius:4px; font-size:13px; font-family:'Inter',sans-serif; color:#191c1d; background:white; outline:none; }
+    .frm input:focus,.frm textarea:focus,.frm select:focus { border-color:#003ec7; box-shadow:0 0 0 2px rgba(0,62,199,.1); }
+    .frm-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .frm-row-3 { grid-template-columns:1fr 1fr 1fr; }
+
+    /* Buttons */
+    .btn { padding:8px 16px; border:none; border-radius:4px; font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; gap:6px; }
+    .btn-primary { background:#003ec7; color:white; }
+    .btn-primary:hover { background:#0052ff; }
+    .btn-secondary { background:white; color:#003ec7; border:1px solid #003ec7; }
+    .btn-secondary:hover { background:#F0F7FF; }
+    .btn-ghost { background:transparent; color:#434656; border:1px solid #c3c5d9; }
+    .btn-ghost:hover { background:#f3f4f5; }
+    .btn-sm { padding:4px 10px; font-size:11px; }
+    .btn-danger { background:#fef2f2; color:#dc2626; border:1px solid #dc262633; }
+    .btn-danger:hover { background:#fee2e2; }
+    .btns { display:flex; gap:8px; flex-wrap:wrap; }
+
+    /* Chips */
+    .chip { display:inline-flex; padding:5px 10px; border:1px solid #c3c5d9; border-radius:4px; font-size:11px; font-weight:500; font-family:'JetBrains Mono',monospace; letter-spacing:0.05em; text-transform:uppercase; cursor:pointer; transition:all .15s; background:white; color:#434656; }
+    .chip:hover { background:#f3f4f5; }
+    .chip-active { background:#003ec7!important; color:white!important; border-color:#003ec7!important; }
+
+    /* Code */
+    .code { font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.5; background:#f3f4f5; padding:10px 12px; border-radius:4px; border:1px solid #c3c5d9; overflow-x:auto; white-space:pre-wrap; word-break:break-word; color:#434656; }
+
+    /* Timeline */
+    .tl-item { display:flex; gap:10px; padding:6px 0; padding-left:20px; position:relative; }
+    .tl-item::before { content:''; position:absolute; left:3px; top:10px; width:7px; height:7px; border-radius:50%; background:#003ec7; }
+    .tl-title { font-size:12px; font-weight:600; }
+    .tl-desc { font-size:11px; color:#434656; }
+    .tl-time { font-size:10px; color:#737688; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+
+    /* Evidence */
+    .ev-item { padding:6px 0; border-bottom:1px solid #e1e3e4; font-size:12px; }
+    .ev-status { font-size:10px; font-family:'JetBrains Mono',monospace; padding:2px 5px; border-radius:3px; }
+    .ev-status.submitted { background:#F0F7FF; color:#003ec7; }
+    .ev-status.time-verified { background:#ecfdf5; color:#059669; }
+    .ev-status.authoritative { background:#ecfdf5; color:#10B981; }
+    .ev-status.pending-proof { background:#fffbeb; color:#d97706; }
+    .ev-status.needs-review { background:#fef2f2; color:#dc2626; }
+    .ev-status.missing { background:#fef2f2; color:#EF4444; }
+
+    /* Disagreement */
+    .dis-item { padding:6px 10px; border:1px solid #c3c5d9; border-radius:4px; font-size:12px; background:white; margin-bottom:6px; }
+
+    /* Vault */
+    .v-item { padding:8px 10px; border:1px solid #c3c5d9; border-radius:4px; margin-bottom:6px; background:white; font-size:12px; }
+    .v-actions { display:flex; gap:6px; margin-top:6px; }
+
+    /* Playbook */
+    .pb-task { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border:1px solid #c3c5d9; border-radius:4px; margin-bottom:6px; font-size:12px; }
+
+    /* Verdict */
+    .verdict { padding:10px 14px; border-radius:4px; margin:10px 0; }
+    .verdict-waiting { background:#f3f4f5; border:1px solid #c3c5d9; }
+    .verdict-approved { background:#ecfdf5; border:1px solid #10B981; }
+    .verdict-denied { background:#fef2f2; border:1px solid #EF4444; }
+
+    /* Misc */
+    .empty { color:#737688; font-size:13px; font-style:italic; padding:12px; text-align:center; }
+    .h-item { padding:6px 0; border-bottom:1px solid #e1e3e4; font-size:12px; }
+    .proof-links { display:flex; flex-direction:column; gap:6px; }
+    .proof-links a { color:#003ec7; font-size:13px; text-decoration:none; display:flex; align-items:center; gap:4px; }
+    .proof-links a:hover { text-decoration:underline; }
+    .label { font-size:10px; font-family:'JetBrains Mono',monospace; letter-spacing:0.05em; text-transform:uppercase; color:#737688; }
+    .stat-val { font-size:18px; font-weight:700; color:#003ec7; font-family:'JetBrains Mono',monospace; }
+
+    @media(max-width:1024px) {
+      .frm-row-3 { grid-template-columns:1fr; }
+      .main-grid { grid-template-columns:1fr!important; }
     }
-    @media (max-width: 768px) {
-      .form-row { grid-template-columns: 1fr; }
-      .bottom-grid { grid-template-columns: 1fr; }
+    @media(max-width:768px) {
+      .frm-row { grid-template-columns:1fr; }
     }
   </style>
 </head>
 <body class="flex min-h-screen">
 
-<!-- SIDE NAVIGATION BAR -->
-<aside class="fixed left-0 top-0 h-full w-[240px] flex flex-col py-6 bg-surface border-r border-outline-variant z-40">
-  <div class="px-6 mb-8 flex items-center gap-3">
-    <div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-white">
-      <span class="material-symbols-outlined text-[20px]">terminal</span>
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 h-full w-[220px] flex flex-col py-5 bg-white border-r border-outline-variant z-40">
+  <div class="px-5 mb-6 flex items-center gap-2">
+    <div class="w-7 h-7 bg-primary rounded flex items-center justify-center text-white">
+      <span class="material-symbols-outlined text-[16px]">terminal</span>
     </div>
     <div>
-      <h1 class="text-[18px] font-bold text-primary leading-tight">GenLayer</h1>
-      <p class="text-[10px] font-label-caps tracking-widest uppercase opacity-60">Resolution Console</p>
+      <h1 class="text-[15px] font-bold text-primary leading-tight">GenLayer</h1>
+      <p class="text-[9px] font-mono tracking-widest uppercase opacity-60">Resolution Console</p>
     </div>
   </div>
-  <nav class="flex-1 space-y-1 px-3">
-    <a href="#queue" class="nav-active flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded" data-nav="queue">
-      <span class="material-symbols-outlined">pending_actions</span>
-      <span class="text-sm">Queue</span>
+  <nav class="flex-1 space-y-0.5 px-3">
+    <a href="#main" class="flex items-center gap-2.5 px-3 py-2.5 text-primary font-bold bg-secondary-container/50 border-r-[3px] border-primary rounded text-sm" data-nav="queue">
+      <span class="material-symbols-outlined text-[18px]">pending_actions</span>Queue
     </a>
-    <a href="#resolution" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded" data-nav="resolution">
-      <span class="material-symbols-outlined">biotech</span>
-      <span class="text-sm">Workbench</span>
-    </a>
-    <a href="#history" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded" data-nav="history">
-      <span class="material-symbols-outlined">analytics</span>
-      <span class="text-sm">History</span>
-    </a>
-    <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded">
-      <span class="material-symbols-outlined">open_in_new</span>
-      <span class="text-sm">GitHub</span>
+    <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer" class="flex items-center gap-2.5 px-3 py-2.5 text-on-surface-variant hover:bg-surface-container-high rounded text-sm">
+      <span class="material-symbols-outlined text-[18px]">open_in_new</span>GitHub
     </a>
   </nav>
-  <div class="px-4 mt-auto">
-    <div class="flex items-center gap-3 p-3 rounded-lg bg-surface-container-low border border-outline-variant/30">
-      <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">A</div>
+  <div class="px-3 mt-auto">
+    <div class="flex items-center gap-2 p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/30">
+      <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">A</div>
       <div class="overflow-hidden">
-        <p class="text-sm font-bold truncate">Merchant Admin</p>
-        <p class="text-[10px] font-label-caps opacity-60 truncate text-on-surface-variant">Resolution Team</p>
+        <p class="text-xs font-bold truncate">Merchant Admin</p>
+        <p class="text-[9px] font-mono opacity-60 truncate text-on-surface-variant">Resolution Team</p>
       </div>
     </div>
   </div>
 </aside>
 
-<!-- MAIN CONTENT CANVAS -->
-<main class="ml-[240px] flex-1 min-h-screen flex flex-col relative">
-  <!-- TOP APP BAR -->
-  <header class="flex justify-between items-center w-full px-8 h-16 sticky top-0 z-30 bg-surface border-b border-outline-variant">
-    <div class="flex items-center gap-6">
-      <h2 class="text-lg font-bold text-primary">Case Workbench</h2>
+<!-- MAIN -->
+<main class="ml-[220px] flex-1 min-h-screen">
+  <!-- HEADER -->
+  <header class="flex justify-between items-center px-6 h-14 sticky top-0 z-30 bg-white border-b border-outline-variant">
+    <div class="flex items-center gap-4">
+      <h2 class="text-base font-bold text-primary">Case Workbench</h2>
       <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-[18px]">search</span>
-        <input id="queueSearch" class="pl-10 pr-4 py-1.5 bg-surface-container-low border border-outline-variant rounded text-sm w-64 focus:ring-2 focus:ring-primary/20 outline-none transition-all" placeholder="Search case ID, customer..." type="text" />
+        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-[16px]">search</span>
+        <input id="queueSearch" class="pl-8 pr-3 py-1.5 bg-surface-container-low border border-outline-variant rounded text-xs w-56 focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Search case ID, customer..." />
       </div>
     </div>
-    <div class="flex items-center gap-4">
-      <span id="contractPill" class="text-xs font-data-mono px-3 py-1 bg-surface-container rounded border border-outline-variant text-on-surface-variant">Loading contract...</span>
-      <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant transition-colors">
-        <span class="material-symbols-outlined">notifications</span>
-      </button>
+    <div class="flex items-center gap-3">
+      <span id="contractPill" class="text-[11px] font-mono px-2.5 py-1 bg-surface-container rounded border border-outline-variant text-on-surface-variant">Loading...</span>
     </div>
   </header>
 
-  <!-- DASHBOARD CONTAINER -->
-  <div class="p-8 max-w-[1440px] mx-auto w-full grid grid-cols-12 gap-6">
+  <!-- CONTENT: 2 columns -->
+  <div class="p-6 main-grid grid grid-cols-[280px_1fr] gap-5 max-w-[1400px]">
 
-    <!-- ==================== LEFT COLUMN: Queue + Detail ==================== -->
-    <section class="col-span-12 lg:col-span-8 space-y-6" id="queue">
-
-      <!-- Queue Panel -->
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+    <!-- ===== LEFT: Queue ===== -->
+    <div class="space-y-4">
+      <div class="card">
+        <div class="card-h justify-between">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-outline">pending_actions</span>
-            <h3 class="text-base font-bold">Dispute Queue</h3>
-            <span class="case-count text-xs font-data-mono text-outline ml-2" id="activeCaseCount">0 cases</span>
+            <span class="material-symbols-outlined text-outline text-[18px]">pending_actions</span>
+            <span class="text-sm font-bold">Queue</span>
+            <span class="text-[11px] font-mono text-outline" id="activeCaseCount">0</span>
           </div>
-          <select id="queueStatusFilter" class="text-xs border border-outline-variant rounded px-2 py-1 bg-white text-on-surface-variant">
-            <option value="all">All statuses</option>
+          <select id="queueStatusFilter" class="text-[10px] border border-outline-variant rounded px-1.5 py-0.5 bg-white">
+            <option value="all">All</option>
             <option value="new">new</option>
             <option value="evidence ready">evidence ready</option>
-            <option value="awaiting resolution">awaiting resolution</option>
-            <option value="refund approved">refund approved</option>
-            <option value="payout on hold">payout on hold</option>
-            <option value="fraud review queue">fraud review queue</option>
+            <option value="awaiting resolution">awaiting</option>
+            <option value="refund approved">approved</option>
+            <option value="payout on hold">on hold</option>
+            <option value="fraud review queue">fraud</option>
           </select>
         </div>
-        <div id="caseQueue" class="p-4 space-y-2"></div>
+        <div id="caseQueue" class="p-3 space-y-1.5 max-h-[400px] overflow-y-auto"></div>
         <details class="border-t border-outline-variant">
-          <summary class="px-6 py-3 cursor-pointer text-sm font-semibold text-primary hover:bg-surface-container-low transition-colors">+ Add New Case</summary>
-          <div class="p-6">
-            <form id="caseCreateForm" class="case-form">
-              <div class="form-row">
-                <label>Case ID<input name="caseId" placeholder="ORD-5001" required /></label>
-                <label>Dispute type<select name="presetType"><option value="">Custom dispute</option></select></label>
-              </div>
-              <div class="form-row">
-                <label>Merchant<input name="merchant" placeholder="NorthStar Grocery" required /></label>
-                <label>Buyer<input name="buyer" placeholder="Olivia Carter" required /></label>
-              </div>
-              <div class="form-row">
-                <label>Claim type<input name="claimType" placeholder="late-delivery / chargeback" required /></label>
-                <label>Currency<input name="currency" value="USD" required /></label>
-              </div>
-              <div class="form-row">
-                <label>Order total<input name="orderAmount" placeholder="142.00" required /></label>
-                <label>Amount at risk<input name="riskAmount" placeholder="58.00" required /></label>
-              </div>
-              <label>Subject<textarea name="subject" rows="2" placeholder="Brief description of the dispute." required></textarea></label>
-              <div class="form-row">
-                <label>Buyer statement<textarea name="buyerStatement" rows="2" placeholder="Buyer's side." required></textarea></label>
-                <label>Seller response<textarea name="sellerStatement" rows="2" placeholder="Seller's side." required></textarea></label>
-              </div>
-              <label>Seller team<input name="seller" placeholder="Merchant Resolution Desk" required /></label>
-              <button type="submit" class="btn-primary">Add Case</button>
+          <summary class="px-4 py-2 cursor-pointer text-xs font-semibold text-primary hover:bg-surface-container-low">+ New Case</summary>
+          <div class="p-4">
+            <form id="caseCreateForm" class="frm">
+              <div class="frm-row"><label>Case ID<input name="caseId" placeholder="ORD-5001" required /></label><label>Type<select name="presetType"><option value="">Custom</option></select></label></div>
+              <div class="frm-row"><label>Merchant<input name="merchant" required /></label><label>Buyer<input name="buyer" required /></label></div>
+              <div class="frm-row"><label>Claim<input name="claimType" required /></label><label>Currency<input name="currency" value="USD" required /></label></div>
+              <div class="frm-row"><label>Order total<input name="orderAmount" required /></label><label>At risk<input name="riskAmount" required /></label></div>
+              <label>Subject<textarea name="subject" rows="2" required></textarea></label>
+              <div class="frm-row"><label>Buyer<textarea name="buyerStatement" rows="2" required></textarea></label><label>Seller<textarea name="sellerStatement" rows="2" required></textarea></div>
+              <label>Seller team<input name="seller" required /></label>
+              <button type="submit" class="btn btn-primary btn-sm">Add Case</button>
             </form>
           </div>
         </details>
       </div>
 
-      <!-- Case Detail Panel -->
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden" id="detail">
-        <div class="px-6 py-4 border-b border-outline-variant">
-          <h2 id="caseTitle" class="text-lg font-bold">Select a case</h2>
-          <p id="caseSubtitle" class="text-sm text-on-surface-variant mt-1">Choose a dispute from the queue to view details.</p>
+      <!-- Bottom cards -->
+      <div class="card">
+        <div class="card-h"><span class="material-symbols-outlined text-outline text-[16px]">history</span><span class="text-xs font-bold">Recent Reviews</span></div>
+        <div class="card-b max-h-[160px] overflow-y-auto"><div id="recentRuns"><p class="empty">No reviews yet.</p></div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="material-symbols-outlined text-outline text-[16px]">rule</span><span class="text-xs font-bold">Decision History</span></div>
+        <div class="card-b max-h-[160px] overflow-y-auto"><div id="decisionHistory"><p class="empty">No decisions yet.</p></div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="material-symbols-outlined text-outline text-[16px]">checklist</span><span class="text-xs font-bold">Task Board</span></div>
+        <div class="card-b max-h-[160px] overflow-y-auto"><div id="actionQueueBoard"><p class="empty">No tasks yet.</p></div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="material-symbols-outlined text-outline text-[16px]">link</span><span class="text-xs font-bold">Live Proof</span></div>
+        <div class="card-b proof-links">
+          <a href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer"><span class="material-symbols-outlined text-[13px]">open_in_new</span>Contract Explorer</a>
+          <a href="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" target="_blank" rel="noreferrer"><span class="material-symbols-outlined text-[13px]">open_in_new</span>Deploy Tx</a>
+          <a href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer"><span class="material-symbols-outlined text-[13px]">open_in_new</span>create_policy Tx</a>
+          <a href="https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59" target="_blank" rel="noreferrer"><span class="material-symbols-outlined text-[13px]">open_in_new</span>evaluate Tx</a>
+          <a href="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" target="_blank" rel="noreferrer"><span class="material-symbols-outlined text-[13px]">open_in_new</span>workflow Tx</a>
+          <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer"><span class="material-symbols-outlined text-[13px]">open_in_new</span>GitHub</a>
+          <a href="https://order-resolution-console.vercel.app/" target="_blank" rel="noreferrer"><span class="material-symbols-outlined text-[13px]">open_in_new</span>Live App</a>
         </div>
+      </div>
+    </div>
 
-        <!-- Detail Tabs -->
-        <div class="flex border-b border-outline-variant bg-surface-container-low" id="detailTabs">
-          <button type="button" class="tab tab-active px-5 py-3 text-sm" data-detail-tab="overviewTab">
-            <span class="material-symbols-outlined text-[16px] align-middle mr-1">visibility</span>Overview
-          </button>
-          <button type="button" class="tab px-5 py-3 text-sm text-on-surface-variant hover:text-on-surface" data-detail-tab="intakeTab">
-            <span class="material-symbols-outlined text-[16px] align-middle mr-1">edit</span>Edit Case
-          </button>
-          <button type="button" class="tab px-5 py-3 text-sm text-on-surface-variant hover:text-on-surface" data-detail-tab="vaultTab">
-            <span class="material-symbols-outlined text-[16px] align-middle mr-1">inventory_2</span>Evidence
-          </button>
-          <button type="button" class="tab px-5 py-3 text-sm text-on-surface-variant hover:text-on-surface" data-detail-tab="builderTab">
-            <span class="material-symbols-outlined text-[16px] align-middle mr-1">build</span>Build Packet
-          </button>
-        </div>
-
-        <!-- Overview Tab -->
-        <section id="overviewTab" class="tab-content tab-content-active p-6 space-y-6">
-          <!-- Summary Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl">
-              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Order</p>
-              <strong id="orderNumber" class="text-lg font-bold text-primary block mt-1">-</strong>
-              <span id="orderMeta" class="text-xs text-on-surface-variant">-</span>
-            </div>
-            <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl">
-              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">At Risk</p>
-              <strong id="riskAmount" class="text-lg font-bold text-primary block mt-1">-</strong>
-              <span id="riskMeta" class="text-xs text-on-surface-variant">-</span>
-            </div>
-            <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl">
-              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Claim</p>
-              <strong id="claimType" class="text-lg font-bold block mt-1">-</strong>
-              <span id="claimStatus" class="text-xs text-on-surface-variant">-</span>
-            </div>
-          </div>
-
-          <!-- Party Row -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-4 bg-white border border-outline-variant rounded-xl">
-              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">Buyer</p>
-              <h3 id="buyerName" class="text-sm font-bold">-</h3>
-              <p id="buyerStatement" class="text-sm text-on-surface-variant mt-2">-</p>
-            </div>
-            <div class="p-4 bg-white border border-outline-variant rounded-xl">
-              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">Seller</p>
-              <h3 id="sellerName" class="text-sm font-bold">-</h3>
-              <p id="sellerStatement" class="text-sm text-on-surface-variant mt-2">-</p>
-            </div>
-          </div>
-
-          <!-- Timeline -->
+    <!-- ===== RIGHT: Case Workflow ===== -->
+    <div class="space-y-4" id="detail">
+      <!-- Case Header -->
+      <div class="card">
+        <div class="card-b flex items-start justify-between">
           <div>
-            <div class="flex justify-between items-center mb-3">
-              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Timeline</p>
-              <span id="resolutionWindow" class="text-xs font-data-mono px-2 py-0.5 bg-surface-container rounded border border-outline-variant">-</span>
-            </div>
-            <div id="caseTimeline" class="timeline-line space-y-0"></div>
+            <h2 id="caseTitle" class="text-lg font-bold">Select a case</h2>
+            <p id="caseSubtitle" class="text-xs text-on-surface-variant mt-1">Choose a dispute from the queue.</p>
           </div>
+          <div class="flex gap-4 text-right">
+            <div><p class="label">At Risk</p><p class="stat-val" id="riskAmount">-</p></div>
+            <div><p class="label">Order</p><p class="text-sm font-bold" id="orderNumber">-</p><p class="text-[11px] text-on-surface-variant" id="orderMeta">-</p></div>
+          </div>
+        </div>
+      </div>
 
-          <!-- Evidence & Disagreements -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-4 bg-white border border-outline-variant rounded-xl">
-              <div class="flex justify-between items-center mb-3">
-                <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Authority Checks</p>
-                <span id="evidenceCount" class="text-xs font-data-mono px-2 py-0.5 bg-surface-container rounded">0 sources</span>
-              </div>
-              <div id="authoritativeEvidence" class="space-y-2"></div>
+      <!-- STEPPER -->
+      <div class="card">
+        <div class="flex items-center gap-1 px-3 py-2 overflow-x-auto border-b border-outline-variant bg-surface-container-low">
+          <button class="step-btn step-active" data-step="overviewTab"><span class="step-num">1</span>Overview</button>
+          <span class="material-symbols-outlined text-outline text-[14px]">chevron_right</span>
+          <button class="step-btn" data-step="vaultTab"><span class="step-num">2</span>Evidence</button>
+          <span class="material-symbols-outlined text-outline text-[14px]">chevron_right</span>
+          <button class="step-btn" data-step="builderTab"><span class="step-num">3</span>Packet</button>
+          <span class="material-symbols-outlined text-outline text-[14px]">chevron_right</span>
+          <button class="step-btn" data-step="triageTab"><span class="step-num">4</span>AI Triage</button>
+          <span class="material-symbols-outlined text-outline text-[14px]">chevron_right</span>
+          <button class="step-btn" data-step="policyTab"><span class="step-num">5</span>Policy</button>
+          <span class="material-symbols-outlined text-outline text-[14px]">chevron_right</span>
+          <button class="step-btn" data-step="workflowTab"><span class="step-num">6</span>Resolve</button>
+        </div>
+
+        <!-- === STEP 1: Overview === -->
+        <div id="overviewTab" class="step-panel step-panel-active p-5 space-y-5">
+          <div class="grid grid-cols-3 gap-3">
+            <div class="p-3 bg-surface-container-low rounded border border-outline-variant">
+              <p class="label">Claim</p>
+              <strong id="claimType" class="text-sm block mt-1">-</strong>
+              <span id="claimStatus" class="text-[11px] text-on-surface-variant">-</span>
             </div>
-            <div class="p-4 bg-white border border-outline-variant rounded-xl">
-              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-3">Key Disagreements</p>
-              <div id="disagreementList" class="space-y-2"></div>
+            <div class="p-3 bg-surface-container-low rounded border border-outline-variant">
+              <p class="label">Risk Amount</p>
+              <strong id="riskMeta" class="text-sm block mt-1">-</strong>
+            </div>
+            <div class="p-3 bg-surface-container-low rounded border border-outline-variant">
+              <p class="label">Resolution Window</p>
+              <span id="resolutionWindow" class="text-xs font-mono">-</span>
             </div>
           </div>
-        </section>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 bg-white rounded border border-outline-variant">
+              <p class="label mb-2">Buyer</p>
+              <h3 id="buyerName" class="text-sm font-bold">-</h3>
+              <p id="buyerStatement" class="text-xs text-on-surface-variant mt-1">-</p>
+            </div>
+            <div class="p-3 bg-white rounded border border-outline-variant">
+              <p class="label mb-2">Seller</p>
+              <h3 id="sellerName" class="text-sm font-bold">-</h3>
+              <p id="sellerStatement" class="text-xs text-on-surface-variant mt-1">-</p>
+            </div>
+          </div>
+          <div>
+            <p class="label mb-2">Timeline</p>
+            <div id="caseTimeline" class="border-l-2 border-outline-variant ml-1 space-y-0"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 bg-white rounded border border-outline-variant">
+              <div class="flex justify-between items-center mb-2"><p class="label">Authority Checks</p><span id="evidenceCount" class="text-[10px] font-mono">0</span></div>
+              <div id="authoritativeEvidence" class="space-y-1"></div>
+            </div>
+            <div class="p-3 bg-white rounded border border-outline-variant">
+              <p class="label mb-2">Key Disagreements</p>
+              <div id="disagreementList"></div>
+            </div>
+          </div>
+          <div class="btns">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="activateStep('intakeTab')">Edit Case</button>
+          </div>
+        </div>
 
-        <!-- Edit Case Tab -->
-        <section id="intakeTab" class="tab-content p-6">
-          <form id="caseDetailForm" class="case-form">
-            <div class="form-row form-row-3">
-              <label>Preset type<select id="detailPreset" name="presetType"><option value="">Custom dispute</option></select></label>
+        <!-- Edit Case (hidden panel, accessed from Overview) -->
+        <div id="intakeTab" class="step-panel p-5">
+          <form id="caseDetailForm" class="frm">
+            <div class="frm-row frm-row-3">
+              <label>Preset<select id="detailPreset" name="presetType"><option value="">Custom</option></select></label>
               <label>Case ID<input name="caseId" required /></label>
-              <label>Status<input name="status" placeholder="new / evidence ready" required /></label>
+              <label>Status<input name="status" required /></label>
             </div>
-            <div class="form-row form-row-3">
-              <label>Claim type<input name="claimType" placeholder="missing-item / late-delivery" required /></label>
-              <label>Requested action<input name="requestedAction" placeholder="partial refund" required /></label>
+            <div class="frm-row frm-row-3">
+              <label>Claim type<input name="claimType" required /></label>
+              <label>Action<input name="requestedAction" required /></label>
               <label>Currency<input name="currency" value="USD" required /></label>
             </div>
-            <div class="form-row form-row-3">
+            <div class="frm-row frm-row-3">
               <label>Merchant<input name="merchant" required /></label>
               <label>Buyer<input name="buyer" required /></label>
               <label>Seller team<input name="seller" required /></label>
             </div>
-            <div class="form-row">
-              <label>Order total<input name="orderAmount" placeholder="248.00" required /></label>
-              <label>Amount at risk<input name="riskAmount" placeholder="74.00" required /></label>
+            <div class="frm-row">
+              <label>Order total<input name="orderAmount" required /></label>
+              <label>At risk<input name="riskAmount" required /></label>
             </div>
             <label>Subject<textarea name="subject" rows="2" required></textarea></label>
-            <div class="form-row">
-              <label>Buyer statement<textarea name="buyerStatement" rows="3" required></textarea></label>
-              <label>Seller response<textarea name="sellerStatement" rows="3" required></textarea></label>
+            <div class="frm-row">
+              <label>Buyer statement<textarea name="buyerStatement" rows="2" required></textarea></label>
+              <label>Seller response<textarea name="sellerStatement" rows="2" required></textarea></label>
             </div>
-            <label>Review notes<textarea name="reviewNotes" rows="2" placeholder="What should the operator verify next?"></textarea></label>
-            <div class="form-actions">
-              <button type="submit" class="btn-primary">Update Case</button>
-              <button type="button" id="jumpToBuilderButton" class="btn-secondary">Update &amp; Build Packet</button>
+            <label>Review notes<textarea name="reviewNotes" rows="2"></textarea></label>
+            <div class="btns">
+              <button type="submit" class="btn btn-primary btn-sm">Update Case</button>
+              <button type="button" id="jumpToBuilderButton" class="btn btn-secondary btn-sm">Update &amp; Build Packet</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="activateStep('overviewTab')">Cancel</button>
             </div>
           </form>
-        </section>
+        </div>
 
-        <!-- Evidence Vault Tab -->
-        <section id="vaultTab" class="tab-content p-6">
-          <div class="vault-grid">
+        <!-- === STEP 2: Evidence === -->
+        <div id="vaultTab" class="step-panel p-5 space-y-5">
+          <div class="grid grid-cols-3 gap-3">
             <div>
-              <div class="flex justify-between items-center mb-3">
-                <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Buyer Evidence</p>
-                <span id="buyerVaultCount" class="text-xs font-data-mono">0 items</span>
-              </div>
+              <div class="flex justify-between items-center mb-2"><p class="label">Buyer</p><span id="buyerVaultCount" class="text-[10px] font-mono">0</span></div>
               <div id="buyerVault"></div>
             </div>
             <div>
-              <div class="flex justify-between items-center mb-3">
-                <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Seller Evidence</p>
-                <span id="sellerVaultCount" class="text-xs font-data-mono">0 items</span>
-              </div>
+              <div class="flex justify-between items-center mb-2"><p class="label">Seller</p><span id="sellerVaultCount" class="text-[10px] font-mono">0</span></div>
               <div id="sellerVault"></div>
             </div>
             <div>
-              <div class="flex justify-between items-center mb-3">
-                <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Authority Records</p>
-                <span id="authorityVaultCount" class="text-xs font-data-mono">0 items</span>
-              </div>
+              <div class="flex justify-between items-center mb-2"><p class="label">Authority</p><span id="authorityVaultCount" class="text-[10px] font-mono">0</span></div>
               <div id="authorityVault"></div>
             </div>
           </div>
 
-          <div class="evidence-form-section">
-            <h3>Add Evidence</h3>
-            <form id="evidenceForm" class="case-form">
+          <div class="border-t border-outline-variant pt-4">
+            <p class="label mb-3">Add Evidence</p>
+            <form id="evidenceForm" class="frm">
               <input type="hidden" name="evidenceIndex" value="" />
-              <div class="form-row form-row-3">
+              <div class="frm-row frm-row-3">
                 <label>Side<select name="side" required><option value="buyer">Buyer</option><option value="seller">Seller</option><option value="authority">Authority</option></select></label>
                 <label>Status<select name="status" required><option value="submitted">submitted</option><option value="time-verified">time-verified</option><option value="authoritative">authoritative</option><option value="pending-proof">pending-proof</option><option value="needs-review">needs-review</option><option value="missing">missing</option></select></label>
-                <label>Source<input name="source" placeholder="buyer upload / payment ledger" required /></label>
+                <label>Source<input name="source" required /></label>
               </div>
-              <label>Title<input name="title" placeholder="Evidence title" required /></label>
-              <label>Detail<textarea name="detail" rows="2" placeholder="What this evidence proves." required></textarea></label>
-              <div class="form-actions">
-                <button type="submit" id="saveEvidenceButton" class="btn-primary">Add Evidence</button>
-                <button type="button" id="resetEvidenceButton" class="btn-ghost">Reset</button>
+              <label>Title<input name="title" required /></label>
+              <label>Detail<textarea name="detail" rows="2" required></textarea></label>
+              <div class="btns">
+                <button type="submit" id="saveEvidenceButton" class="btn btn-primary btn-sm">Add Evidence</button>
+                <button type="button" id="resetEvidenceButton" class="btn btn-ghost btn-sm">Reset</button>
               </div>
             </form>
           </div>
 
-          <div class="evidence-form-section">
-            <h3>Ingest Source Data</h3>
-            <div class="source-chips">
+          <div class="border-t border-outline-variant pt-4">
+            <p class="label mb-3">Ingest Source Data</p>
+            <div class="flex flex-wrap gap-2 mb-3">
               <button type="button" class="chip" data-source-template="order_ledger">Order ledger</button>
               <button type="button" class="chip" data-source-template="payment_ledger">Payment ledger</button>
               <button type="button" class="chip" data-source-template="shipping_events">Shipping events</button>
               <button type="button" class="chip" data-source-template="support_crm">Support CRM</button>
               <button type="button" class="chip" data-source-template="fraud_signal">Fraud signal</button>
             </div>
-            <form id="sourceIngestForm" class="case-form">
-              <label>Source type<input name="sourceType" placeholder="Select a source above" required /></label>
-              <label>Payload JSON<textarea name="payload" rows="4" placeholder='{"orderId":"ORD-2048","status":"paid"}' required></textarea></label>
-              <div class="form-actions">
-                <button type="submit" class="btn-primary">Ingest Source</button>
-                <button type="button" id="resetSourceIngestButton" class="btn-ghost">Reset</button>
+            <form id="sourceIngestForm" class="frm">
+              <label>Source type<input name="sourceType" required /></label>
+              <label>Payload JSON<textarea name="payload" rows="3" required></textarea></label>
+              <div class="btns">
+                <button type="submit" class="btn btn-primary btn-sm">Ingest</button>
+                <button type="button" id="resetSourceIngestButton" class="btn btn-ghost btn-sm">Reset</button>
               </div>
             </form>
           </div>
-        </section>
 
-        <!-- Packet Builder Tab -->
-        <section id="builderTab" class="tab-content p-6">
-          <form id="builderForm" class="case-form">
-            <div class="form-row">
+          <div class="btns"><button type="button" class="btn btn-primary btn-sm" onclick="activateStep('builderTab')">Next: Build Packet →</button></div>
+        </div>
+
+        <!-- === STEP 3: Packet === -->
+        <div id="builderTab" class="step-panel p-5 space-y-4">
+          <form id="builderForm" class="frm">
+            <div class="frm-row">
               <label>Template<select name="template">
                 <option value="delivery-missing">Missing item</option>
                 <option value="delivery-damaged">Damaged goods</option>
                 <option value="payment-refund">Refund not received</option>
-                <option value="order-mismatch">Wrong order delivered</option>
+                <option value="order-mismatch">Wrong order</option>
                 <option value="delivery-late">Late delivery</option>
                 <option value="chargeback-risk">Chargeback</option>
-                <option value="service-cancellation">Subscription cancellation</option>
-                <option value="counterfeit-quality">Counterfeit / listing mismatch</option>
-                <option value="warranty-claim">Warranty claim</option>
+                <option value="service-cancellation">Subscription</option>
+                <option value="counterfeit-quality">Counterfeit</option>
+                <option value="warranty-claim">Warranty</option>
               </select></label>
               <label>Case name<input name="projectName" value="order-resolution-console" required /></label>
             </div>
-            <div class="form-row">
-              <label>Repository URL<input name="repoUrl" value="https://github.com/Jinchainne/genlayer-order-resolution-console" required /></label>
-              <label>Live app URL<input name="liveApp" value="https://order-resolution-console.vercel.app/" /></label>
+            <div class="frm-row">
+              <label>Repo URL<input name="repoUrl" value="https://github.com/Jinchainne/genlayer-order-resolution-console" required /></label>
+              <label>Live app<input name="liveApp" value="https://order-resolution-console.vercel.app/" /></label>
             </div>
-            <div class="form-row">
+            <div class="frm-row">
               <label>Contract explorer<input name="contractUrl" value="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" /></label>
               <label>Deploy tx<input name="deployTxUrl" value="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" /></label>
             </div>
-            <div class="form-row">
+            <div class="frm-row">
               <label>create_policy tx<input name="createPolicyTxUrl" value="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" /></label>
               <label>evaluate tx<input name="evaluateTxUrl" value="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" /></label>
             </div>
-            <label>Claims<textarea name="claims" rows="4">buyer provided receipt and missing item report
-seller provided packing note and delivery timestamp
-evidence includes payment, invoice, and order timeline
-resolution requires qualitative dispute assessment</textarea></label>
-            <label>Notes<textarea name="reviewNotes" rows="3">This case packet is designed for retail dispute resolution with GenLayer-backed policy evaluation.</textarea></label>
-            <div class="form-actions">
-              <button type="submit" class="btn-primary">Build Packet</button>
-              <button type="button" id="applyBundleButton" class="btn-secondary">Use in Resolution</button>
-              <button type="button" id="loadDemoButton" class="btn-ghost">Load Demo</button>
+            <label>Claims<textarea name="claims" rows="3"></textarea></label>
+            <label>Notes<textarea name="reviewNotes" rows="2"></textarea></label>
+            <div class="btns">
+              <button type="submit" class="btn btn-primary btn-sm">Build Packet</button>
+              <button type="button" id="applyBundleButton" class="btn btn-secondary btn-sm">Use in Workflow</button>
+              <button type="button" id="loadDemoButton" class="btn btn-ghost btn-sm">Load Demo</button>
             </div>
           </form>
-        </section>
-      </div>
-    </section>
-
-    <!-- ==================== RIGHT COLUMN: Resolution ==================== -->
-    <section class="col-span-12 lg:col-span-4 space-y-6" id="resolution">
-      <!-- Resolution Card -->
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-outline-variant flex items-center gap-2">
-          <span class="material-symbols-outlined text-outline">gavel</span>
-          <h3 class="text-base font-bold">Resolution</h3>
-        </div>
-        <div class="p-6 space-y-4">
-          <div class="p-4 bg-surface-container-low rounded border border-outline-variant">
-            <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Recommended Action</p>
-            <strong id="recommendedAction" class="text-sm font-bold block mt-1">Awaiting case packet</strong>
-            <p id="recommendedActionReason" class="text-xs text-on-surface-variant mt-1">Build a case packet or load a demo to get started.</p>
+          <div class="grid grid-cols-3 gap-3">
+            <div><p class="label mb-1">Subject</p><pre id="generatedSubject" class="code" style="max-height:120px;overflow:auto">No packet yet.</pre></div>
+            <div><p class="label mb-1">References</p><pre id="generatedReferences" class="code" style="max-height:120px;overflow:auto">No packet yet.</pre></div>
+            <div><p class="label mb-1">Evidence</p><pre id="generatedEvidence" class="code" style="max-height:120px;overflow:auto">No packet yet.</pre></div>
           </div>
-
-          <div class="flex flex-wrap gap-2">
-            <button type="button" class="chip action-chip" data-action-value="approve_refund">Approve refund</button>
-            <button type="button" class="chip action-chip" data-action-value="partial_refund">Partial refund</button>
-            <button type="button" class="chip action-chip" data-action-value="reship_order">Reship order</button>
-            <button type="button" class="chip action-chip" data-action-value="store_credit">Store credit</button>
-            <button type="button" class="chip action-chip" data-action-value="hold_payout">Hold payout</button>
-            <button type="button" class="chip action-chip" data-action-value="fraud_review">Fraud review</button>
-            <button type="button" class="chip action-chip" data-action-value="deny_claim">Deny claim</button>
-          </div>
-
-          <form id="resolutionActionForm" class="case-form">
-            <label>Action note<textarea name="actionNote" rows="2" placeholder="Why this action is appropriate."></textarea></label>
-            <div class="form-actions">
-              <button type="submit" class="btn-primary">Apply Action</button>
-              <button type="button" id="clearResolutionActionButton" class="btn-ghost">Clear</button>
-            </div>
-          </form>
+          <div class="btns"><button type="button" class="btn btn-primary btn-sm" onclick="activateStep('triageTab')">Next: AI Triage →</button></div>
         </div>
-      </div>
 
-      <!-- Execution Playbook -->
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-outline-variant flex items-center gap-2">
-          <span class="material-symbols-outlined text-outline">checklist</span>
-          <h3 class="text-base font-bold">Execution Playbook</h3>
-        </div>
-        <div class="p-6">
-          <strong id="playbookActionTitle" class="text-sm font-bold block">No action selected</strong>
-          <p id="playbookActionSummary" class="text-xs text-on-surface-variant mt-1 mb-3">Pick an action to see downstream tasks.</p>
-          <div id="playbookTasks" class="space-y-2"></div>
-        </div>
-      </div>
-
-      <!-- AI Triage -->
-      <div class="mimo-card rounded-xl overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-primary/10 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary">psychology</span>
-            <h3 class="text-base font-bold text-primary">AI Triage</h3>
-          </div>
-        </div>
-        <div class="p-6 space-y-4">
+        <!-- === STEP 4: AI Triage === -->
+        <div id="triageTab" class="step-panel p-5 space-y-4">
           <div class="flex items-center gap-3">
-            <label class="text-xs font-label-caps tracking-widest text-outline uppercase">AI Reviewer</label>
-            <select id="aiPersona" class="text-xs border border-outline-variant rounded px-2 py-1 bg-white">
-              <option value="mira">Mira Review (MiMo)</option>
-              <option value="lexi">Lexi Review (Groq)</option>
+            <span class="material-symbols-outlined text-primary">psychology</span>
+            <p class="text-sm font-bold text-primary">AI Triage</p>
+            <select id="aiPersona" class="text-xs border border-outline-variant rounded px-2 py-1 bg-white ml-auto">
+              <option value="mira">Mira (MiMo)</option>
+              <option value="lexi">Lexi (Groq)</option>
             </select>
-            <button type="button" id="aiPreJudgeButton" class="btn-primary text-xs px-3 py-1.5">Run AI Triage</button>
+            <button type="button" id="aiPreJudgeButton" class="btn btn-primary btn-sm">Run AI Triage</button>
           </div>
-          <pre id="aiPreJudgeOutput" class="code-block muted">No triage run yet.</pre>
-        </div>
-      </div>
-
-      <!-- Workflow Tabs: Packet / Policy / Workflow -->
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-        <div class="flex border-b border-outline-variant bg-surface-container-low">
-          <button type="button" class="tab tab-active px-4 py-3 text-xs font-semibold" data-tab-target="packetTab">Packet</button>
-          <button type="button" class="tab px-4 py-3 text-xs text-on-surface-variant hover:text-on-surface" data-tab-target="policyTab">Policy</button>
-          <button type="button" class="tab px-4 py-3 text-xs text-on-surface-variant hover:text-on-surface" data-tab-target="workflowTab">Workflow</button>
+          <pre id="aiPreJudgeOutput" class="code">No triage run yet.</pre>
+          <div class="btns"><button type="button" class="btn btn-primary btn-sm" onclick="activateStep('policyTab')">Next: Create Policy →</button></div>
         </div>
 
-        <!-- Packet Tab -->
-        <section id="packetTab" class="tab-content tab-content-active p-6 space-y-4">
-          <div>
-            <h4 class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">Case Subject</h4>
-            <pre id="generatedSubject" class="code-block muted">No packet generated yet.</pre>
-          </div>
-          <div>
-            <h4 class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">References JSON</h4>
-            <pre id="generatedReferences" class="code-block muted">No packet generated yet.</pre>
-          </div>
-          <div>
-            <h4 class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">Evidence JSON</h4>
-            <pre id="generatedEvidence" class="code-block muted">No packet generated yet.</pre>
-          </div>
-        </section>
-
-        <!-- Policy Tab -->
-        <section id="policyTab" class="tab-content p-6">
-          <form id="policyForm" class="case-form">
-            <label>Policy name<input name="name" value="Retail Order Dispute Policy" required /></label>
-            <label>Category<input name="category" value="order-resolution" required /></label>
-            <label>Policy text<textarea name="policyText" rows="3" required>Allow resolution only when buyer and seller evidence supports a fair, evidence-backed decision.</textarea></label>
-            <label>Criteria<textarea name="criteriaText" rows="3" required>Return deny or undetermined if evidence is incomplete or authoritative records conflict.</textarea></label>
-            <button type="submit" class="btn-primary">Create Policy</button>
+        <!-- === STEP 5: Policy === -->
+        <div id="policyTab" class="step-panel p-5 space-y-4">
+          <form id="policyForm" class="frm">
+            <div class="frm-row">
+              <label>Policy name<input name="name" value="Retail Order Dispute Policy" required /></label>
+              <label>Category<input name="category" value="order-resolution" required /></label>
+            </div>
+            <label>Policy text<textarea name="policyText" rows="2" required>Allow resolution only when buyer and seller evidence supports a fair, evidence-backed decision.</textarea></label>
+            <label>Criteria<textarea name="criteriaText" rows="2" required>Return deny or undetermined if evidence is incomplete or authoritative records conflict.</textarea></label>
+            <div class="btns">
+              <button type="submit" class="btn btn-primary btn-sm">Create Policy</button>
+            </div>
           </form>
-          <pre id="policyOutput" class="code-block muted mt-4">No policy created yet.</pre>
-        </section>
+          <pre id="policyOutput" class="code">No policy created yet.</pre>
+          <div class="btns"><button type="button" class="btn btn-primary btn-sm" onclick="activateStep('workflowTab')">Next: Run Workflow →</button></div>
+        </div>
 
-        <!-- Workflow Tab -->
-        <section id="workflowTab" class="tab-content p-6">
-          <form id="workflowForm" class="case-form">
+        <!-- === STEP 6: Resolve === -->
+        <div id="workflowTab" class="step-panel p-5 space-y-5">
+          <!-- Workflow form -->
+          <form id="workflowForm" class="frm">
             <label>Policy ID<input name="policyId" placeholder="policy-1" /></label>
-            <label>Resolution subject<textarea name="subject" rows="3" required>A buyer reports a missing-item dispute and requests a refund after delivery completion.</textarea></label>
-            <label>Evidence JSON<textarea name="evidence" rows="6" required>{
-  "projectName": "order-resolution-console",
-  "orderId": "ORD-2048",
-  "buyerClaim": "Two paid items were missing from the delivered order.",
-  "sellerResponse": "The order was packed and scanned as complete before dispatch.",
-  "artifacts": ["invoice", "payment proof", "packing note", "delivery timestamp"],
-  "claims": ["buyer evidence included", "seller response included"],
-  "reviewNotes": "Requires refund or escalation decision based on evidence."
-}</textarea></label>
-            <label>Reference URLs JSON<textarea name="referenceUrls" rows="3">["https://github.com/Jinchainne/genlayer-order-resolution-console","https://order-resolution-console.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea></label>
-            <button type="submit" class="btn-primary">Run Workflow</button>
+            <label>Subject<textarea name="subject" rows="2" required></textarea></label>
+            <label>Evidence JSON<textarea name="evidence" rows="4" required></textarea></label>
+            <label>Reference URLs<textarea name="referenceUrls" rows="2"></textarea></label>
+            <button type="submit" class="btn btn-primary btn-sm">Run Workflow</button>
           </form>
-          <div id="verdictCard" class="verdict verdict-waiting mt-4">
-            <strong>Awaiting resolution</strong>
-            <span>Run the workflow to get a verdict.</span>
+          <div class="p-3 bg-surface-container-low rounded border border-outline-variant">
+            <p class="label">Recommended Action</p>
+            <strong id="recommendedAction" class="text-sm block mt-1">Awaiting case packet</strong>
+            <p id="recommendedActionReason" class="text-xs text-on-surface-variant mt-1">Build a case packet to get started.</p>
           </div>
-          <pre id="workflowOutput" class="code-block muted mt-4">No workflow executed yet.</pre>
-        </section>
-      </div>
-    </section>
-  </div>
+          <div id="verdictCard" class="verdict verdict-waiting"><strong>Awaiting resolution</strong><span>Run the workflow to get a verdict.</span></div>
+          <pre id="workflowOutput" class="code">No workflow executed yet.</pre>
 
-  <!-- Bottom: History & Links -->
-  <section class="px-8 pb-8" id="history">
-    <div class="bottom-grid">
-      <div class="bottom-card">
-        <h3>Recent Reviews</h3>
-        <div id="recentRuns" class="history-list">
-          <p class="empty-state">No reviews yet. Build a packet to get started.</p>
+          <!-- Resolution Actions -->
+          <div class="border-t border-outline-variant pt-4">
+            <p class="label mb-3">Resolution Actions</p>
+            <div class="flex flex-wrap gap-2 mb-3">
+              <button type="button" class="chip action-chip" data-action-value="approve_refund">Approve refund</button>
+              <button type="button" class="chip action-chip" data-action-value="partial_refund">Partial refund</button>
+              <button type="button" class="chip action-chip" data-action-value="reship_order">Reship</button>
+              <button type="button" class="chip action-chip" data-action-value="store_credit">Store credit</button>
+              <button type="button" class="chip action-chip" data-action-value="hold_payout">Hold payout</button>
+              <button type="button" class="chip action-chip" data-action-value="fraud_review">Fraud review</button>
+              <button type="button" class="chip action-chip" data-action-value="deny_claim">Deny</button>
+            </div>
+            <form id="resolutionActionForm" class="frm">
+              <label>Action note<textarea name="actionNote" rows="2" placeholder="Why this action?"></textarea></label>
+              <div class="btns">
+                <button type="submit" class="btn btn-primary btn-sm">Apply Action</button>
+                <button type="button" id="clearResolutionActionButton" class="btn btn-ghost btn-sm">Clear</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Playbook -->
+          <div class="border-t border-outline-variant pt-4">
+            <p class="label mb-2">Execution Playbook</p>
+            <strong id="playbookActionTitle" class="text-sm block">No action</strong>
+            <p id="playbookActionSummary" class="text-xs text-on-surface-variant mb-2">Pick an action to see tasks.</p>
+            <div id="playbookTasks"></div>
+          </div>
         </div>
-      </div>
-      <div class="bottom-card">
-        <h3>Decision History</h3>
-        <div id="decisionHistory" class="history-list">
-          <p class="empty-state">No decisions yet.</p>
-        </div>
-      </div>
-      <div class="bottom-card">
-        <h3>Task Board</h3>
-        <div id="actionQueueBoard" class="history-list">
-          <p class="empty-state">No tasks queued yet.</p>
-        </div>
-      </div>
-      <div class="bottom-card">
-        <h3>Live Proof</h3>
-        <div class="proof-links">
-          <a href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">
-            <span class="material-symbols-outlined text-[14px]">open_in_new</span>Contract Explorer
-          </a>
-          <a href="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" target="_blank" rel="noreferrer">
-            <span class="material-symbols-outlined text-[14px]">open_in_new</span>Deploy Tx
-          </a>
-          <a href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer">
-            <span class="material-symbols-outlined text-[14px]">open_in_new</span>create_policy Tx
-          </a>
-          <a href="https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59" target="_blank" rel="noreferrer">
-            <span class="material-symbols-outlined text-[14px]">open_in_new</span>evaluate Tx
-          </a>
-          <a href="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" target="_blank" rel="noreferrer">
-            <span class="material-symbols-outlined text-[14px]">open_in_new</span>workflow Tx
-          </a>
-          <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer">
-            <span class="material-symbols-outlined text-[14px]">open_in_new</span>GitHub Repository
-          </a>
-          <a href="https://order-resolution-console.vercel.app/" target="_blank" rel="noreferrer">
-            <span class="material-symbols-outlined text-[14px]">open_in_new</span>Live App
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
+
+      </div><!-- end stepper card -->
+    </div><!-- end right column -->
+  </div><!-- end content grid -->
 </main>
 
 <script type="module" src="/app.js"></script>
+<script>
+  // Stepper navigation (inline, outside module)
+  const stepBtns = document.querySelectorAll('.step-btn[data-step]');
+  function activateStep(stepId) {
+    stepBtns.forEach(btn => {
+      const isTarget = btn.dataset.step === stepId;
+      btn.classList.toggle('step-active', isTarget);
+    });
+    document.querySelectorAll('.step-panel').forEach(p => {
+      p.classList.toggle('step-panel-active', p.id === stepId);
+    });
+  }
+  stepBtns.forEach(btn => {
+    btn.addEventListener('click', () => activateStep(btn.dataset.step));
+  });
+  // Make activateStep globally accessible
+  window.activateStep = activateStep;
+</script>
 </body>
 </html>

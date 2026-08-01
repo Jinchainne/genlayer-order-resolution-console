@@ -30,9 +30,7 @@ const queueStatusFilter = document.querySelector("#queueStatusFilter");
 const recommendedAction = document.querySelector("#recommendedAction");
 const recommendedActionReason = document.querySelector("#recommendedActionReason");
 const tabButtons = document.querySelectorAll("[data-tab-target]");
-const tabPanels = document.querySelectorAll(".tab-content[id$='Tab']");
 const detailTabButtons = document.querySelectorAll("[data-detail-tab]");
-const detailPanels = document.querySelectorAll(".tab-content[id$='Tab']");
 const actionChips = document.querySelectorAll(".action-chip");
 const resolutionActionForm = document.querySelector("#resolutionActionForm");
 const clearResolutionActionButton = document.querySelector("#clearResolutionActionButton");
@@ -318,16 +316,9 @@ function sourceTemplatePayload(sourceType, caseItem) {
   return payloads[sourceType] || { orderId: caseItem.id, summary: "Structured source payload." };
 }
 
-/* ── Tab Management ── */
-function activateTab(tabId) {
-  tabButtons.forEach((button) => { button.classList.toggle("tab-active", button.dataset.tabTarget === tabId); });
-  document.querySelectorAll(`#resolution .tab-content`).forEach((panel) => { panel.classList.toggle("tab-content-active", panel.id === tabId); });
-}
-
-function activateDetailTab(tabId) {
-  detailTabButtons.forEach((button) => { button.classList.toggle("tab-active", button.dataset.detailTab === tabId); });
-  document.querySelectorAll(`#detail .tab-content`).forEach((panel) => { panel.classList.toggle("tab-content-active", panel.id === tabId); });
-}
+/* ── Step/Tab Management ── */
+function activateTab(tabId) { if (window.activateStep) window.activateStep(tabId); }
+function activateDetailTab(tabId) { if (window.activateStep) window.activateStep(tabId); }
 
 /* ── Queue Rendering ── */
 function updateCaseCount() { activeCaseCount.textContent = `${CASES.length} cases`; }
@@ -920,8 +911,7 @@ sourceChips.forEach((chip) => {
 loadDemoButton.addEventListener("click", loadDemoBundle);
 aiPreJudgeButton.addEventListener("click", async () => { try { activateTab("triageTab"); await runAiPreJudgeForBundle(); } catch (error) { aiPreJudgeOutput.textContent = error.message; } });
 
-tabButtons.forEach((button) => { button.addEventListener("click", () => { activateTab(button.dataset.tabTarget); }); });
-detailTabButtons.forEach((button) => { button.addEventListener("click", () => { activateDetailTab(button.dataset.detailTab); }); });
+/* tab/step listeners handled by inline script in index.html */
 
 builderForm.elements.template.addEventListener("change", () => {
   const template = TEMPLATE_PRESETS[builderForm.elements.template.value];
