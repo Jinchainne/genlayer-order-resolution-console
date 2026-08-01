@@ -939,22 +939,13 @@ workflowForm.addEventListener("submit", async (event) => {
   setBusy(workflowForm, true);
   try {
     const form = new FormData(workflowForm);
-    const caseItem = getCaseById(selectedCaseId);
-    const payload = {
-      contractAddress,
-      caseId: caseItem.id,
-      policyId: form.get("policyId"),
-      subject: form.get("subject"),
-      evidence: parseJsonField(form.get("evidence"), "evidence JSON"),
-      referenceUrls: parseJsonField(form.get("referenceUrls"), "reference URLs JSON"),
-      disagreements: caseItem.disagreements || [],
-    };
-    const result = await fetchJson("/api/resolve", { method: "POST", body: JSON.stringify(payload) });
+    const payload = { contractAddress, policyId: form.get("policyId"), subject: form.get("subject"), evidence: parseJsonField(form.get("evidence"), "evidence JSON"), referenceUrls: parseJsonField(form.get("referenceUrls"), "reference URLs JSON") };
+    const result = await fetchJson("/api/workflows/submission-gate", { method: "POST", body: JSON.stringify(payload) });
     updateVerdictCard(result);
     workflowOutput.textContent = pretty(result);
-    activateStep("workflowTab");
-    saveRecentRun({ projectName: payload.caseId || "Resolution run", subject: payload.subject, executionStatus: result.executionStatus, nextAction: result.nextAction, evaluationId: result.evaluationId, timestamp: new Date().toLocaleString(), bundle: { subject: payload.subject, evidence: payload.evidence, referenceUrls: payload.referenceUrls, projectName: payload.caseId } });
-    saveDecisionEvent({ caseId: payload.caseId, projectName: payload.caseId, type: "onchain_resolution", outcome: result.executionStatus, action: result.nextAction, notes: `On-chain resolve: ${result.evaluationId}. Decision: ${result.isAllowed ? "ALLOW" : "DENY"}.`, timestamp: new Date().toLocaleString() });
+    activateTab("workflowTab");
+    saveRecentRun({ projectName: payload.evidence.caseId || payload.evidence.projectName || "Resolution run", subject: payload.subject, executionStatus: result.executionStatus, nextAction: result.nextAction, evaluationId: result.evaluationId, timestamp: new Date().toLocaleString(), bundle: { subject: payload.subject, evidence: payload.evidence, referenceUrls: payload.referenceUrls, projectName: payload.evidence.caseId || payload.evidence.projectName || "Resolution run" } });
+    saveDecisionEvent({ caseId: payload.evidence.caseId || payload.evidence.projectName, projectName: payload.evidence.caseId || payload.evidence.projectName, type: "workflow_resolution", outcome: result.executionStatus, action: result.nextAction, notes: `Workflow completed with evaluation ${result.evaluationId}.`, timestamp: new Date().toLocaleString() });
   } catch (error) {
     if (error.message.includes("GenLayer RPC error") || error.message.includes("fetch failed")) {
       showRpcFallback(error.message);
