@@ -138,6 +138,8 @@
     @media(max-width:1024px) {
       .frm-row-3 { grid-template-columns:1fr; }
       .main-grid { grid-template-columns:1fr!important; }
+      #resizer { display:none; }
+      #queueCol { min-width:0!important; max-width:none!important; }
     }
     @media(max-width:768px) {
       .frm-row { grid-template-columns:1fr; }
@@ -233,11 +235,11 @@
     </div>
   </header>
 
-  <!-- CONTENT: 2 columns -->
-  <div class="p-6 main-grid grid grid-cols-[280px_1fr] gap-5 max-w-[1400px]">
+  <!-- CONTENT: 2 columns with resizable divider -->
+  <div class="p-6 main-grid max-w-[1400px]" style="display:grid; grid-template-columns:var(--queue-w, 240px) 4px 1fr; gap:0; align-items:start;">
 
     <!-- ===== LEFT: Queue ===== -->
-    <div class="space-y-4">
+    <div class="space-y-4 overflow-hidden" id="queueCol" style="min-width:180px; max-width:500px;">
       <div class="card">
         <div class="card-h justify-between">
           <div class="flex items-center gap-2">
@@ -300,8 +302,11 @@
       </div>
     </div>
 
+    <!-- Resizer handle -->
+    <div id="resizer" style="cursor:col-resize; width:4px; background:#e1e3e4; border-radius:2px; align-self:stretch; transition:background .15s; flex-shrink:0;" onmouseenter="this.style.background='#003ec7'" onmouseleave="this.style.background='#e1e3e4'"></div>
+
     <!-- ===== RIGHT: Case Workflow ===== -->
-    <div class="space-y-4" id="detail">
+    <div class="space-y-4 overflow-auto" id="detail" style="min-width:0;">
       <!-- Case Header -->
       <div class="card">
         <div class="card-b flex items-start justify-between">
@@ -795,6 +800,36 @@
       } catch (e) { /* silent */ }
     }
   })();
+
+  // ── Column Resizer ──
+  const resizer = document.getElementById('resizer');
+  const queueCol = document.getElementById('queueCol');
+  const mainGrid = resizer.parentElement;
+  let isResizing = false;
+
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const gridRect = mainGrid.getBoundingClientRect();
+    const paddingLeft = 24; // p-6 = 24px
+    let newWidth = e.clientX - gridRect.left - paddingLeft;
+    newWidth = Math.max(180, Math.min(500, newWidth));
+    mainGrid.style.setProperty('--queue-w', newWidth + 'px');
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
 </script>
 </body>
 </html>
