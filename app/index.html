@@ -142,6 +142,29 @@
     @media(max-width:768px) {
       .frm-row { grid-template-columns:1fr; }
     }
+
+    /* Wallet */
+    .wallet-container { position:relative; }
+    .wallet-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:#003ec7; color:white; border:none; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
+    .wallet-btn:hover { background:#0052ff; }
+    .wallet-btn .material-symbols-outlined { font-size:16px; }
+    .wallet-btn-connected { background:white; color:#003ec7; border:1px solid #003ec7; }
+    .wallet-btn-connected:hover { background:#F0F7FF; }
+    .wallet-btn-wrong-network { background:#fef2f2; color:#dc2626; border:1px solid #dc2626; }
+    .wallet-btn-wrong-network:hover { background:#fee2e2; }
+    .wallet-dropdown { position:absolute; top:calc(100% + 6px); right:0; background:white; border:1px solid #c3c5d9; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.12); min-width:240px; z-index:50; display:none; overflow:hidden; }
+    .wallet-dropdown.show { display:block; }
+    .wallet-dropdown-header { padding:12px 14px; border-bottom:1px solid #e1e3e4; display:flex; align-items:center; gap:8px; }
+    .wallet-dropdown-header .addr { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; color:#191c1d; }
+    .wallet-dropdown-header .status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .wallet-dropdown-header .status-dot.connected { background:#10B981; }
+    .wallet-dropdown-header .status-dot.wrong { background:#EF4444; }
+    .wallet-dropdown-items { padding:6px 0; }
+    .wallet-dropdown-items button { display:flex; align-items:center; gap:8px; width:100%; padding:8px 14px; border:none; background:transparent; font-size:12px; color:#434656; cursor:pointer; transition:background .1s; font-family:'Inter',sans-serif; text-align:left; }
+    .wallet-dropdown-items button:hover { background:#f3f4f5; }
+    .wallet-dropdown-items button .material-symbols-outlined { font-size:16px; color:#737688; }
+    .wallet-dropdown-items button.disconnect { color:#dc2626; }
+    .wallet-dropdown-items button.disconnect .material-symbols-outlined { color:#dc2626; }
   </style>
 </head>
 <body class="flex min-h-screen">
@@ -189,6 +212,24 @@
     </div>
     <div class="flex items-center gap-3">
       <span id="contractPill" class="text-[11px] font-mono px-2.5 py-1 bg-surface-container rounded border border-outline-variant text-on-surface-variant">Loading...</span>
+      <div class="wallet-container" id="walletContainer">
+        <button class="wallet-btn" id="walletBtn" type="button">
+          <span class="material-symbols-outlined">account_balance_wallet</span>
+          <span id="walletBtnText">Connect Wallet</span>
+        </button>
+        <div class="wallet-dropdown" id="walletDropdown">
+          <div class="wallet-dropdown-header">
+            <span class="status-dot connected" id="walletStatusDot"></span>
+            <span class="addr" id="walletDropdownAddr">0x...</span>
+          </div>
+          <div class="wallet-dropdown-items">
+            <button type="button" id="walletCopyBtn"><span class="material-symbols-outlined">content_copy</span>Copy Address</button>
+            <button type="button" id="walletExplorerBtn"><span class="material-symbols-outlined">open_in_new</span>View on Explorer</button>
+            <button type="button" id="walletSwitchBtn"><span class="material-symbols-outlined">swap_horiz</span>Switch to StudioNet</button>
+            <button type="button" class="disconnect" id="walletDisconnectBtn"><span class="material-symbols-outlined">logout</span>Disconnect</button>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -580,6 +621,180 @@
   });
   // Make activateStep globally accessible
   window.activateStep = activateStep;
+
+  // ===== WALLET CONNECTION =====
+  const GENLAYER_CHAIN_ID = '0xF227'; // 61999 in hex
+  const GENLAYER_CHAIN_ID_DEC = 61999;
+  const GENLAYER_RPC = 'https://studio.genlayer.com/api';
+  const GENLAYER_EXPLORER = 'https://explorer-studio.genlayer.com';
+
+  let walletAddress = null;
+  let walletChainId = null;
+
+  const walletBtn = document.getElementById('walletBtn');
+  const walletBtnText = document.getElementById('walletBtnText');
+  const walletDropdown = document.getElementById('walletDropdown');
+  const walletDropdownAddr = document.getElementById('walletDropdownAddr');
+  const walletStatusDot = document.getElementById('walletStatusDot');
+  const walletCopyBtn = document.getElementById('walletCopyBtn');
+  const walletExplorerBtn = document.getElementById('walletExplorerBtn');
+  const walletSwitchBtn = document.getElementById('walletSwitchBtn');
+  const walletDisconnectBtn = document.getElementById('walletDisconnectBtn');
+
+  function shortAddr(a) {
+    if (!a) return '';
+    return a.slice(0, 6) + '...' + a.slice(-4);
+  }
+
+  function updateWalletUI() {
+    if (!walletAddress) {
+      // Disconnected
+      walletBtn.className = 'wallet-btn';
+      walletBtnText.textContent = 'Connect Wallet';
+      walletDropdown.classList.remove('show');
+      walletSwitchBtn.style.display = 'none';
+      return;
+    }
+    const onCorrectChain = walletChainId === GENLAYER_CHAIN_ID_DEC;
+    if (onCorrectChain) {
+      walletBtn.className = 'wallet-btn wallet-btn-connected';
+      walletBtnText.textContent = shortAddr(walletAddress);
+      walletStatusDot.className = 'status-dot connected';
+      walletSwitchBtn.style.display = 'none';
+    } else {
+      walletBtn.className = 'wallet-btn wallet-btn-wrong-network';
+      walletBtnText.textContent = 'Wrong Network';
+      walletStatusDot.className = 'status-dot wrong';
+      walletSwitchBtn.style.display = '';
+    }
+    walletDropdownAddr.textContent = shortAddr(walletAddress);
+  }
+
+  async function addGenLayerChain() {
+    await window.ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [{
+        chainId: GENLAYER_CHAIN_ID,
+        chainName: 'GenLayer StudioNet',
+        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+        rpcUrls: [GENLAYER_RPC],
+        blockExplorerUrls: [GENLAYER_EXPLORER],
+      }]
+    });
+  }
+
+  async function switchToGenLayer() {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: GENLAYER_CHAIN_ID }]
+      });
+    } catch (err) {
+      if (err.code === 4902) {
+        await addGenLayerChain();
+      } else {
+        console.error('Switch chain failed:', err);
+      }
+    }
+  }
+
+  async function connectWallet() {
+    if (!window.ethereum) {
+      alert('No wallet detected. Please install MetaMask, OKX Wallet, or another Web3 wallet.');
+      return;
+    }
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      walletAddress = accounts[0];
+      walletChainId = parseInt(await window.ethereum.request({ method: 'eth_chainId' }), 16);
+      updateWalletUI();
+    } catch (err) {
+      console.error('Wallet connect failed:', err);
+    }
+  }
+
+  function disconnectWallet() {
+    walletAddress = null;
+    walletChainId = null;
+    updateWalletUI();
+  }
+
+  // Button click: connect or toggle dropdown
+  walletBtn.addEventListener('click', async () => {
+    if (!walletAddress) {
+      await connectWallet();
+    } else {
+      walletDropdown.classList.toggle('show');
+    }
+  });
+
+  // Copy address
+  walletCopyBtn.addEventListener('click', async () => {
+    if (walletAddress) {
+      try {
+        await navigator.clipboard.writeText(walletAddress);
+        walletCopyBtn.innerHTML = '<span class="material-symbols-outlined">check</span>Copied!';
+        setTimeout(() => {
+          walletCopyBtn.innerHTML = '<span class="material-symbols-outlined">content_copy</span>Copy Address';
+        }, 1500);
+      } catch (e) { console.error('Copy failed', e); }
+    }
+  });
+
+  // Explorer link
+  walletExplorerBtn.addEventListener('click', () => {
+    if (walletAddress) {
+      window.open(GENLAYER_EXPLORER + '/address/' + walletAddress, '_blank');
+    }
+  });
+
+  // Switch network
+  walletSwitchBtn.addEventListener('click', async () => {
+    await switchToGenLayer();
+  });
+
+  // Disconnect
+  walletDisconnectBtn.addEventListener('click', () => {
+    disconnectWallet();
+    walletDropdown.classList.remove('show');
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('walletContainer').contains(e.target)) {
+      walletDropdown.classList.remove('show');
+    }
+  });
+
+  // Listen for account/chain changes
+  if (window.ethereum) {
+    window.ethereum.on('accountsChanged', (accounts) => {
+      if (accounts.length === 0) {
+        disconnectWallet();
+      } else {
+        walletAddress = accounts[0];
+        updateWalletUI();
+      }
+    });
+    window.ethereum.on('chainChanged', (chainId) => {
+      walletChainId = parseInt(chainId, 16);
+      updateWalletUI();
+    });
+  }
+
+  // Auto-connect if previously authorized
+  (async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          walletAddress = accounts[0];
+          walletChainId = parseInt(await window.ethereum.request({ method: 'eth_chainId' }), 16);
+          updateWalletUI();
+        }
+      } catch (e) { /* silent */ }
+    }
+  })();
 </script>
 </body>
 </html>
