@@ -103,22 +103,6 @@ export async function evaluatePolicy(client, address, payload) {
       payload.subject,
       JSON.stringify(payload.evidence),
       JSON.stringify(payload.referenceUrls ?? []),
-      JSON.stringify(payload.disagreements ?? []),
-    ],
-  });
-}
-
-export async function resolveDispute(client, address, payload) {
-  return writeAndWait(client, {
-    address,
-    functionName: "resolve_dispute",
-    args: [
-      payload.caseId,
-      payload.policyId,
-      payload.subject,
-      JSON.stringify(payload.evidence),
-      JSON.stringify(payload.referenceUrls ?? []),
-      JSON.stringify(payload.disagreements ?? []),
     ],
   });
 }
