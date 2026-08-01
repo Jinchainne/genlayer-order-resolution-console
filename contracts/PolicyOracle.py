@@ -7,14 +7,20 @@ import json
 class PolicyOracle(gl.Contract):
     policy_count: u64
     evaluation_count: u64
+    case_count: u64
     policies: TreeMap[str, str]
     evaluations: TreeMap[str, str]
+    cases: TreeMap[str, str]
 
     def __init__(self):
         self.policy_count = 0
         self.evaluation_count = 0
+        self.case_count = 0
         self.policies = TreeMap()
         self.evaluations = TreeMap()
+        self.cases = TreeMap()
+
+    # ── Helpers ──
 
     def _require_policy(self, policy_id: str) -> dict:
         raw = self.policies.get(policy_id)
@@ -30,6 +36,10 @@ class PolicyOracle(gl.Contract):
         next_id = int(self.evaluation_count) + 1
         return f"evaluation-{next_id}"
 
+    def _next_case_id(self) -> str:
+        next_id = int(self.case_count) + 1
+        return f"case-{next_id}"
+
     def _normalize_json_text(self, value) -> str:
         if isinstance(value, str):
             return value.strip()
@@ -38,30 +48,29 @@ class PolicyOracle(gl.Contract):
         except Exception as exc:
             raise gl.UserError(f"Value is not JSON serializable: {exc}")
 
-    def _clean_urls(self, reference_urls_json) -> list[str]:
-        if isinstance(reference_urls_json, list):
-            urls = reference_urls_json
+    def _clean_urls(self, urls_input) -> list[str]:
+        if isinstance(urls_input, list):
+            urls = urls_input
         else:
-            text = self._normalize_json_text(reference_urls_json)
+            text = self._normalize_json_text(urls_input)
             if text == "":
                 return []
             try:
                 urls = json.loads(text)
             except Exception as exc:
-                raise gl.UserError(f"reference_urls_json must be valid JSON: {exc}")
+                raise gl.UserError(f"urls must be valid JSON: {exc}")
 
         if not isinstance(urls, list):
-            raise gl.UserError("reference_urls_json must decode to a JSON array")
+            raise gl.UserError("urls must decode to a JSON array")
 
         cleaned: list[str] = []
         for item in urls:
             if not isinstance(item, str):
-                raise gl.UserError("Each reference URL must be a string")
+                continue
             item = item.strip()
             if item.startswith("http://") or item.startswith("https://"):
                 cleaned.append(item)
-
-        return cleaned[:3]
+        return cleaned[:10]
 
     def _normalize_evidence_text(self, evidence_json) -> str:
         if isinstance(evidence_json, str):
@@ -69,10 +78,8 @@ class PolicyOracle(gl.Contract):
             if clean == "":
                 raise gl.UserError("Evidence JSON cannot be empty")
             return clean
-
         if isinstance(evidence_json, dict) or isinstance(evidence_json, list):
             return json.dumps(evidence_json)
-
         raise gl.UserError("Evidence must be a JSON string, object, or array")
 
     def _normalize_result(self, response: dict) -> dict:
@@ -92,11 +99,7 @@ class PolicyOracle(gl.Contract):
             score = int(round(float(str(raw_score).strip())))
         except Exception:
             raise gl.UserError(f"Invalid score: {raw_score}")
-
-        if score < 0:
-            score = 0
-        if score > 100:
-            score = 100
+        score = max(0, min(100, score))
 
         reason = str(response.get("reason", "")).strip()
         if reason == "":
@@ -107,8 +110,12 @@ class PolicyOracle(gl.Contract):
             evidence_used = []
 
         compact_evidence: list[str] = []
-        for item in evidence_used[:5]:
+        for item in evidence_used[:8]:
             compact_evidence.append(str(item).strip())
+
+        fetched_sources = response.get("fetched_sources", [])
+        if not isinstance(fetched_sources, list):
+            fetched_sources = []
 
         return {
             "decision": decision,
@@ -116,6 +123,7 @@ class PolicyOracle(gl.Contract):
             "score": score,
             "reason": reason,
             "evidence_used": compact_evidence,
+            "fetched_sources": fetched_sources[:5],
         }
 
     def _confidence_rank(self, confidence: str) -> int:
@@ -124,6 +132,24 @@ class PolicyOracle(gl.Contract):
         if confidence == "medium":
             return 2
         return 3
+
+    def _parse_disagreements(self, disagreements_input) -> list[str]:
+        if isinstance(disagreements_input, list):
+            return [str(d).strip() for d in disagreements_input if str(d).strip()][:10]
+        if isinstance(disagreements_input, str):
+            text = disagreements_input.strip()
+            if not text:
+                return []
+            try:
+                parsed = json.loads(text)
+                if isinstance(parsed, list):
+                    return [str(d).strip() for d in parsed if str(d).strip()][:10]
+            except Exception:
+                pass
+            return [line.strip() for line in text.split("\n") if line.strip()][:10]
+        return []
+
+    # ── Public: Create Policy ──
 
     @gl.public.write
     def create_policy(
@@ -168,6 +194,8 @@ class PolicyOracle(gl.Contract):
         policy["active"] = bool(active)
         self.policies[policy_id] = json.dumps(policy)
 
+    # ── Public: Evaluate (core on-chain resolution) ──
+
     @gl.public.write
     def evaluate(
         self,
@@ -175,6 +203,7 @@ class PolicyOracle(gl.Contract):
         subject: str,
         evidence_json: str,
         reference_urls_json: str = "[]",
+        disagreements_json: str = "[]",
     ) -> str:
         policy = self._require_policy(policy_id)
         if not policy["active"]:
@@ -182,62 +211,89 @@ class PolicyOracle(gl.Contract):
 
         clean_subject = subject.strip()
         clean_evidence = self._normalize_evidence_text(evidence_json)
-
         if clean_subject == "":
             raise gl.UserError("Subject cannot be empty")
 
         reference_urls = self._clean_urls(reference_urls_json)
+        disagreements = self._parse_disagreements(disagreements_json)
 
         def leader_fn() -> dict:
+            # Step 1: Fetch authoritative sources on-chain
             fetched_sources: list[dict] = []
             for url in reference_urls:
-                page_text = gl.nondet.web.render(url, mode="text")
-                fetched_sources.append(
-                    {
+                try:
+                    page_text = gl.nondet.web.render(url, mode="text")
+                    fetched_sources.append({
                         "url": url,
-                        "text_excerpt": str(page_text)[:4000],
-                    }
-                )
+                        "content": str(page_text)[:3000],
+                        "status": "fetched",
+                    })
+                except Exception as exc:
+                    fetched_sources.append({
+                        "url": url,
+                        "content": "",
+                        "status": f"error: {str(exc)[:200]}",
+                    })
 
-            prompt = f"""
-You are evaluating whether a requested action complies with a policy.
+            # Step 2: Build evaluation prompt with fetched evidence + disagreements
+            disagreements_text = "No disagreements recorded."
+            if disagreements:
+                disagreements_text = "\n".join(f"- {d}" for d in disagreements)
 
-Policy name:
-{policy["name"]}
+            fetched_text = "No sources fetched."
+            if fetched_sources:
+                parts = []
+                for src in fetched_sources:
+                    if src["status"] == "fetched":
+                        parts.append(f"SOURCE [{src['url']}]:\n{src['content']}")
+                    else:
+                        parts.append(f"SOURCE [{src['url']}]: FAILED ({src['status']})")
+                fetched_text = "\n\n".join(parts)
 
-Policy category:
-{policy["category"]}
+            prompt = f"""You are a dispute resolution evaluator on GenLayer.
 
-Policy text:
-{policy["policy_text"]}
+POLICY:
+Name: {policy['name']}
+Category: {policy['category']}
+Text: {policy['policy_text']}
+Criteria: {policy['criteria_text']}
 
-Decision criteria:
-{policy["criteria_text"]}
-
-Subject:
+CASE SUBJECT:
 {clean_subject}
 
-Evidence JSON:
+STRUCTURED EVIDENCE (from case file):
 {clean_evidence}
 
-Fetched reference sources:
-{json.dumps(fetched_sources)}
+DISAGREEMENT POINTS (what the parties cannot agree on):
+{disagreements_text}
 
-Return a JSON object with exactly these keys:
+FETCHED AUTHORITATIVE SOURCES (independently retrieved on-chain):
+{fetched_text}
+
+INSTRUCTIONS:
+1. Evaluate the case against the policy criteria.
+2. Cross-reference the structured evidence against the fetched authoritative sources.
+3. Check if the fetched sources confirm or contradict the claims in the evidence.
+4. Consider the disagreement points — which side has stronger support from authoritative data?
+5. Return a verdict: "allow" (claims supported), "deny" (claims not supported), or "undetermined" (insufficient evidence).
+
+Return a JSON object:
 {{
   "decision": "allow" | "deny" | "undetermined",
   "score": 0-100,
   "confidence": "high" | "medium" | "low",
-  "reason": "short explanation grounded in the policy and evidence",
-  "evidence_used": ["short bullet", "short bullet"]
+  "reason": "concise explanation grounded in policy, evidence, and fetched sources",
+  "evidence_used": ["bullet 1", "bullet 2"],
+  "fetched_sources": ["source 1 summary", "source 2 summary"]
 }}
 
 Rules:
 - Follow the policy text, not general vibes.
-- If the evidence is weak or ambiguous, return "undetermined".
+- If fetched sources contradict the claims, lean toward "deny" or "undetermined".
+- If evidence is weak or ambiguous, return "undetermined".
 - Do not invent evidence not present in the provided material.
-- Keep reason concise and practical.
-"""
+- Keep reason concise and practical."""
+
             response = gl.nondet.exec_prompt(prompt, response_format="json")
             return self._normalize_result(response)
 
@@ -250,19 +306,24 @@ Rules:
             if not isinstance(other, dict):
                 return False
 
+            # Must agree on decision
             if my_result["decision"] != other.get("decision"):
                 return False
 
+            # Confidence within 1 rank
             other_confidence = str(other.get("confidence", "medium")).strip().lower()
             if abs(self._confidence_rank(my_result["confidence"]) - self._confidence_rank(other_confidence)) > 1:
                 return False
 
+            # Score within 20 points
             try:
                 other_score = int(other.get("score", 0))
             except Exception:
                 return False
+            if abs(my_result["score"] - other_score) > 20:
+                return False
 
-            return abs(my_result["score"] - other_score) <= 20
+            return True
 
         result = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
 
@@ -275,19 +336,65 @@ Rules:
             "subject": clean_subject,
             "evidence_json": clean_evidence,
             "reference_urls_json": json.dumps(reference_urls),
+            "disagreements": disagreements,
             "decision": normalized["decision"],
             "score": normalized["score"],
             "confidence": normalized["confidence"],
             "reason": normalized["reason"],
             "evidence_used": normalized["evidence_used"],
+            "fetched_sources": normalized.get("fetched_sources", []),
             "evaluator": str(gl.message.sender_address),
-            # Studionet message context does not reliably expose datetime.
             "created_at": "runtime-unavailable",
         }
 
         self.evaluations[evaluation_id] = json.dumps(payload)
         self.evaluation_count = int(self.evaluation_count) + 1
         return evaluation_id
+
+    # ── Public: Resolve Dispute (full end-to-end) ──
+
+    @gl.public.write
+    def resolve_dispute(
+        self,
+        case_id: str,
+        policy_id: str,
+        subject: str,
+        evidence_json: str,
+        reference_urls_json: str = "[]",
+        disagreements_json: str = "[]",
+    ) -> str:
+        """Full dispute resolution: evaluate + store case record."""
+        clean_case_id = case_id.strip()
+        if not clean_case_id:
+            raise gl.UserError("Case ID cannot be empty")
+
+        # Run evaluation
+        evaluation_id = self.evaluate(
+            policy_id, subject, evidence_json, reference_urls_json, disagreements_json
+        )
+
+        # Read back the evaluation result
+        raw = self.evaluations.get(evaluation_id)
+        if raw is None:
+            raise gl.UserError("Evaluation failed")
+        eval_result = json.loads(raw)
+
+        # Store case resolution record
+        case_record = {
+            "case_id": clean_case_id,
+            "evaluation_id": evaluation_id,
+            "decision": eval_result["decision"],
+            "score": eval_result["score"],
+            "confidence": eval_result["confidence"],
+            "reason": eval_result["reason"],
+            "resolved_by": str(gl.message.sender_address),
+        }
+        self.cases[clean_case_id] = json.dumps(case_record)
+        self.case_count = int(self.case_count) + 1
+
+        return evaluation_id
+
+    # ── View Functions ──
 
     @gl.public.view
     def get_policy(self, policy_id: str) -> str:
@@ -306,10 +413,13 @@ Rules:
         return result.get("decision") == "allow"
 
     @gl.public.view
+    def get_case(self, case_id: str) -> str:
+        return self.cases.get(case_id) or ""
+
+    @gl.public.view
     def get_counts(self) -> str:
-        return json.dumps(
-            {
-                "policy_count": int(self.policy_count),
-                "evaluation_count": int(self.evaluation_count),
-            }
-        )
+        return json.dumps({
+            "policy_count": int(self.policy_count),
+            "evaluation_count": int(self.evaluation_count),
+            "case_count": int(self.case_count),
+        })

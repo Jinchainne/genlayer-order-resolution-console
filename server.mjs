@@ -169,6 +169,46 @@ async function handleApi(req, res) {
     return true;
   }
 
+  if (req.method === "POST" && url.pathname === "/api/resolve") {
+    const client = buildClient();
+    const body = await readJsonBody(req);
+    const address = body.contractAddress || process.env.POLICY_ORACLE_ADDRESS;
+    if (!address) {
+      throw new Error("Missing contractAddress or POLICY_ORACLE_ADDRESS");
+    }
+    if (!body.caseId || !body.policyId || !body.subject) {
+      throw new Error("Missing caseId, policyId, or subject");
+    }
+
+    const { resolveDispute, readResult, readIsAllowed, readCase } = await import("./src/lib/policy-client.mjs");
+    const write = await resolveDispute(client, address, {
+      caseId: body.caseId,
+      policyId: body.policyId,
+      subject: body.subject,
+      evidence: body.evidence,
+      referenceUrls: body.referenceUrls || [],
+      disagreements: body.disagreements || [],
+    });
+
+    const evaluationId = extractReturnValue(write.receipt) || "evaluation-1";
+    const resultRaw = await readResult(client, address, evaluationId);
+    const isAllowed = await readIsAllowed(client, address, evaluationId);
+    const caseRecord = await readCase(client, address, body.caseId);
+
+    json(res, 200, {
+      contractAddress: address,
+      caseId: body.caseId,
+      evaluationId,
+      txHash: write.hash,
+      isAllowed,
+      resultRaw,
+      caseRecord,
+      executionStatus: isAllowed ? "allowed" : "denied",
+      nextAction: isAllowed ? "unlock_resolution" : "hold_and_review",
+    });
+    return true;
+  }
+
   if (req.method === "POST" && url.pathname === "/api/ai/prejudge") {
     const body = await readJsonBody(req);
     if (!body.bundle) {

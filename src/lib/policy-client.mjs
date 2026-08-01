@@ -103,6 +103,22 @@ export async function evaluatePolicy(client, address, payload) {
       payload.subject,
       JSON.stringify(payload.evidence),
       JSON.stringify(payload.referenceUrls ?? []),
+      JSON.stringify(payload.disagreements ?? []),
+    ],
+  });
+}
+
+export async function resolveDispute(client, address, payload) {
+  return writeAndWait(client, {
+    address,
+    functionName: "resolve_dispute",
+    args: [
+      payload.caseId,
+      payload.policyId,
+      payload.subject,
+      JSON.stringify(payload.evidence),
+      JSON.stringify(payload.referenceUrls ?? []),
+      JSON.stringify(payload.disagreements ?? []),
     ],
   });
 }
@@ -128,5 +144,13 @@ export async function readIsAllowed(client, address, evaluationId) {
     address,
     functionName: "is_allowed",
     args: [evaluationId],
+  });
+}
+
+export async function readCase(client, address, caseId) {
+  return client.readContract({
+    address,
+    functionName: "get_case",
+    args: [caseId],
   });
 }
