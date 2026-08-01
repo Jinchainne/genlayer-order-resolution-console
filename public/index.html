@@ -1,42 +1,213 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Order Resolution Console</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/styles.css" />
-  </head>
-  <body>
-    <header class="topbar">
-      <div class="topbar-left">
-        <h1>Order Resolution Console</h1>
-        <p class="topbar-sub">Merchant dispute management powered by GenLayer</p>
-      </div>
-      <nav class="topbar-nav">
-        <a href="#queue" class="nav-link nav-active" data-nav="queue">Dispute Queue</a>
-        <a href="#resolution" class="nav-link" data-nav="resolution">Resolution</a>
-        <a href="#history" class="nav-link" data-nav="history">History</a>
-        <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer" class="nav-link nav-external">GitHub</a>
-      </nav>
-      <div class="topbar-right">
-        <span id="contractPill" class="contract-pill">Loading contract...</span>
-      </div>
-    </header>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GenLayer Case Workbench</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#003ec7",
+            "on-primary": "#ffffff",
+            "primary-container": "#0052ff",
+            "on-primary-container": "#dfe3ff",
+            "surface": "#f8f9fa",
+            "surface-dim": "#d9dadb",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f3f4f5",
+            "surface-container": "#edeeef",
+            "surface-container-high": "#e7e8e9",
+            "surface-container-highest": "#e1e3e4",
+            "on-surface": "#191c1d",
+            "on-surface-variant": "#434656",
+            "outline": "#737688",
+            "outline-variant": "#c3c5d9",
+            "secondary": "#575e70",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#d9dff5",
+            "status-allowed": "#10B981",
+            "status-review": "#F59E0B",
+            "status-blocked": "#EF4444",
+            "inverse-surface": "#2e3132",
+            "inverse-on-surface": "#f0f1f2",
+            "surface-charcoal": "#1F2937"
+          },
+          borderRadius: {
+            DEFAULT: "0.125rem",
+            lg: "0.25rem",
+            xl: "0.5rem",
+            "2xl": "0.75rem"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            "data-mono": ["JetBrains Mono", "monospace"],
+            "label-caps": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #191c1d; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .mimo-card { border-top: 4px solid #003ec7; background-color: #F0F7FF; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #e1e3e4; border-radius: 10px; }
+    .nav-active { color: #003ec7; font-weight: 700; border-right: 4px solid #003ec7; background: rgba(217,223,245,0.5); }
+    .tab-active { color: #003ec7; border-bottom: 2px solid #003ec7; font-weight: 600; }
+    .chip { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; border: 1px solid #c3c5d9; color: #434656; background: white; }
+    .chip:hover { background: #f3f4f5; }
+    .chip-action-active { background: #003ec7; color: white; border-color: #003ec7; }
+    .verdict { padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
+    .verdict-waiting { background: #f3f4f5; border: 1px solid #c3c5d9; }
+    .verdict-resolved { background: #ecfdf5; border: 1px solid #10B981; }
+    .verdict-denied { background: #fef2f2; border: 1px solid #EF4444; }
+    .code-block { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; background: #f3f4f5; padding: 12px 16px; border-radius: 4px; border: 1px solid #c3c5d9; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+    .muted { color: #737688; }
+    .empty-state { color: #737688; font-size: 14px; font-style: italic; padding: 16px; text-align: center; }
+    .queue-item { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border: 1px solid #c3c5d9; border-radius: 4px; cursor: pointer; transition: all 0.15s; background: white; }
+    .queue-item:hover { border-color: #003ec7; background: #f3f4f5; }
+    .queue-item-active { border-color: #003ec7; background: #F0F7FF; }
+    .status-badge { display: inline-flex; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; }
+    .status-new { background: #F0F7FF; color: #003ec7; border: 1px solid #003ec733; }
+    .status-evidence-ready { background: #fffbeb; color: #d97706; border: 1px solid #d9770633; }
+    .status-awaiting-resolution { background: #ecfdf5; color: #059669; border: 1px solid #05966933; }
+    .status-refund-approved { background: #ecfdf5; color: #10B981; border: 1px solid #10B98133; }
+    .status-payout-on-hold { background: #fef2f2; color: #dc2626; border: 1px solid #dc262633; }
+    .status-fraud-review-queue { background: #fef2f2; color: #EF4444; border: 1px solid #EF444433; }
+    .timeline-item { display: flex; gap: 12px; padding: 8px 0; }
+    .timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: #003ec7; margin-top: 6px; flex-shrink: 0; }
+    .timeline-line { border-left: 2px solid #c3c5d9; margin-left: 3px; padding-left: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .case-form { display: flex; flex-direction: column; gap: 12px; }
+    .case-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; color: #737688; }
+    .case-form input, .case-form textarea, .case-form select { padding: 8px 12px; border: 1px solid #c3c5d9; border-radius: 4px; font-size: 14px; font-family: 'Inter', sans-serif; color: #191c1d; background: white; outline: none; transition: border-color 0.15s; }
+    .case-form input:focus, .case-form textarea:focus, .case-form select:focus { border-color: #003ec7; box-shadow: 0 0 0 2px rgba(0,62,199,0.1); }
+    .btn-primary { padding: 10px 20px; background: #003ec7; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary:hover { background: #0052ff; }
+    .btn-secondary { padding: 10px 20px; background: white; color: #003ec7; border: 1px solid #003ec7; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn-secondary:hover { background: #F0F7FF; }
+    .btn-ghost { padding: 10px 20px; background: transparent; color: #434656; border: 1px solid #c3c5d9; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .btn-ghost:hover { background: #f3f4f5; }
+    .form-actions { display: flex; gap: 12px; margin-top: 4px; }
+    .tab-content { display: none; }
+    .tab-content-active { display: block; }
+    .proof-links { display: flex; flex-direction: column; gap: 8px; }
+    .proof-links a { color: #003ec7; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+    .proof-links a:hover { text-decoration: underline; }
+    .bottom-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .bottom-card { background: white; border: 1px solid #c3c5d9; border-radius: 8px; padding: 16px; }
+    .bottom-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; color: #737688; }
+    .history-list { max-height: 200px; overflow-y: auto; }
+    .history-item { padding: 8px 0; border-bottom: 1px solid #e1e3e4; font-size: 13px; }
+    .history-item:last-child { border-bottom: none; }
+    .source-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .vault-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .vault-item { padding: 8px 12px; border: 1px solid #c3c5d9; border-radius: 4px; font-size: 13px; margin-bottom: 8px; background: white; }
+    .vault-item .vault-title { font-weight: 600; margin-bottom: 4px; }
+    .vault-item .vault-detail { color: #737688; font-size: 12px; }
+    .evidence-form-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #c3c5d9; }
+    .evidence-form-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; color: #737688; }
+    .playbook-task { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid #c3c5d9; border-radius: 4px; margin-bottom: 8px; font-size: 13px; }
+    .playbook-task-done { background: #ecfdf5; border-color: #10B98133; }
+    .btn-sm { padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; cursor: pointer; border: none; }
+    .btn-sm-done { background: #10B981; color: white; }
+    .btn-sm-pending { background: #e7e8e9; color: #434656; }
+    @media (max-width: 1024px) {
+      .bottom-grid { grid-template-columns: repeat(2, 1fr); }
+      .vault-grid { grid-template-columns: 1fr; }
+      .form-row-3 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .form-row { grid-template-columns: 1fr; }
+      .bottom-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="flex min-h-screen">
 
-    <main class="app-layout">
-      <!-- LEFT: Case Queue -->
-      <section class="queue-panel" id="queue">
-        <div class="panel-header">
-          <h2>Dispute Queue</h2>
-          <span class="case-count" id="activeCaseCount">0 cases</span>
-        </div>
+<!-- SIDE NAVIGATION BAR -->
+<aside class="fixed left-0 top-0 h-full w-[240px] flex flex-col py-6 bg-surface border-r border-outline-variant z-40">
+  <div class="px-6 mb-8 flex items-center gap-3">
+    <div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-white">
+      <span class="material-symbols-outlined text-[20px]">terminal</span>
+    </div>
+    <div>
+      <h1 class="text-[18px] font-bold text-primary leading-tight">GenLayer</h1>
+      <p class="text-[10px] font-label-caps tracking-widest uppercase opacity-60">Resolution Console</p>
+    </div>
+  </div>
+  <nav class="flex-1 space-y-1 px-3">
+    <a href="#queue" class="nav-active flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded" data-nav="queue">
+      <span class="material-symbols-outlined">pending_actions</span>
+      <span class="text-sm">Queue</span>
+    </a>
+    <a href="#resolution" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded" data-nav="resolution">
+      <span class="material-symbols-outlined">biotech</span>
+      <span class="text-sm">Workbench</span>
+    </a>
+    <a href="#history" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded" data-nav="history">
+      <span class="material-symbols-outlined">analytics</span>
+      <span class="text-sm">History</span>
+    </a>
+    <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded">
+      <span class="material-symbols-outlined">open_in_new</span>
+      <span class="text-sm">GitHub</span>
+    </a>
+  </nav>
+  <div class="px-4 mt-auto">
+    <div class="flex items-center gap-3 p-3 rounded-lg bg-surface-container-low border border-outline-variant/30">
+      <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">A</div>
+      <div class="overflow-hidden">
+        <p class="text-sm font-bold truncate">Merchant Admin</p>
+        <p class="text-[10px] font-label-caps opacity-60 truncate text-on-surface-variant">Resolution Team</p>
+      </div>
+    </div>
+  </div>
+</aside>
 
-        <div class="queue-controls">
-          <input id="queueSearch" class="search-input" placeholder="Search cases..." />
-          <select id="queueStatusFilter" class="filter-select">
+<!-- MAIN CONTENT CANVAS -->
+<main class="ml-[240px] flex-1 min-h-screen flex flex-col relative">
+  <!-- TOP APP BAR -->
+  <header class="flex justify-between items-center w-full px-8 h-16 sticky top-0 z-30 bg-surface border-b border-outline-variant">
+    <div class="flex items-center gap-6">
+      <h2 class="text-lg font-bold text-primary">Case Workbench</h2>
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-[18px]">search</span>
+        <input id="queueSearch" class="pl-10 pr-4 py-1.5 bg-surface-container-low border border-outline-variant rounded text-sm w-64 focus:ring-2 focus:ring-primary/20 outline-none transition-all" placeholder="Search case ID, customer..." type="text" />
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <span id="contractPill" class="text-xs font-data-mono px-3 py-1 bg-surface-container rounded border border-outline-variant text-on-surface-variant">Loading contract...</span>
+      <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant transition-colors">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD CONTAINER -->
+  <div class="p-8 max-w-[1440px] mx-auto w-full grid grid-cols-12 gap-6">
+
+    <!-- ==================== LEFT COLUMN: Queue + Detail ==================== -->
+    <section class="col-span-12 lg:col-span-8 space-y-6" id="queue">
+
+      <!-- Queue Panel -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-outline">pending_actions</span>
+            <h3 class="text-base font-bold">Dispute Queue</h3>
+            <span class="case-count text-xs font-data-mono text-outline ml-2" id="activeCaseCount">0 cases</span>
+          </div>
+          <select id="queueStatusFilter" class="text-xs border border-outline-variant rounded px-2 py-1 bg-white text-on-surface-variant">
             <option value="all">All statuses</option>
             <option value="new">new</option>
             <option value="evidence ready">evidence ready</option>
@@ -46,224 +217,150 @@
             <option value="fraud review queue">fraud review queue</option>
           </select>
         </div>
-
-        <div id="caseQueue" class="queue-list"></div>
-
-        <details class="add-case-section">
-          <summary class="add-case-toggle">+ Add New Case</summary>
-          <form id="caseCreateForm" class="case-form">
-            <div class="form-row">
-              <label>
-                Case ID
-                <input name="caseId" placeholder="ORD-5001" required />
-              </label>
-              <label>
-                Dispute type
-                <select name="presetType">
-                  <option value="">Custom dispute</option>
-                </select>
-              </label>
-            </div>
-            <div class="form-row">
-              <label>
-                Merchant
-                <input name="merchant" placeholder="NorthStar Grocery" required />
-              </label>
-              <label>
-                Buyer
-                <input name="buyer" placeholder="Olivia Carter" required />
-              </label>
-            </div>
-            <div class="form-row">
-              <label>
-                Claim type
-                <input name="claimType" placeholder="late-delivery / chargeback" required />
-              </label>
-              <label>
-                Currency
-                <input name="currency" value="USD" required />
-              </label>
-            </div>
-            <div class="form-row">
-              <label>
-                Order total
-                <input name="orderAmount" placeholder="142.00" required />
-              </label>
-              <label>
-                Amount at risk
-                <input name="riskAmount" placeholder="58.00" required />
-              </label>
-            </div>
-            <label>
-              Subject
-              <textarea name="subject" rows="2" placeholder="Brief description of the dispute." required></textarea>
-            </label>
-            <div class="form-row">
-              <label>
-                Buyer statement
-                <textarea name="buyerStatement" rows="2" placeholder="Buyer's side." required></textarea>
-              </label>
-              <label>
-                Seller response
-                <textarea name="sellerStatement" rows="2" placeholder="Seller's side." required></textarea>
-              </label>
-            </div>
-            <label>
-              Seller team
-              <input name="seller" placeholder="Merchant Resolution Desk" required />
-            </label>
-            <button type="submit" class="btn-primary">Add Case</button>
-          </form>
-        </details>
-      </section>
-
-      <!-- CENTER: Case Detail -->
-      <section class="detail-panel" id="detail">
-        <div class="panel-header">
-          <div>
-            <h2 id="caseTitle">Select a case</h2>
-            <p id="caseSubtitle" class="panel-desc">Choose a dispute from the queue to view details.</p>
+        <div id="caseQueue" class="p-4 space-y-2"></div>
+        <details class="border-t border-outline-variant">
+          <summary class="px-6 py-3 cursor-pointer text-sm font-semibold text-primary hover:bg-surface-container-low transition-colors">+ Add New Case</summary>
+          <div class="p-6">
+            <form id="caseCreateForm" class="case-form">
+              <div class="form-row">
+                <label>Case ID<input name="caseId" placeholder="ORD-5001" required /></label>
+                <label>Dispute type<select name="presetType"><option value="">Custom dispute</option></select></label>
+              </div>
+              <div class="form-row">
+                <label>Merchant<input name="merchant" placeholder="NorthStar Grocery" required /></label>
+                <label>Buyer<input name="buyer" placeholder="Olivia Carter" required /></label>
+              </div>
+              <div class="form-row">
+                <label>Claim type<input name="claimType" placeholder="late-delivery / chargeback" required /></label>
+                <label>Currency<input name="currency" value="USD" required /></label>
+              </div>
+              <div class="form-row">
+                <label>Order total<input name="orderAmount" placeholder="142.00" required /></label>
+                <label>Amount at risk<input name="riskAmount" placeholder="58.00" required /></label>
+              </div>
+              <label>Subject<textarea name="subject" rows="2" placeholder="Brief description of the dispute." required></textarea></label>
+              <div class="form-row">
+                <label>Buyer statement<textarea name="buyerStatement" rows="2" placeholder="Buyer's side." required></textarea></label>
+                <label>Seller response<textarea name="sellerStatement" rows="2" placeholder="Seller's side." required></textarea></label>
+              </div>
+              <label>Seller team<input name="seller" placeholder="Merchant Resolution Desk" required /></label>
+              <button type="submit" class="btn-primary">Add Case</button>
+            </form>
           </div>
+        </details>
+      </div>
+
+      <!-- Case Detail Panel -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden" id="detail">
+        <div class="px-6 py-4 border-b border-outline-variant">
+          <h2 id="caseTitle" class="text-lg font-bold">Select a case</h2>
+          <p id="caseSubtitle" class="text-sm text-on-surface-variant mt-1">Choose a dispute from the queue to view details.</p>
         </div>
 
-        <div class="tab-bar" id="detailTabs">
-          <button type="button" class="tab tab-active" data-detail-tab="overviewTab">Overview</button>
-          <button type="button" class="tab" data-detail-tab="intakeTab">Edit Case</button>
-          <button type="button" class="tab" data-detail-tab="vaultTab">Evidence</button>
-          <button type="button" class="tab" data-detail-tab="builderTab">Build Packet</button>
+        <!-- Detail Tabs -->
+        <div class="flex border-b border-outline-variant bg-surface-container-low" id="detailTabs">
+          <button type="button" class="tab tab-active px-5 py-3 text-sm" data-detail-tab="overviewTab">
+            <span class="material-symbols-outlined text-[16px] align-middle mr-1">visibility</span>Overview
+          </button>
+          <button type="button" class="tab px-5 py-3 text-sm text-on-surface-variant hover:text-on-surface" data-detail-tab="intakeTab">
+            <span class="material-symbols-outlined text-[16px] align-middle mr-1">edit</span>Edit Case
+          </button>
+          <button type="button" class="tab px-5 py-3 text-sm text-on-surface-variant hover:text-on-surface" data-detail-tab="vaultTab">
+            <span class="material-symbols-outlined text-[16px] align-middle mr-1">inventory_2</span>Evidence
+          </button>
+          <button type="button" class="tab px-5 py-3 text-sm text-on-surface-variant hover:text-on-surface" data-detail-tab="builderTab">
+            <span class="material-symbols-outlined text-[16px] align-middle mr-1">build</span>Build Packet
+          </button>
         </div>
 
         <!-- Overview Tab -->
-        <section id="overviewTab" class="tab-content tab-content-active">
-          <div class="summary-row">
-            <div class="summary-item">
-              <span class="label">Order</span>
-              <strong id="orderNumber">-</strong>
-              <span class="sub" id="orderMeta">-</span>
+        <section id="overviewTab" class="tab-content tab-content-active p-6 space-y-6">
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl">
+              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Order</p>
+              <strong id="orderNumber" class="text-lg font-bold text-primary block mt-1">-</strong>
+              <span id="orderMeta" class="text-xs text-on-surface-variant">-</span>
             </div>
-            <div class="summary-item">
-              <span class="label">At Risk</span>
-              <strong id="riskAmount">-</strong>
-              <span class="sub" id="riskMeta">-</span>
+            <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl">
+              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">At Risk</p>
+              <strong id="riskAmount" class="text-lg font-bold text-primary block mt-1">-</strong>
+              <span id="riskMeta" class="text-xs text-on-surface-variant">-</span>
             </div>
-            <div class="summary-item">
-              <span class="label">Claim</span>
-              <strong id="claimType">-</strong>
-              <span class="sub" id="claimStatus">-</span>
-            </div>
-          </div>
-
-          <div class="party-row">
-            <div class="party-card">
-              <span class="label">Buyer</span>
-              <h3 id="buyerName">-</h3>
-              <p id="buyerStatement">-</p>
-            </div>
-            <div class="party-card">
-              <span class="label">Seller</span>
-              <h3 id="sellerName">-</h3>
-              <p id="sellerStatement">-</p>
+            <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl">
+              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Claim</p>
+              <strong id="claimType" class="text-lg font-bold block mt-1">-</strong>
+              <span id="claimStatus" class="text-xs text-on-surface-variant">-</span>
             </div>
           </div>
 
-          <div class="timeline-section">
-            <div class="section-header">
-              <span class="label">Timeline</span>
-              <span id="resolutionWindow" class="time-badge">-</span>
+          <!-- Party Row -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 bg-white border border-outline-variant rounded-xl">
+              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">Buyer</p>
+              <h3 id="buyerName" class="text-sm font-bold">-</h3>
+              <p id="buyerStatement" class="text-sm text-on-surface-variant mt-2">-</p>
             </div>
-            <div id="caseTimeline" class="timeline"></div>
+            <div class="p-4 bg-white border border-outline-variant rounded-xl">
+              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">Seller</p>
+              <h3 id="sellerName" class="text-sm font-bold">-</h3>
+              <p id="sellerStatement" class="text-sm text-on-surface-variant mt-2">-</p>
+            </div>
           </div>
 
-          <div class="evidence-row">
-            <div class="evidence-card">
-              <div class="section-header">
-                <span class="label">Authority Checks</span>
-                <span id="evidenceCount" class="count-badge">0 sources</span>
+          <!-- Timeline -->
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Timeline</p>
+              <span id="resolutionWindow" class="text-xs font-data-mono px-2 py-0.5 bg-surface-container rounded border border-outline-variant">-</span>
+            </div>
+            <div id="caseTimeline" class="timeline-line space-y-0"></div>
+          </div>
+
+          <!-- Evidence & Disagreements -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 bg-white border border-outline-variant rounded-xl">
+              <div class="flex justify-between items-center mb-3">
+                <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Authority Checks</p>
+                <span id="evidenceCount" class="text-xs font-data-mono px-2 py-0.5 bg-surface-container rounded">0 sources</span>
               </div>
-              <div id="authoritativeEvidence" class="evidence-list"></div>
+              <div id="authoritativeEvidence" class="space-y-2"></div>
             </div>
-            <div class="evidence-card">
-              <span class="label">Key Disagreements</span>
-              <div id="disagreementList" class="disagreement-list"></div>
+            <div class="p-4 bg-white border border-outline-variant rounded-xl">
+              <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-3">Key Disagreements</p>
+              <div id="disagreementList" class="space-y-2"></div>
             </div>
           </div>
         </section>
 
         <!-- Edit Case Tab -->
-        <section id="intakeTab" class="tab-content">
+        <section id="intakeTab" class="tab-content p-6">
           <form id="caseDetailForm" class="case-form">
             <div class="form-row form-row-3">
-              <label>
-                Preset type
-                <select id="detailPreset" name="presetType">
-                  <option value="">Custom dispute</option>
-                </select>
-              </label>
-              <label>
-                Case ID
-                <input name="caseId" required />
-              </label>
-              <label>
-                Status
-                <input name="status" placeholder="new / evidence ready" required />
-              </label>
+              <label>Preset type<select id="detailPreset" name="presetType"><option value="">Custom dispute</option></select></label>
+              <label>Case ID<input name="caseId" required /></label>
+              <label>Status<input name="status" placeholder="new / evidence ready" required /></label>
             </div>
             <div class="form-row form-row-3">
-              <label>
-                Claim type
-                <input name="claimType" placeholder="missing-item / late-delivery" required />
-              </label>
-              <label>
-                Requested action
-                <input name="requestedAction" placeholder="partial refund" required />
-              </label>
-              <label>
-                Currency
-                <input name="currency" value="USD" required />
-              </label>
+              <label>Claim type<input name="claimType" placeholder="missing-item / late-delivery" required /></label>
+              <label>Requested action<input name="requestedAction" placeholder="partial refund" required /></label>
+              <label>Currency<input name="currency" value="USD" required /></label>
             </div>
             <div class="form-row form-row-3">
-              <label>
-                Merchant
-                <input name="merchant" required />
-              </label>
-              <label>
-                Buyer
-                <input name="buyer" required />
-              </label>
-              <label>
-                Seller team
-                <input name="seller" required />
-              </label>
+              <label>Merchant<input name="merchant" required /></label>
+              <label>Buyer<input name="buyer" required /></label>
+              <label>Seller team<input name="seller" required /></label>
             </div>
             <div class="form-row">
-              <label>
-                Order total
-                <input name="orderAmount" placeholder="248.00" required />
-              </label>
-              <label>
-                Amount at risk
-                <input name="riskAmount" placeholder="74.00" required />
-              </label>
+              <label>Order total<input name="orderAmount" placeholder="248.00" required /></label>
+              <label>Amount at risk<input name="riskAmount" placeholder="74.00" required /></label>
             </div>
-            <label>
-              Subject
-              <textarea name="subject" rows="2" required></textarea>
-            </label>
+            <label>Subject<textarea name="subject" rows="2" required></textarea></label>
             <div class="form-row">
-              <label>
-                Buyer statement
-                <textarea name="buyerStatement" rows="3" required></textarea>
-              </label>
-              <label>
-                Seller response
-                <textarea name="sellerStatement" rows="3" required></textarea>
-              </label>
+              <label>Buyer statement<textarea name="buyerStatement" rows="3" required></textarea></label>
+              <label>Seller response<textarea name="sellerStatement" rows="3" required></textarea></label>
             </div>
-            <label>
-              Review notes
-              <textarea name="reviewNotes" rows="2" placeholder="What should the operator verify next?"></textarea>
-            </label>
+            <label>Review notes<textarea name="reviewNotes" rows="2" placeholder="What should the operator verify next?"></textarea></label>
             <div class="form-actions">
               <button type="submit" class="btn-primary">Update Case</button>
               <button type="button" id="jumpToBuilderButton" class="btn-secondary">Update &amp; Build Packet</button>
@@ -272,28 +369,28 @@
         </section>
 
         <!-- Evidence Vault Tab -->
-        <section id="vaultTab" class="tab-content">
+        <section id="vaultTab" class="tab-content p-6">
           <div class="vault-grid">
-            <div class="vault-column">
-              <div class="section-header">
-                <span class="label">Buyer Evidence</span>
-                <span id="buyerVaultCount" class="count-badge">0 items</span>
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Buyer Evidence</p>
+                <span id="buyerVaultCount" class="text-xs font-data-mono">0 items</span>
               </div>
-              <div id="buyerVault" class="vault-list"></div>
+              <div id="buyerVault"></div>
             </div>
-            <div class="vault-column">
-              <div class="section-header">
-                <span class="label">Seller Evidence</span>
-                <span id="sellerVaultCount" class="count-badge">0 items</span>
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Seller Evidence</p>
+                <span id="sellerVaultCount" class="text-xs font-data-mono">0 items</span>
               </div>
-              <div id="sellerVault" class="vault-list"></div>
+              <div id="sellerVault"></div>
             </div>
-            <div class="vault-column">
-              <div class="section-header">
-                <span class="label">Authority Records</span>
-                <span id="authorityVaultCount" class="count-badge">0 items</span>
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Authority Records</p>
+                <span id="authorityVaultCount" class="text-xs font-data-mono">0 items</span>
               </div>
-              <div id="authorityVault" class="vault-list"></div>
+              <div id="authorityVault"></div>
             </div>
           </div>
 
@@ -302,38 +399,12 @@
             <form id="evidenceForm" class="case-form">
               <input type="hidden" name="evidenceIndex" value="" />
               <div class="form-row form-row-3">
-                <label>
-                  Side
-                  <select name="side" required>
-                    <option value="buyer">Buyer</option>
-                    <option value="seller">Seller</option>
-                    <option value="authority">Authority</option>
-                  </select>
-                </label>
-                <label>
-                  Status
-                  <select name="status" required>
-                    <option value="submitted">submitted</option>
-                    <option value="time-verified">time-verified</option>
-                    <option value="authoritative">authoritative</option>
-                    <option value="pending-proof">pending-proof</option>
-                    <option value="needs-review">needs-review</option>
-                    <option value="missing">missing</option>
-                  </select>
-                </label>
-                <label>
-                  Source
-                  <input name="source" placeholder="buyer upload / payment ledger" required />
-                </label>
+                <label>Side<select name="side" required><option value="buyer">Buyer</option><option value="seller">Seller</option><option value="authority">Authority</option></select></label>
+                <label>Status<select name="status" required><option value="submitted">submitted</option><option value="time-verified">time-verified</option><option value="authoritative">authoritative</option><option value="pending-proof">pending-proof</option><option value="needs-review">needs-review</option><option value="missing">missing</option></select></label>
+                <label>Source<input name="source" placeholder="buyer upload / payment ledger" required /></label>
               </div>
-              <label>
-                Title
-                <input name="title" placeholder="Evidence title" required />
-              </label>
-              <label>
-                Detail
-                <textarea name="detail" rows="2" placeholder="What this evidence proves." required></textarea>
-              </label>
+              <label>Title<input name="title" placeholder="Evidence title" required /></label>
+              <label>Detail<textarea name="detail" rows="2" placeholder="What this evidence proves." required></textarea></label>
               <div class="form-actions">
                 <button type="submit" id="saveEvidenceButton" class="btn-primary">Add Evidence</button>
                 <button type="button" id="resetEvidenceButton" class="btn-ghost">Reset</button>
@@ -351,14 +422,8 @@
               <button type="button" class="chip" data-source-template="fraud_signal">Fraud signal</button>
             </div>
             <form id="sourceIngestForm" class="case-form">
-              <label>
-                Source type
-                <input name="sourceType" placeholder="Select a source above" required />
-              </label>
-              <label>
-                Payload JSON
-                <textarea name="payload" rows="4" placeholder='{"orderId":"ORD-2048","status":"paid"}' required></textarea>
-              </label>
+              <label>Source type<input name="sourceType" placeholder="Select a source above" required /></label>
+              <label>Payload JSON<textarea name="payload" rows="4" placeholder='{"orderId":"ORD-2048","status":"paid"}' required></textarea></label>
               <div class="form-actions">
                 <button type="submit" class="btn-primary">Ingest Source</button>
                 <button type="button" id="resetSourceIngestButton" class="btn-ghost">Reset</button>
@@ -368,69 +433,39 @@
         </section>
 
         <!-- Packet Builder Tab -->
-        <section id="builderTab" class="tab-content">
+        <section id="builderTab" class="tab-content p-6">
           <form id="builderForm" class="case-form">
             <div class="form-row">
-              <label>
-                Template
-                <select name="template">
-                  <option value="delivery-missing">Missing item</option>
-                  <option value="delivery-damaged">Damaged goods</option>
-                  <option value="payment-refund">Refund not received</option>
-                  <option value="order-mismatch">Wrong order delivered</option>
-                  <option value="delivery-late">Late delivery</option>
-                  <option value="chargeback-risk">Chargeback</option>
-                  <option value="service-cancellation">Subscription cancellation</option>
-                  <option value="counterfeit-quality">Counterfeit / listing mismatch</option>
-                  <option value="warranty-claim">Warranty claim</option>
-                </select>
-              </label>
-              <label>
-                Case name
-                <input name="projectName" value="order-resolution-console" required />
-              </label>
+              <label>Template<select name="template">
+                <option value="delivery-missing">Missing item</option>
+                <option value="delivery-damaged">Damaged goods</option>
+                <option value="payment-refund">Refund not received</option>
+                <option value="order-mismatch">Wrong order delivered</option>
+                <option value="delivery-late">Late delivery</option>
+                <option value="chargeback-risk">Chargeback</option>
+                <option value="service-cancellation">Subscription cancellation</option>
+                <option value="counterfeit-quality">Counterfeit / listing mismatch</option>
+                <option value="warranty-claim">Warranty claim</option>
+              </select></label>
+              <label>Case name<input name="projectName" value="order-resolution-console" required /></label>
             </div>
             <div class="form-row">
-              <label>
-                Repository URL
-                <input name="repoUrl" value="https://github.com/Jinchainne/genlayer-order-resolution-console" required />
-              </label>
-              <label>
-                Live app URL
-                <input name="liveApp" value="https://genlayer-policy-eco.vercel.app/" />
-              </label>
+              <label>Repository URL<input name="repoUrl" value="https://github.com/Jinchainne/genlayer-order-resolution-console" required /></label>
+              <label>Live app URL<input name="liveApp" value="https://genlayer-policy-eco.vercel.app/" /></label>
             </div>
             <div class="form-row">
-              <label>
-                Contract explorer
-                <input name="contractUrl" value="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" />
-              </label>
-              <label>
-                Deploy tx
-                <input name="deployTxUrl" value="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" />
-              </label>
+              <label>Contract explorer<input name="contractUrl" value="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" /></label>
+              <label>Deploy tx<input name="deployTxUrl" value="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" /></label>
             </div>
             <div class="form-row">
-              <label>
-                create_policy tx
-                <input name="createPolicyTxUrl" value="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" />
-              </label>
-              <label>
-                evaluate tx
-                <input name="evaluateTxUrl" value="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" />
-              </label>
+              <label>create_policy tx<input name="createPolicyTxUrl" value="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" /></label>
+              <label>evaluate tx<input name="evaluateTxUrl" value="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" /></label>
             </div>
-            <label>
-              Claims
-              <textarea name="claims" rows="4">buyer provided receipt and missing item report
+            <label>Claims<textarea name="claims" rows="4">buyer provided receipt and missing item report
 seller provided packing note and delivery timestamp
 evidence includes payment, invoice, and order timeline
-resolution requires qualitative dispute assessment</textarea>
-            </label>
-            <label>
-              Notes
-              <textarea name="reviewNotes" rows="3">This case packet is designed for retail dispute resolution with GenLayer-backed policy evaluation.</textarea>
-            </label>
+resolution requires qualitative dispute assessment</textarea></label>
+            <label>Notes<textarea name="reviewNotes" rows="3">This case packet is designed for retail dispute resolution with GenLayer-backed policy evaluation.</textarea></label>
             <div class="form-actions">
               <button type="submit" class="btn-primary">Build Packet</button>
               <button type="button" id="applyBundleButton" class="btn-secondary">Use in Resolution</button>
@@ -438,120 +473,120 @@ resolution requires qualitative dispute assessment</textarea>
             </div>
           </form>
         </section>
-      </section>
+      </div>
+    </section>
 
-      <!-- RIGHT: Resolution Workflow -->
-      <section class="resolution-panel" id="resolution">
-        <div class="panel-header">
-          <h2>Resolution</h2>
+    <!-- ==================== RIGHT COLUMN: Resolution ==================== -->
+    <section class="col-span-12 lg:col-span-4 space-y-6" id="resolution">
+      <!-- Resolution Card -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+        <div class="px-6 py-4 border-b border-outline-variant flex items-center gap-2">
+          <span class="material-symbols-outlined text-outline">gavel</span>
+          <h3 class="text-base font-bold">Resolution</h3>
         </div>
-
-        <div class="recommended-action">
-          <span class="label">Recommended Action</span>
-          <strong id="recommendedAction">Awaiting case packet</strong>
-          <p id="recommendedActionReason">Build a case packet or load a demo to get started.</p>
-        </div>
-
-        <div class="action-chips">
-          <button type="button" class="chip action-chip" data-action-value="approve_refund">Approve refund</button>
-          <button type="button" class="chip action-chip" data-action-value="partial_refund">Partial refund</button>
-          <button type="button" class="chip action-chip" data-action-value="reship_order">Reship order</button>
-          <button type="button" class="chip action-chip" data-action-value="store_credit">Store credit</button>
-          <button type="button" class="chip action-chip" data-action-value="hold_payout">Hold payout</button>
-          <button type="button" class="chip action-chip" data-action-value="fraud_review">Fraud review</button>
-          <button type="button" class="chip action-chip" data-action-value="deny_claim">Deny claim</button>
-        </div>
-
-        <form id="resolutionActionForm" class="case-form">
-          <label>
-            Action note
-            <textarea name="actionNote" rows="2" placeholder="Why this action is appropriate."></textarea>
-          </label>
-          <div class="form-actions">
-            <button type="submit" class="btn-primary">Apply Action</button>
-            <button type="button" id="clearResolutionActionButton" class="btn-ghost">Clear</button>
+        <div class="p-6 space-y-4">
+          <div class="p-4 bg-surface-container-low rounded border border-outline-variant">
+            <p class="text-[11px] font-label-caps tracking-widest text-outline uppercase">Recommended Action</p>
+            <strong id="recommendedAction" class="text-sm font-bold block mt-1">Awaiting case packet</strong>
+            <p id="recommendedActionReason" class="text-xs text-on-surface-variant mt-1">Build a case packet or load a demo to get started.</p>
           </div>
-        </form>
 
-        <div class="playbook-section">
-          <span class="label">Execution Playbook</span>
-          <strong id="playbookActionTitle">No action selected</strong>
-          <p id="playbookActionSummary">Pick an action to see downstream tasks.</p>
-          <div id="playbookTasks" class="playbook-tasks"></div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="chip action-chip" data-action-value="approve_refund">Approve refund</button>
+            <button type="button" class="chip action-chip" data-action-value="partial_refund">Partial refund</button>
+            <button type="button" class="chip action-chip" data-action-value="reship_order">Reship order</button>
+            <button type="button" class="chip action-chip" data-action-value="store_credit">Store credit</button>
+            <button type="button" class="chip action-chip" data-action-value="hold_payout">Hold payout</button>
+            <button type="button" class="chip action-chip" data-action-value="fraud_review">Fraud review</button>
+            <button type="button" class="chip action-chip" data-action-value="deny_claim">Deny claim</button>
+          </div>
+
+          <form id="resolutionActionForm" class="case-form">
+            <label>Action note<textarea name="actionNote" rows="2" placeholder="Why this action is appropriate."></textarea></label>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Apply Action</button>
+              <button type="button" id="clearResolutionActionButton" class="btn-ghost">Clear</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Execution Playbook -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+        <div class="px-6 py-4 border-b border-outline-variant flex items-center gap-2">
+          <span class="material-symbols-outlined text-outline">checklist</span>
+          <h3 class="text-base font-bold">Execution Playbook</h3>
+        </div>
+        <div class="p-6">
+          <strong id="playbookActionTitle" class="text-sm font-bold block">No action selected</strong>
+          <p id="playbookActionSummary" class="text-xs text-on-surface-variant mt-1 mb-3">Pick an action to see downstream tasks.</p>
+          <div id="playbookTasks" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- AI Triage -->
+      <div class="mimo-card rounded-xl overflow-hidden shadow-sm">
+        <div class="px-6 py-4 border-b border-primary/10 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">psychology</span>
+            <h3 class="text-base font-bold text-primary">AI Triage</h3>
+          </div>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <label class="text-xs font-label-caps tracking-widest text-outline uppercase">AI Reviewer</label>
+            <select id="aiPersona" class="text-xs border border-outline-variant rounded px-2 py-1 bg-white">
+              <option value="mira">Mira Review (MiMo)</option>
+              <option value="lexi">Lexi Review (Groq)</option>
+            </select>
+            <button type="button" id="aiPreJudgeButton" class="btn-primary text-xs px-3 py-1.5">Run AI Triage</button>
+          </div>
+          <pre id="aiPreJudgeOutput" class="code-block muted">No triage run yet.</pre>
+        </div>
+      </div>
+
+      <!-- Workflow Tabs: Packet / Policy / Workflow -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+        <div class="flex border-b border-outline-variant bg-surface-container-low">
+          <button type="button" class="tab tab-active px-4 py-3 text-xs font-semibold" data-tab-target="packetTab">Packet</button>
+          <button type="button" class="tab px-4 py-3 text-xs text-on-surface-variant hover:text-on-surface" data-tab-target="policyTab">Policy</button>
+          <button type="button" class="tab px-4 py-3 text-xs text-on-surface-variant hover:text-on-surface" data-tab-target="workflowTab">Workflow</button>
         </div>
 
-        <div class="tab-bar">
-          <button type="button" class="tab tab-active" data-tab-target="packetTab">Packet</button>
-          <button type="button" class="tab" data-tab-target="triageTab">AI Triage</button>
-          <button type="button" class="tab" data-tab-target="policyTab">Policy</button>
-          <button type="button" class="tab" data-tab-target="workflowTab">Workflow</button>
-        </div>
-
-        <section id="packetTab" class="tab-content tab-content-active">
-          <div class="preview-section">
-            <h3>Case Subject</h3>
+        <!-- Packet Tab -->
+        <section id="packetTab" class="tab-content tab-content-active p-6 space-y-4">
+          <div>
+            <h4 class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">Case Subject</h4>
             <pre id="generatedSubject" class="code-block muted">No packet generated yet.</pre>
           </div>
-          <div class="preview-section">
-            <h3>References JSON</h3>
+          <div>
+            <h4 class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">References JSON</h4>
             <pre id="generatedReferences" class="code-block muted">No packet generated yet.</pre>
           </div>
-          <div class="preview-section">
-            <h3>Evidence JSON</h3>
+          <div>
+            <h4 class="text-[11px] font-label-caps tracking-widest text-outline uppercase mb-2">Evidence JSON</h4>
             <pre id="generatedEvidence" class="code-block muted">No packet generated yet.</pre>
           </div>
         </section>
 
-        <section id="triageTab" class="tab-content">
-          <div class="triage-controls">
-            <label>
-              AI Reviewer
-              <select id="aiPersona">
-                <option value="mira">Mira Review (MiMo)</option>
-                <option value="lexi">Lexi Review (Groq)</option>
-              </select>
-            </label>
-            <button type="button" id="aiPreJudgeButton" class="btn-secondary">Run AI Triage</button>
-          </div>
-          <pre id="aiPreJudgeOutput" class="code-block muted">No triage run yet.</pre>
-        </section>
-
-        <section id="policyTab" class="tab-content">
+        <!-- Policy Tab -->
+        <section id="policyTab" class="tab-content p-6">
           <form id="policyForm" class="case-form">
-            <label>
-              Policy name
-              <input name="name" value="Retail Order Dispute Policy" required />
-            </label>
-            <label>
-              Category
-              <input name="category" value="order-resolution" required />
-            </label>
-            <label>
-              Policy text
-              <textarea name="policyText" rows="3" required>Allow resolution only when buyer and seller evidence supports a fair, evidence-backed decision.</textarea>
-            </label>
-            <label>
-              Criteria
-              <textarea name="criteriaText" rows="3" required>Return deny or undetermined if evidence is incomplete or authoritative records conflict.</textarea>
-            </label>
+            <label>Policy name<input name="name" value="Retail Order Dispute Policy" required /></label>
+            <label>Category<input name="category" value="order-resolution" required /></label>
+            <label>Policy text<textarea name="policyText" rows="3" required>Allow resolution only when buyer and seller evidence supports a fair, evidence-backed decision.</textarea></label>
+            <label>Criteria<textarea name="criteriaText" rows="3" required>Return deny or undetermined if evidence is incomplete or authoritative records conflict.</textarea></label>
             <button type="submit" class="btn-primary">Create Policy</button>
           </form>
-          <pre id="policyOutput" class="code-block muted">No policy created yet.</pre>
+          <pre id="policyOutput" class="code-block muted mt-4">No policy created yet.</pre>
         </section>
 
-        <section id="workflowTab" class="tab-content">
+        <!-- Workflow Tab -->
+        <section id="workflowTab" class="tab-content p-6">
           <form id="workflowForm" class="case-form">
-            <label>
-              Policy ID
-              <input name="policyId" placeholder="policy-1" />
-            </label>
-            <label>
-              Resolution subject
-              <textarea name="subject" rows="3" required>A buyer reports a missing-item dispute and requests a refund after delivery completion.</textarea>
-            </label>
-            <label>
-              Evidence JSON
-              <textarea name="evidence" rows="6" required>{
+            <label>Policy ID<input name="policyId" placeholder="policy-1" /></label>
+            <label>Resolution subject<textarea name="subject" rows="3" required>A buyer reports a missing-item dispute and requests a refund after delivery completion.</textarea></label>
+            <label>Evidence JSON<textarea name="evidence" rows="6" required>{
   "projectName": "order-resolution-console",
   "orderId": "ORD-2048",
   "buyerClaim": "Two paid items were missing from the delivered order.",
@@ -559,59 +594,71 @@ resolution requires qualitative dispute assessment</textarea>
   "artifacts": ["invoice", "payment proof", "packing note", "delivery timestamp"],
   "claims": ["buyer evidence included", "seller response included"],
   "reviewNotes": "Requires refund or escalation decision based on evidence."
-}</textarea>
-            </label>
-            <label>
-              Reference URLs JSON
-              <textarea name="referenceUrls" rows="3">["https://github.com/Jinchainne/genlayer-order-resolution-console","https://genlayer-policy-eco.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea>
-            </label>
+}</textarea></label>
+            <label>Reference URLs JSON<textarea name="referenceUrls" rows="3">["https://github.com/Jinchainne/genlayer-order-resolution-console","https://genlayer-policy-eco.vercel.app/","https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108"]</textarea></label>
             <button type="submit" class="btn-primary">Run Workflow</button>
           </form>
-          <div id="verdictCard" class="verdict verdict-waiting">
+          <div id="verdictCard" class="verdict verdict-waiting mt-4">
             <strong>Awaiting resolution</strong>
             <span>Run the workflow to get a verdict.</span>
           </div>
-          <pre id="workflowOutput" class="code-block muted">No workflow executed yet.</pre>
+          <pre id="workflowOutput" class="code-block muted mt-4">No workflow executed yet.</pre>
         </section>
-      </section>
-    </main>
-
-    <!-- Bottom: History & Links -->
-    <section class="bottom-bar" id="history">
-      <div class="bottom-grid">
-        <div class="bottom-card">
-          <h3>Recent Reviews</h3>
-          <div id="recentRuns" class="history-list">
-            <p class="empty-state">No reviews yet. Build a packet to get started.</p>
-          </div>
-        </div>
-        <div class="bottom-card">
-          <h3>Decision History</h3>
-          <div id="decisionHistory" class="history-list">
-            <p class="empty-state">No decisions yet.</p>
-          </div>
-        </div>
-        <div class="bottom-card">
-          <h3>Task Board</h3>
-          <div id="actionQueueBoard" class="history-list">
-            <p class="empty-state">No tasks queued yet.</p>
-          </div>
-        </div>
-        <div class="bottom-card">
-          <h3>Live Proof</h3>
-          <div class="proof-links">
-            <a href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">Contract Explorer</a>
-            <a href="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" target="_blank" rel="noreferrer">Deploy Tx</a>
-            <a href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer">create_policy Tx</a>
-            <a href="https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59" target="_blank" rel="noreferrer">evaluate Tx</a>
-            <a href="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" target="_blank" rel="noreferrer">workflow Tx</a>
-            <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer">GitHub Repository</a>
-            <a href="https://genlayer-policy-eco.vercel.app/" target="_blank" rel="noreferrer">Live App</a>
-          </div>
-        </div>
       </div>
     </section>
+  </div>
 
-    <script type="module" src="/app.js"></script>
-  </body>
+  <!-- Bottom: History & Links -->
+  <section class="px-8 pb-8" id="history">
+    <div class="bottom-grid">
+      <div class="bottom-card">
+        <h3>Recent Reviews</h3>
+        <div id="recentRuns" class="history-list">
+          <p class="empty-state">No reviews yet. Build a packet to get started.</p>
+        </div>
+      </div>
+      <div class="bottom-card">
+        <h3>Decision History</h3>
+        <div id="decisionHistory" class="history-list">
+          <p class="empty-state">No decisions yet.</p>
+        </div>
+      </div>
+      <div class="bottom-card">
+        <h3>Task Board</h3>
+        <div id="actionQueueBoard" class="history-list">
+          <p class="empty-state">No tasks queued yet.</p>
+        </div>
+      </div>
+      <div class="bottom-card">
+        <h3>Live Proof</h3>
+        <div class="proof-links">
+          <a href="https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108" target="_blank" rel="noreferrer">
+            <span class="material-symbols-outlined text-[14px]">open_in_new</span>Contract Explorer
+          </a>
+          <a href="https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111" target="_blank" rel="noreferrer">
+            <span class="material-symbols-outlined text-[14px]">open_in_new</span>Deploy Tx
+          </a>
+          <a href="https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083" target="_blank" rel="noreferrer">
+            <span class="material-symbols-outlined text-[14px]">open_in_new</span>create_policy Tx
+          </a>
+          <a href="https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59" target="_blank" rel="noreferrer">
+            <span class="material-symbols-outlined text-[14px]">open_in_new</span>evaluate Tx
+          </a>
+          <a href="https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" target="_blank" rel="noreferrer">
+            <span class="material-symbols-outlined text-[14px]">open_in_new</span>workflow Tx
+          </a>
+          <a href="https://github.com/Jinchainne/genlayer-order-resolution-console" target="_blank" rel="noreferrer">
+            <span class="material-symbols-outlined text-[14px]">open_in_new</span>GitHub Repository
+          </a>
+          <a href="https://genlayer-policy-eco.vercel.app/" target="_blank" rel="noreferrer">
+            <span class="material-symbols-outlined text-[14px]">open_in_new</span>Live App
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="/app.js"></script>
+</body>
 </html>
