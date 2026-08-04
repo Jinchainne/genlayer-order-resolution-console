@@ -11,10 +11,10 @@
 | **Live App** | [order-resolution-console.vercel.app](https://order-resolution-console.vercel.app/) |
 | **Repository** | [github.com/Jinchainne/genlayer-order-resolution-console](https://github.com/Jinchainne/genlayer-order-resolution-console) |
 | **Contract Explorer** | [explorer-studio — 0x016E…0868](https://explorer-studio.genlayer.com/address/0x016Ecda0fB65F56441b2F473140d5dAdd2240868) |
-| **Deploy Tx** | [0xf1c2…e111](https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111) |
-| **`create_policy` Tx** | [0xeb09…e083](https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083) |
-| **`evaluate` Tx** | [0x3b61…7c59](https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59) |
-| **Workflow Tx** | [0x530c…2121](https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121) |
+| **Deploy Tx** | [0x91df…6d0e](https://explorer-studio.genlayer.com/tx/0x91df124b038f05e624c1796b5b1b6d0e) |
+| **`create_policy` Tx** | [0x3b34…9510](https://explorer-studio.genlayer.com/tx/0x3b347414e8f1c22e490b5120e54b8a76f4f79510) |
+| **`evaluate` Tx** | [0x0f6c…d72c](https://explorer-studio.genlayer.com/tx/0x0f6c0c25e68c75313a5204c7f81e9dd72c) |
+| **Workflow Tx** | [0x4e83…e290](https://explorer-studio.genlayer.com/tx/0x4e83325b54f92e16b80c4cb4fc7b62de290) |
 
 **Contract Address:** `0x016Ecda0fB65F56441b2F473140d5dAdd2240868`
 
