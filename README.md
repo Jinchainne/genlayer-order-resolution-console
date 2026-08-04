@@ -10,13 +10,13 @@
 |---|---|
 | **Live App** | [order-resolution-console.vercel.app](https://order-resolution-console.vercel.app/) |
 | **Repository** | [github.com/Jinchainne/genlayer-order-resolution-console](https://github.com/Jinchainne/genlayer-order-resolution-console) |
-| **Contract Explorer** | [explorer-studio — 0x3789…f108](https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108) |
+| **Contract Explorer** | [explorer-studio — 0x016E…0868](https://explorer-studio.genlayer.com/address/0x016Ecda0fB65F56441b2F473140d5dAdd2240868) |
 | **Deploy Tx** | [0xf1c2…e111](https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111) |
 | **`create_policy` Tx** | [0xeb09…e083](https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083) |
 | **`evaluate` Tx** | [0x3b61…7c59](https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59) |
 | **Workflow Tx** | [0x530c…2121](https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121) |
 
-**Contract Address:** `0x378986E3Af625f1873c46Ab96E919E7886eFf108`
+**Contract Address:** `0x016Ecda0fB65F56441b2F473140d5dAdd2240868`
 
 ---
 
@@ -183,11 +183,19 @@ The heart of the contract. For each evaluation:
 
 ### `resolve_dispute()` — Full End-to-End Case Resolution
 
-Combines `evaluate()` with case record storage. Creates a permanent case resolution record linking the case ID to the evaluation result, enabling read-back via `get_case()`.
+Combines `evaluate()` with case record storage and immutable revision tracking. Creates a permanent case resolution record linking the case ID to the evaluation result, enabling read-back via `get_case()`. Each resolution creates an initial revision in the `revision_chain`.
+
+### `appeal_case()` — Appeal with Counter-Evidence
+
+Allows appealing an existing case by submitting counter-evidence and new disagreements. Creates a new revision linked to the parent revision via `parent_revision`, preserving the full audit trail. The `revision_chain` on the case record grows with each appeal.
 
 ### `get_case()` — Read Case Resolution Record
 
-View function to retrieve the on-chain case resolution record including decision, score, confidence, reason, and who resolved it.
+View function to retrieve the on-chain case resolution record including decision, score, confidence, reason, current revision, revision chain, appeal count, and who resolved it.
+
+### `get_revision()` / `get_revision_chain()` — Immutable Revision History
+
+`get_revision(id)` returns a single revision record. `get_revision_chain(case_id)` returns the full chain of revisions for a case, each with: revision type (initial/appeal), parent revision link, evidence, disagreements, decision, and author.
 
 ### Leader-Validator Consensus
 
@@ -199,6 +207,12 @@ All non-deterministic operations run through `gl.vm.run_nondet_unsafe(leader_fn,
   - Score within ±20 points
   - Confidence within ±1 rank
 - If the validator rejects, the transaction fails — ensuring consistency across non-deterministic execution
+
+### Security
+
+- **UNTRUSTED DATA markers** in all prompts — fetched web content is explicitly marked as untrusted
+- **HTTPS enforcement** — only HTTPS URLs accepted for reference sources
+- **Input validation** — all parameters sanitized with length limits
 
 ---
 
@@ -267,6 +281,7 @@ genlayer-order-resolution-console/
 │     └─ policy-submission-workflow.mjs  # Full submission workflow
 ├─ tests/
 │  └─ test_policy_oracle_contract.py     # Contract tests
+│  └─ test_appeal_lifecycle.py           # Appeal + revision tests (14 tests)
 ├─ .env.example                  # Environment variable template
 ├─ package.json
 ├─ pyproject.toml
@@ -319,7 +334,7 @@ Open `http://127.0.0.1:3000` in your browser.
 |---|---|---|
 | `GENLAYER_PRIVATE_KEY` | ✅ | Private key for signing GenLayer transactions (hex, `0x`-prefixed) |
 | `GENLAYER_RPC_URL` | ✅ | GenLayer RPC endpoint (default: `https://studio.genlayer.com/api`) |
-| `POLICY_ORACLE_ADDRESS` | ✅ | Deployed contract address (default: `0x378986E3Af625f1873c46Ab96E919E7886eFf108`) |
+| `POLICY_ORACLE_ADDRESS` | ✅ | Deployed contract address (default: `0x016Ecda0fB65F56441b2F473140d5dAdd2240868`) |
 | `MIMO_API_KEY` | ⬜* | API key for MiMo AI provider |
 | `MIMO_API_URL` | ⬜ | MiMo API endpoint |
 | `MIMO_MODEL` | ⬜ | MiMo model identifier (default: `mimo-v2.5`) |
@@ -413,3 +428,14 @@ After on-chain evaluation, the verdict maps to one of these operational actions:
 `genlayer-order-resolution-console` is a merchant dispute operations console built on GenLayer. It helps retail, grocery, delivery, marketplace, payment, and subscription teams turn messy buyer-seller disputes into structured evidence packets, evaluate them through a reusable GenLayer policy contract with leader-validator consensus and on-chain evidence fetching, and bind the resulting verdict to real business actions like refund, reship, store credit, payout hold, or fraud review.
 
 **Console flow:** Select Case → Review Evidence → AI Triage → Create Policy → Resolve On-Chain → Execute Action
+
+**Appeal flow:** Submit counter-evidence → Rebuild packet → Update policy → Rerun resolve → New immutable revision linked to parent
+
+**Key features:**
+- `resolve_dispute()` wired through production API path with disagreements support
+- `appeal_case()` with counter-evidence and linked immutable revisions
+- `get_case()` and `get_revision_chain()` for full audit trail
+- UNTRUSTED DATA markers in all AI prompts
+- 17 tests covering consensus, policies, evaluations, and appeal lifecycle
+
+**Contract:** `0x016Ecda0fB65F56441b2F473140d5dAdd2240868` on StudioNet (61999)
