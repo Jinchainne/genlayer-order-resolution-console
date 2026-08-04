@@ -94,7 +94,7 @@ let CASES = [
     references: {
       repoUrl: "https://github.com/Jinchainne/genlayer-order-resolution-console",
       liveApp: "https://order-resolution-console.vercel.app/",
-      contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
+      contractUrl: "https://explorer-studio.genlayer.com/address/0xDBEc272e85c409bE5F318ba761319FFdcf6d5d27",
       deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",
       createPolicyTxUrl: "https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083",
       evaluateTxUrl: "https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121",
@@ -139,7 +139,7 @@ let CASES = [
     references: {
       repoUrl: "https://github.com/Jinchainne/genlayer-order-resolution-console",
       liveApp: "https://order-resolution-console.vercel.app/",
-      contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
+      contractUrl: "https://explorer-studio.genlayer.com/address/0xDBEc272e85c409bE5F318ba761319FFdcf6d5d27",
       deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",
       createPolicyTxUrl: "https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083",
       evaluateTxUrl: "https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59",
@@ -184,7 +184,7 @@ let CASES = [
     references: {
       repoUrl: "https://github.com/Jinchainne/genlayer-order-resolution-console",
       liveApp: "https://order-resolution-console.vercel.app/",
-      contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108",
+      contractUrl: "https://explorer-studio.genlayer.com/address/0xDBEc272e85c409bE5F318ba761319FFdcf6d5d27",
       deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111",
       createPolicyTxUrl: "https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083",
       evaluateTxUrl: "https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121",
@@ -239,7 +239,7 @@ const GLOBAL_DISPUTE_PRESETS = {
 /* ── Extra seed cases ── */
 function cloneData(value) { return JSON.parse(JSON.stringify(value)); }
 function baseReferences() {
-  return { repoUrl: "https://github.com/Jinchainne/genlayer-order-resolution-console", liveApp: "https://order-resolution-console.vercel.app/", contractUrl: "https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108", deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111", createPolicyTxUrl: "https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083", evaluateTxUrl: "https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" };
+  return { repoUrl: "https://github.com/Jinchainne/genlayer-order-resolution-console", liveApp: "https://order-resolution-console.vercel.app/", contractUrl: "https://explorer-studio.genlayer.com/address/0xDBEc272e85c409bE5F318ba761319FFdcf6d5d27", deployTxUrl: "https://explorer-studio.genlayer.com/tx/0xf1c2f18a5cdc2dfe7aee6c860a183e11ac480ce907a868c2c7c07c69df8e1111", createPolicyTxUrl: "https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083", evaluateTxUrl: "https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121" };
 }
 
 function makeSeedCase({ id, merchant, buyer, seller, type, amount, atRisk, paymentStatus, fulfillment }) {
@@ -833,7 +833,7 @@ function showRpcFallback(errorMessage) {
   verdictCard.innerHTML = `<strong>RPC unavailable</strong><span>Live write flow could not complete. Use explorer proof links.</span>`;
   recommendedAction.textContent = "manual_retry";
   recommendedActionReason.textContent = "Packet ready but hosted environment could not complete write. Retry locally.";
-  workflowOutput.textContent = ["Live fallback mode.", "", errorMessage, "", "Proof links:", "- Contract: https://explorer-studio.genlayer.com/address/0x378986E3Af625f1873c46Ab96E919E7886eFf108", "- create_policy tx: https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083", "- evaluate tx: https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59", "- workflow tx: https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121"].join("\n");
+  workflowOutput.textContent = ["Live fallback mode.", "", errorMessage, "", "Proof links:", "- Contract: https://explorer-studio.genlayer.com/address/0xDBEc272e85c409bE5F318ba761319FFdcf6d5d27", "- create_policy tx: https://explorer-studio.genlayer.com/tx/0xeb09fa365e6aa3454fd8be92c55474ec24ab95f7e825a8cf7ba058e12c16e083", "- evaluate tx: https://explorer-studio.genlayer.com/tx/0x3b61a808f6e2bcb27cfc75fe88d5cf68bab600427e5bacaf64a19a385fa73c59", "- workflow tx: https://explorer-studio.genlayer.com/tx/0x530c889d94dbbc7ba118cf91b637b342ee8155aba78f603c0d838f1e07812121"].join("\n");
 }
 
 function setBusy(form, busy) {

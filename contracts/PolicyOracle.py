@@ -8,17 +8,21 @@ class PolicyOracle(gl.Contract):
     policy_count: u64
     evaluation_count: u64
     case_count: u64
+    revision_count: u64
     policies: TreeMap[str, str]
     evaluations: TreeMap[str, str]
     cases: TreeMap[str, str]
+    revisions: TreeMap[str, str]
 
     def __init__(self):
         self.policy_count = 0
         self.evaluation_count = 0
         self.case_count = 0
+        self.revision_count = 0
         self.policies = TreeMap()
         self.evaluations = TreeMap()
         self.cases = TreeMap()
+        self.revisions = TreeMap()
 
     # ── Helpers ──
 
@@ -39,6 +43,10 @@ class PolicyOracle(gl.Contract):
     def _next_case_id(self) -> str:
         next_id = int(self.case_count) + 1
         return f"case-{next_id}"
+
+    def _next_revision_id(self) -> str:
+        next_id = int(self.revision_count) + 1
+        return f"rev-{next_id}"
 
     def _normalize_json_text(self, value) -> str:
         if isinstance(value, str):
@@ -363,7 +371,7 @@ Rules:
         reference_urls_json: str = "[]",
         disagreements_json: str = "[]",
     ) -> str:
-        """Full dispute resolution: evaluate + store case record."""
+        """Full dispute resolution: evaluate + store case record + create revision."""
         clean_case_id = case_id.strip()
         if not clean_case_id:
             raise gl.UserError("Case ID cannot be empty")
@@ -379,18 +387,101 @@ Rules:
             raise gl.UserError("Evaluation failed")
         eval_result = json.loads(raw)
 
-        # Store case resolution record
+        # Create revision record (immutable link)
+        revision_id = self._next_revision_id()
+        revision_record = {
+            "revision_id": revision_id,
+            "case_id": clean_case_id,
+            "evaluation_id": evaluation_id,
+            "revision_type": "initial",
+            "parent_revision": "",
+            "evidence_json": self._normalize_evidence_text(evidence_json),
+            "disagreements": self._parse_disagreements(disagreements_json),
+            "decision": eval_result["decision"],
+            "score": eval_result["score"],
+            "confidence": eval_result["confidence"],
+            "reason": eval_result["reason"],
+            "author": str(gl.message.sender_address),
+        }
+        self.revisions[revision_id] = json.dumps(revision_record)
+        self.revision_count = int(self.revision_count) + 1
+
+        # Store case resolution record with revision link
         case_record = {
             "case_id": clean_case_id,
             "evaluation_id": evaluation_id,
+            "current_revision": revision_id,
+            "revision_chain": [revision_id],
             "decision": eval_result["decision"],
             "score": eval_result["score"],
             "confidence": eval_result["confidence"],
             "reason": eval_result["reason"],
             "resolved_by": str(gl.message.sender_address),
+            "appeal_count": 0,
         }
         self.cases[clean_case_id] = json.dumps(case_record)
         self.case_count = int(self.case_count) + 1
+
+        return evaluation_id
+
+    @gl.public.write
+    def appeal_case(
+        self,
+        case_id: str,
+        policy_id: str,
+        subject: str,
+        counter_evidence_json: str,
+        reference_urls_json: str = "[]",
+        disagreements_json: str = "[]",
+    ) -> str:
+        """Appeal an existing case: create new revision linked to parent."""
+        clean_case_id = case_id.strip()
+        raw = self.cases.get(clean_case_id)
+        if raw is None:
+            raise gl.UserError("CASE_NOT_FOUND")
+        parent_case = json.loads(raw)
+
+        # Run new evaluation with counter-evidence
+        evaluation_id = self.evaluate(
+            policy_id, subject, counter_evidence_json, reference_urls_json, disagreements_json
+        )
+
+        eval_raw = self.evaluations.get(evaluation_id)
+        if eval_raw is None:
+            raise gl.UserError("Evaluation failed")
+        eval_result = json.loads(eval_raw)
+
+        # Create new revision linked to parent
+        parent_revision = parent_case.get("current_revision", "")
+        revision_id = self._next_revision_id()
+        revision_record = {
+            "revision_id": revision_id,
+            "case_id": clean_case_id,
+            "evaluation_id": evaluation_id,
+            "revision_type": "appeal",
+            "parent_revision": parent_revision,
+            "evidence_json": self._normalize_evidence_text(counter_evidence_json),
+            "disagreements": self._parse_disagreements(disagreements_json),
+            "decision": eval_result["decision"],
+            "score": eval_result["score"],
+            "confidence": eval_result["confidence"],
+            "reason": eval_result["reason"],
+            "author": str(gl.message.sender_address),
+        }
+        self.revisions[revision_id] = json.dumps(revision_record)
+        self.revision_count = int(self.revision_count) + 1
+
+        # Update case with new revision
+        chain = parent_case.get("revision_chain", [])
+        chain.append(revision_id)
+        parent_case["current_revision"] = revision_id
+        parent_case["revision_chain"] = chain
+        parent_case["decision"] = eval_result["decision"]
+        parent_case["score"] = eval_result["score"]
+        parent_case["confidence"] = eval_result["confidence"]
+        parent_case["reason"] = eval_result["reason"]
+        parent_case["appeal_count"] = int(parent_case.get("appeal_count", 0)) + 1
+        self.cases[clean_case_id] = json.dumps(parent_case)
 
         return evaluation_id
 
@@ -417,9 +508,29 @@ Rules:
         return self.cases.get(case_id) or ""
 
     @gl.public.view
+    def get_revision(self, revision_id: str) -> str:
+        return self.revisions.get(revision_id) or ""
+
+    @gl.public.view
+    def get_revision_chain(self, case_id: str) -> str:
+        """Return the full revision chain for a case."""
+        raw = self.cases.get(case_id)
+        if raw is None:
+            return json.dumps([])
+        case = json.loads(raw)
+        chain = case.get("revision_chain", [])
+        revisions = []
+        for rid in chain:
+            rev_raw = self.revisions.get(rid)
+            if rev_raw:
+                revisions.append(json.loads(rev_raw))
+        return json.dumps(revisions)
+
+    @gl.public.view
     def get_counts(self) -> str:
         return json.dumps({
             "policy_count": int(self.policy_count),
             "evaluation_count": int(self.evaluation_count),
             "case_count": int(self.case_count),
+            "revision_count": int(self.revision_count),
         })
